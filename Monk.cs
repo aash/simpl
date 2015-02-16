@@ -57,19 +57,19 @@ namespace Simcraft
                     buff[TIGEREYE_ACTV].down && chi >= 2 && (buff[TIGEREYE_PASV].Stack >= 16 || target.time_to_die < 40) &&
                     debuff[Rising_Sun_Kick].Up && buff[Tiger_Power].up);
             actions += Cast(Rising_Sun_Kick,
-                ret => (debuff[Rising_Sun_Kick].down || debuff[Rising_Sun_Kick].Remains < 3));
+                ret => (debuff[Rising_Sun_Kick].down || debuff[Rising_Sun_Kick].remains < 3));
             actions += Cast(Serenity,
                 ret => cooldowns_enabled && (chi >= 2 && buff[Tiger_Power].up && debuff[Rising_Sun_Kick].Up));
             actions += Cast(Fists_of_Fury,
                 ret =>
-                    buff[Tiger_Power].remains > channel_time && debuff[Rising_Sun_Kick].Remains > channel_time &&
+                    buff[Tiger_Power].remains > channel_time && debuff[Rising_Sun_Kick].remains > channel_time &&
                     !buff[Serenity].up);
             //actions+=/fortifying_brew,if=target.health.percent<10&cooldown.touch_of_death.remains=0&(glyph.touch_of_death.enabled|chi>=3)
             actions += Cast(Touch_of_Death, ret => cooldowns_enabled && target.health.pct < 10);
             actions += Cast(Hurricane_Strike,
                 ret =>
                     cooldowns_enabled && energy.time_to_max > channel_time && buff[Tiger_Power].remains > channel_time &&
-                    debuff[Rising_Sun_Kick].Remains > channel_time && buff[Energizing_Brew].down);
+                    debuff[Rising_Sun_Kick].remains > channel_time && buff[Energizing_Brew].down);
             actions += Cast(Energizing_Brew,
                 ret =>
                     cooldowns_enabled && cooldown[Fists_of_Fury].remains > 6 &&
@@ -90,7 +90,7 @@ namespace Simcraft
             actions.opener += Cast(Arcane_Torrent, ret => buff[TIGEREYE_ACTV].up && chi.Max - chi >= 1);
             actions.opener += Cast(Fists_of_Fury,
                 ret =>
-                    buff[Tiger_Power].remains > channel_time && debuff[Rising_Sun_Kick].Remains > channel_time &&
+                    buff[Tiger_Power].remains > channel_time && debuff[Rising_Sun_Kick].remains > channel_time &&
                     buff[Serenity].up && buff[Serenity].remains < 1.5);
             actions.opener += Cast(Tiger_Palm, ret => buff[Tiger_Power].remains < 2);
             actions.opener += Cast(Rising_Sun_Kick, ret => true);

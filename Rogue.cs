@@ -24,20 +24,20 @@ namespace Simcraft
             actions += PoolResource(Shadow_Dance, pool => cooldown[Shadow_Dance].up && energy < 50,
                 ret =>
                     cooldowns_enabled &&
-                    (buff[Stealth].down && buff[Vanish].down && debuff[Find_Weakness].Remains < 2 ||
+                    (buff[Stealth].down && buff[Vanish].down && debuff[Find_Weakness].remains < 2 ||
                      (buff[Bloodlust].up && (dot[Hemorrhage].Ticking || dot[Garrote].Ticking || dot[Rupture].Ticking))));
             actions += PoolResource(Vanish, pool => cooldown[Vanish].up && energy < 50,
                 ret =>
                     cooldowns_enabled &&
                     (talent[Shadow_Focus].enabled &&
                      (combo_points < 4 || (talent[Anticipation].enabled && combo_points + anticipation_charges < 9)) &&
-                     buff[Shadow_Dance].down && buff[Master_of_Subtlety].down && debuff[Find_Weakness].Remains < 2));
+                     buff[Shadow_Dance].down && buff[Master_of_Subtlety].down && debuff[Find_Weakness].remains < 2));
             actions += PoolResource(Vanish, pool => cooldown[Vanish].up && energy < 90,
                 ret =>
                     cooldowns_enabled &&
                     (talent[Subterfuge].enabled &&
                      (combo_points < 4 || (talent[Anticipation].enabled && combo_points + anticipation_charges < 9)) &&
-                     buff[Shadow_Dance].down && buff[Master_of_Subtlety].down && debuff[Find_Weakness].Remains < 2));
+                     buff[Shadow_Dance].down && buff[Master_of_Subtlety].down && debuff[Find_Weakness].remains < 2));
             actions += Cast(Marked_for_Death, ret => combo_points == 0);
             actions += CallActionList("finisher", ret => combo_points == 5);
             actions += CallActionList("generator",
@@ -54,8 +54,8 @@ namespace Simcraft
             actions.generator += Cast(Fan_of_Knives, ret => active_enemies > 1 && aoe_enabled);
             actions.generator += Cast(Hemorrhage,
                 ret =>
-                    (debuff[Hemorrhage].Remains < 7.2 && target.time_to_die >= debuff[Hemorrhage].Remains + 24 + 8 &&
-                     debuff[Find_Weakness].down) || !Ticking || position_front);
+                    (debuff[Hemorrhage].remains < 7.2 && target.time_to_die >= debuff[Hemorrhage].remains + 24 + 8 &&
+                     debuff[Find_Weakness].down) || !ticking || position_front);
             actions.generator += Cast(Backstab,
                 ret =>
                     !position_front && !talent[Death_from_Above].enabled || energy >= energy.GetMax - energy.Regen ||
@@ -65,9 +65,9 @@ namespace Simcraft
             actions.finisher += CycleTargets(Rupture,
                 ret =>
                     melee_range && facing &&
-                    ((dot[Rupture].Remains < 8) && active_enemies <= 8 &&
+                    ((dot[Rupture].remains < 8) && active_enemies <= 8 &&
                      (cooldown[Death_from_Above].remains > 0 || !talent[Death_from_Above].enabled) ||
-                     (buff[Shadow_Reflection].remains > 8 && dot[Rupture].Remains < 12 &&
+                     (buff[Shadow_Reflection].remains > 8 && dot[Rupture].remains < 12 &&
                       buff[Shadow_Reflection].remains < 10)) && target.time_to_die >= 8);
             actions.finisher += Cast(Slice_and_Dice,
                 ret => (buff[Slice_and_Dice].remains < 10.8) & buff[Slice_and_Dice].remains < target.time_to_die);
@@ -99,7 +99,7 @@ namespace Simcraft
 
             actions.killing_spree += Cast(Killing_Spree, ret => cooldowns_enabled);
 
-            actions.generator += Cast(Revealing_Strike,ret =>(combo_points == 4 && dot[Revealing_Strike].Remains < 7.2 &&(target.time_to_die > dot[Revealing_Strike].Remains + 7.2)) || !Ticking);
+            actions.generator += Cast(Revealing_Strike,ret =>(combo_points == 4 && dot[Revealing_Strike].remains < 7.2 &&(target.time_to_die > dot[Revealing_Strike].remains + 7.2)) || !ticking);
             actions.generator += Cast(Sinister_Strike, ret => dot[Revealing_Strike].Ticking);
 
             actions.finisher += Cast(Death_from_Above);

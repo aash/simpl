@@ -148,8 +148,6 @@ namespace Simcraft
                     clickUnit = null;
                 }
 
-                
-
 
                 iterationCounter++;
                 UpdateLimiters();
@@ -184,20 +182,21 @@ namespace Simcraft
                     Logging.Write("Override Spell Cast, disabling");
                     OverrideSpell.Enabled = false;
                 }
-                if (talent[Focusing_Shot].enabled) return;
-
-                if (LastSpellCast.Equals(Cobra_Shot) || LastSpellCast.Equals(Focusing_Shot))
+                if (Me.Specialization == WoWSpec.HunterSurvival && !talent[Focusing_Shot].enabled)
                 {
-                    BuffProxy.cShots++;
-                    if (BuffProxy.cShots == 2)
+                    if (LastSpellCast.Equals(Cobra_Shot) || LastSpellCast.Equals(Focusing_Shot))
+                    {
+                        BuffProxy.cShots++;
+                        if (BuffProxy.cShots == 2)
+                        {
+                            BuffProxy.cShots = 0;
+                            Logging.Write(DateTime.Now + ": Steady Shots!");
+                        }
+                    }
+                    if (CobraReset.Contains(LastSpellCast) && BuffProxy.cShots > 0)
                     {
                         BuffProxy.cShots = 0;
-                        Logging.Write(DateTime.Now + ": Steady Shots!");
-                    }
-                }
-                if (CobraReset.Contains(LastSpellCast) && BuffProxy.cShots > 0)
-                {
-                    BuffProxy.cShots = 0;
+                    }                   
                 }
             }
         }
@@ -276,14 +275,15 @@ namespace Simcraft
                 SimCSettings.currentSettings.Aoe.mod,
                 hk =>
                 {
-                    Lua.DoString("if _G[\"kane_aoe\"] == true then _G[\"kane_aoe\"] = nil; else _G[\"kane_aoe\"] = true; end");
+                    
+                    Lua.DoString("if _G[\"kane_aoe\"] == true then _G[\"kane_aoe\"] = nil; print('AOE enabled'); else _G[\"kane_aoe\"] = true; print('AOE disabled') end");
                 });
             HotkeysManager.Register("Simcraft Cooldowns",
                 SimCSettings.currentSettings.Cooldowns.key,
                 SimCSettings.currentSettings.Cooldowns.mod,
                 hk =>
                 {
-                    Lua.DoString("if _G[\"kane_cds\"] == true then _G[\"kane_cds\"] = nil; else _G[\"kane_cds\"] = true; end");
+                    Lua.DoString("if _G[\"kane_cds\"] == true then _G[\"kane_cds\"] = nil; print('Cds enabled') else _G[\"kane_cds\"] = true; print('Cds disabled') end");
                 });
         }
 

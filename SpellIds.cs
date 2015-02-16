@@ -163,7 +163,7 @@ namespace Simcraft
         public String Chaos_Bolt = "Chaos Bolt";
         public String Charge = "Charge";
         public String Charging_Ox_Wave = "Charging Ox Wave";
-        public String Charred_Remains = "Charred Remains";
+        public String Charred_Remains = "Charred remains";
         public String Cheap_Shot = "Cheap Shot";
         public String Cheat_Death = "Cheat Death";
         public String Chi_Brew = "Chi Brew";

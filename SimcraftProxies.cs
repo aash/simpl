@@ -63,7 +63,9 @@ namespace Simcraft
         public class ActionProxy : DynamicObject
         {
             private readonly Dictionary<string, object> itemsByName = new Dictionary<string, object>();
-            public PrioritySelector Selector = new PrioritySelector();
+            public ActionImpl Selector = new ActionImpl("base");
+
+            
 
             public ActionImpl this[String name]
             {
@@ -254,7 +256,7 @@ namespace Simcraft
                     }
                 }
 
-                public bool React
+                public bool react
                 {
                     get { return remains > 0.1; }
                 }
@@ -602,7 +604,7 @@ namespace Simcraft
                     }
                 }
 
-                public double Remains
+                public double remains
                 {
                     get
                     {

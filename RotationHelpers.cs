@@ -41,7 +41,7 @@ namespace Simcraft
                               _class == WoWClass.Warlock ||
                               (_class == WoWClass.Druid && StyxWoW.Me.Specialization == WoWSpec.DruidBalance));
 
-                if (ranged) return UnfriendlyUnitsNearTarget(10f);
+                if (ranged) return UnfriendlyUnitsNearTarget(8f);
                 return UnfriendlyUnitsNearMe(5f);
             }
         }
@@ -107,7 +107,7 @@ namespace Simcraft
             get { return !_cdsEnabled; }
         }
 
-        public bool Ticking
+        public bool ticking
         {
             get { return debuff[_conditionSpell].Ticking; }
         }
@@ -127,7 +127,7 @@ namespace Simcraft
             get { return spell[_conditionSpell].Charges; }
         }
 
-        public double CastRegen
+        public double cast_regen
         {
             get
             {
