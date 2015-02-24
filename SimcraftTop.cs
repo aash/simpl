@@ -263,14 +263,16 @@ namespace Simcraft
                 if (!filename.EndsWith(".simc")) continue;
                 String contents = File.ReadAllText(filename);
                 var currentApl = ActionPrioriyList.FromString(contents);
-                if (currentApl.Class != Me.Class) continue;
+                //if (currentApl.Class != Me.Class) continue;
                 
                 var code = currentApl.ToCode();
                 var classname = RandomString(10);
                 code = code.Replace("public class SimcraftRota", "public class "+classname);
 
-                //SimcraftImpl.Write(code, Colors.White, LogLevel.Diagnostic);
-
+                var old = Superlog;
+                Superlog = true;
+                SimcraftImpl.Write(code, Colors.White, LogLevel.Diagnostic);
+                Superlog = old;
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
                 Behavior attributes =

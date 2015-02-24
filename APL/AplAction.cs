@@ -148,7 +148,11 @@ namespace Simcraft
                 {
                     type = ActionParameterType.Moving;
                 }
-
+                if (code.StartsWith("five_stacks="))
+                {
+                    type = ActionParameterType.FiveStacks;
+                }
+                
                 content = code.Substring(code.IndexOf("=") + 1, code.Length - (code.IndexOf("=") + 1));
 
             }
@@ -171,6 +175,7 @@ namespace Simcraft
                 Sync,
                 Cycle,
                 Moving,
+                FiveStacks,
             }
         }
 
@@ -386,6 +391,10 @@ namespace Simcraft
             ActionParameter moving =
                 _params.FirstOrDefault(ret => ret.type == ActionParameter.ActionParameterType.Moving);
 
+
+            ActionParameter fivestacks =
+                _params.FirstOrDefault(ret => ret.type == ActionParameter.ActionParameterType.FiveStacks);
+
             bool hascondition = condition != default(ActionParameter);
 
             bool hasdamage = damage != default(ActionParameter);
@@ -408,6 +417,7 @@ namespace Simcraft
 
             bool hasmoving = moving != default(ActionParameter);
 
+            bool hasfivestacks = fivestacks != default(ActionParameter);
 
             var condition_string = hascondition ? condition.content.Replace("|", "||").Replace("&", "&&") : "";
             condition_string = condition_string.ToLower();
@@ -494,14 +504,20 @@ namespace Simcraft
                         prefix += "//";
                     }
                     __code = comments(indent) + "" + prefix + "simc.actions" + (apl == "default" ? "" : "[\"" + apl + "\"]") +
-                        (hascycle ? " += simc.CycleTargets(\"" : (hasmoving ? " += simc.MovingCast(\"" : " += simc.Cast(\"")) + action + "\"" +
-                             (hascondition
-                                 ? ", _if => (" + condition_string +
+                        (hascycle ? " += simc.CycleTargets(\"" : (hasmoving ? " += simc.MovingCast(\"" : " += simc.Cast(\"")) + action + "\"" + ", _if => (" +
+                             (hascondition 
+                                 ? condition_string +
                                    (haslinecd ? " && simc.line_cd(" + linecd.content + ")" : "") +
                                    (hassync ? " && simc.sync(\"" + sync.content + "\")" : "")+
-                                   (hasmoving ? " && simc.moving" : "")
+                                   (hasmoving ? " && simc.moving" : "")+
+                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "")
                                    + ")"
-                                 : "") +
+                                 : "true"+
+                                   (haslinecd ? " && simc.line_cd(" + linecd.content + ")" : "") +
+                                   (hassync ? " && simc.sync(\"" + sync.content + "\")" : "") +
+                                   (hasmoving ? " && simc.moving" : "") +
+                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "")
+                                   + ")") +
                              (hastarget ? ",simc.Target" + target.content : "") +
                              ",\""+condition_string+"\""+
                              ");";
