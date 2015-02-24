@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using Styx;
 using Styx.Common;
 
 namespace Simcraft
@@ -109,6 +110,12 @@ namespace Simcraft
         private void button2_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SimcraftImpl.inst.Specialisation = WoWSpec.None;
+            SimcraftImpl.inst.ContextChange(null, null);
         }
     }
 }

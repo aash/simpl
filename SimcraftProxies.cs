@@ -5,15 +5,22 @@
 #region System
 
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using System.Security.Permissions;
+using System.Text.RegularExpressions;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using Bots.DungeonBuddy.Helpers;
+using JetBrains.Annotations;
 using Styx;
 using Styx.Common;
 using Styx.CommonBot;
+using Styx.Helpers;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
@@ -23,8 +30,182 @@ using Action = Styx.TreeSharp.Action;
 
 namespace Simcraft
 {
+
     public partial class SimcraftImpl
     {
+
+        public class SetBonusProxy : DynamicObject
+        {
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                result = false;
+                try
+                {
+                    var n = binder.Name;
+                    var splits = n.Split('_');
+                    var set = dbc.Sets[splits[0]];
+
+                    int count = 0;
+                    foreach (var it in Me.Inventory.Equipped.Items)
+                    {
+                        if (it == null) continue;
+                        
+                        var i = (int) it.ItemInfo.Id;
+                                       
+                        if (set.Contains(i)) count++;
+                    }
+                    //Logging.Write(splits[1]+" "+count);
+                    result = (Convert.ToInt32(splits[1][0]) <= count);
+                    //SimcraftImpl.Write(""+result);
+                }
+                catch (Exception e)
+                {
+                    //SimcraftImpl.Write(e.ToString());
+                    result = false;
+                    return true;
+                }
+                return true;
+            }
+        }
+
+        public class DiseaseProxy
+        {
+
+            public bool max_ticking
+            {
+                get
+                {
+                    bool default_value = true;
+                    bool ret = default_value;
+
+                    var val =  simc.debuff["Blood Plague"].ticking;
+                    if (val && !simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Frost Fever"].ticking;
+                    if (val && !!simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Necrotic Plague"].ticking;
+                    if (val && simc.talent.necrotic_plague.enabled)
+                        ret = val;
+
+                    if (ret == default_value)
+                        ret = false;
+
+                    return ret;
+                }
+            }
+
+            public bool min_ticking
+            {
+                get
+                {
+                    bool default_value = true;
+                    bool ret = default_value;
+                    var val = simc.debuff["Blood Plague"].ticking;
+                    if (!val && !simc.talent.necrotic_plague.enabled)
+                        return val;
+                    val = simc.debuff["Frost Fever"].ticking;
+                    if (!val && !simc.talent.necrotic_plague.enabled)
+                        return val;
+                    val = simc.debuff["Necrotic Plague"].ticking;
+                    if (!val && simc.talent.necrotic_plague.enabled)
+                        return val;
+
+                    if (ret == default_value)
+                        ret = false;
+
+                    return ret;
+                }
+            }
+
+            /*
+            if ( np_expr )
+            {
+              double val = np_expr -> eval();
+              if ( type == TYPE_NONE && val != 0 )
+                return val;
+              else if ( type == TYPE_MIN && val < ret )
+                ret = val;
+              else if ( type == TYPE_MAX && val > ret )
+                ret = val;
+            }
+            */
+            public double min_remains
+            {
+                get
+                {
+                    var default_value = double.MaxValue;
+                    var ret = default_value;
+           
+                    var val = simc.debuff["Blood Plague"].remains;
+                    if (val < ret && !simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Frost Fever"].remains;
+                    if (val < ret && !simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Necrotic Plague"].remains;
+                    if (val < ret && simc.talent.necrotic_plague.enabled)
+                        ret = val;
+
+                    if (ret == default_value)
+                        ret = 0;
+
+                    return ret;
+                }
+            }
+
+            public double max_remains
+            {
+                get
+                {
+                    var default_value = double.MinValue;
+                    var ret = default_value;
+
+                    var val = simc.debuff["Blood Plague"].remains;
+                    if (val > ret && !simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Frost Fever"].remains;
+                    if (val > ret && !simc.talent.necrotic_plague.enabled)
+                        ret = val;
+                    val = simc.debuff["Necrotic Plague"].remains;
+                    if (val > ret && simc.talent.necrotic_plague.enabled)
+                        ret = val;
+
+                    if (ret == default_value)
+                        ret = 0;
+
+                    return ret;
+                }
+            }
+
+            public bool ticking
+            {
+                get
+                {
+                    var val = simc.debuff["Blood Plague"].ticking;
+                    if (val)
+                        return val;
+                    val = simc.debuff["Frost Fever"].ticking;
+                    if (val)
+                        return val;
+                    val = simc.debuff["Necrotic Plague"].ticking;
+                    if (val)
+                        return val;
+
+                    return false;
+                }           
+            }
+
+            private SimcraftImpl simc;
+
+            public DiseaseProxy(SimcraftImpl simc)
+            {
+                this.simc = simc;
+            }
+
+        }
+
         public class CacheInternal
         {
             protected Dictionary<WoWGuid, ProxyCacheEntry> _cache = new Dictionary<WoWGuid, ProxyCacheEntry>();
@@ -60,12 +241,179 @@ namespace Simcraft
             }
         }
 
+        public class StatProxy
+        {
+
+
+            public double crit
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.CritMelee); }
+            }
+
+            public double haste
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.HasteMelee); }
+            }
+
+            public double mastery
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.Mastery); }
+            }
+
+            public double bonusarmor
+            {
+                //unfi
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.CritMelee); }
+            }
+
+
+            public double multistrike
+            {
+                //Unfi
+                get { return Lua.GetReturnVal<int>("return GetCombatRating(CR_MULTISTRIKE);", 0); }
+            }
+
+            public double spellpower
+            {
+                get { return Lua.GetReturnVal<int>("spellDmg = GetSpellBonusDamage(3); return spellDmg;",0); }
+            }
+
+            public double dodge
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.Dodge); }
+            }
+
+            public double parry
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.Parry); }
+            }
+
+            public double block
+            {
+                get { return Me.GetCombatRating(WoWPlayerCombatRating.Block); }
+            }
+
+
+            public double spell_haste
+            {
+                get
+                {
+                    return Lua.GetReturnVal<double>("return UnitSpellHaste(\"player\")", 0);
+                }
+            }
+
+            public double multistrike_pct
+            {
+                get
+                {
+                    return Lua.GetReturnVal<double>("return GetMultistrike()", 0);
+                }
+            }
+
+            public double mastery_value
+            {
+                get { return Lua.GetReturnVal<double>("mastery, coefficient = GetMasteryEffect(); return mastery", 0); }
+            }
+
+
+        }
+
+        public class Superbool
+        {
+            protected bool Equals(Superbool other)
+            {
+                return native.Equals(other.native);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((Superbool) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return native.GetHashCode();
+            }
+
+            private bool native;
+
+            public Superbool(bool n)
+            {
+                native = n;
+            }
+
+            public static double operator *(Superbool op1, int op2)
+            {
+                return (op1.native ? 1 : 0) * op2;
+            }
+
+            public static double operator *(int op1, Superbool op2)
+            {
+                return op1 * (op2.native ? 1 : 0);
+            }
+
+            public static double operator +(Superbool op1, Superbool op2)
+            {
+                return (op1.native ? 1 : 0) + (op2.native ? 1 : 0);
+            }
+
+            public static Superbool operator !(Superbool op1)
+            {
+                return new Superbool(!op1.native);
+            }
+
+
+            public static bool operator ==(Superbool op1, int op2)
+            {
+                return (op1.native ? 1 : 0) == op2;
+            }
+            public static bool operator !=(Superbool op1, int op2)
+            {
+                return (op1.native ? 1 : 0) == op2;
+            }
+
+            public static bool operator ==(int op1, Superbool op2)
+            {
+                return op1 == (op2.native ? 1 : 0);
+            }
+            public static bool operator !=(int op1, Superbool op2)
+            {
+                return op1 == (op2.native ? 1 : 0);
+            }
+
+            public static bool operator ==(Superbool op1, Superbool op2)
+            {
+                return op1.native == op2.native;
+            }
+            public static bool operator !=(Superbool op1, Superbool op2)
+            {
+                return op1.native == op2.native;
+            }
+
+            static public implicit operator bool(Superbool binary)
+            {
+                return binary.native;
+            }
+
+        }
+
         public class ActionProxy : DynamicObject
         {
             private readonly Dictionary<string, object> itemsByName = new Dictionary<string, object>();
             public ActionImpl Selector = new ActionImpl("base");
 
-            
+            public override string ToString()
+            {
+                var str = "";
+                foreach (var item in itemsByName)
+                {
+                    str += item.ToString();
+                }
+                return str;
+            }
 
             public ActionImpl this[String name]
             {
@@ -89,24 +437,12 @@ namespace Simcraft
                 // Converting the property name to lowercase 
                 // so that property names become case-insensitive. 
                 var name = binder.Name.ToLower();
+                 
+                if (!itemsByName.ContainsKey(name))
+                    itemsByName[name] = new ActionImpl(name);
 
-                // If the property name is found in a dictionary, 
-                // set the result parameter to the property value and return true. 
-                // Otherwise, return false. 
-                return itemsByName.TryGetValue(name, out result);
-            }
+                result = itemsByName[name];
 
-            // If you try to set a value of a property that is 
-            // not defined in the class, this method is called. 
-            public override bool TrySetMember(
-                SetMemberBinder binder, object value)
-            {
-                // Converting the property name to lowercase 
-                // so that property names become case-insensitive.
-                itemsByName[binder.Name.ToLower()] = value;
-
-                // You can always add a value to a dictionary, 
-                // so this method always returns true. 
                 return true;
             }
 
@@ -118,44 +454,463 @@ namespace Simcraft
 
             public class ActionImpl : PrioritySelector
             {
+                public override RunStatus Tick(object context)
+                {
+                    try
+                    {
+                        return base.Tick(context);
+                    }
+                    catch (Exception e)
+                    {
+                        Write(e.ToString());
+                    }
+                    return RunStatus.Failure;
+                    
+                }
+
                 public static String oocapl = "out_of_combat";
-                public PrioritySelector Content = new PrioritySelector();
-                private PrioritySelector End = new PrioritySelector();
-                private PrioritySelector Enter = new PrioritySelector();
+                public static String current_apl = oocapl;
                 private String name;
+                private String oldapl;
+
+                private PrioritySelector head = new PrioritySelector();
+                private PrioritySelector body = new PrioritySelector();
+                private PrioritySelector foot = new PrioritySelector();
 
                 public ActionImpl(String name)
                 {
                     this.name = name;
-                    AddChild(new Action(delegate
-                    {
-                        //Logging.Write(DateTime.Now + ": Entering " + name+ " "+Children.Count);
-                        Lua.DoString("_G[\"apl\"] = \"" + name.Replace("_", " ") + "\";");
+                    head.AddChild(new Action(delegate
+                    {                    
+                        oldapl = current_apl;
+                        current_apl = name;
+                        Lua.DoString("_G[\"apl\"] = \"" + current_apl + "\";");
+
                         if (name.Equals(oocapl)) ooc = DateTime.Now;
                         return RunStatus.Failure;
                     }));
-                    //AddChild(Content);
+
+                    foot.AddChild(new Action(delegate
+                    {
+                        Lua.DoString("_G[\"apl\"] = \"" + oldapl + "\";");
+                        current_apl = oldapl;
+                        
+                        //SimcraftImpl.Write(oldapl);
+                        return RunStatus.Failure;
+                    }));
+
+                    AddChild(head);
+                    AddChild(body);
+                    AddChild(foot);
                     //AddChild(new Action(delegate {  }));
+                }
+
+                public void Add(Composite h1)
+                {
+                    body.AddChild(h1);
                 }
 
                 public static ActionImpl operator +(ActionImpl h1, Composite val)
                 {
-                    h1.AddChild(val);
+                    h1.body.AddChild(val);
                     return h1;
                 }
             }
         }
 
+
+
+        public class MagicDouble
+        {
+            protected bool Equals(MagicDouble other)
+            {
+                return boxee.Equals(other.boxee);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((MagicDouble) obj);
+            }
+
+            public double nat
+            {
+                get { return boxee; }
+            }
+
+            public double max
+            {
+                get
+                {
+                    return boxee;
+                }
+            }
+
+            public override int GetHashCode()
+            {
+                return boxee.GetHashCode();
+            }
+
+            public MagicDouble(double v)
+            {
+                boxee = v;
+            }
+            protected double boxee;
+
+
+            //MagicDouble Operators - Both Magic Double
+            public static bool operator <(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee < op2.boxee;
+            }
+
+            public static bool operator >(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee > op2.boxee;
+            }
+
+            public static bool operator <=(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee <= op2.boxee;
+            }
+
+            public static bool operator >=(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee >= op2.boxee;
+            }
+
+            public static bool operator !=(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee != op2.boxee;
+            }
+
+            public static bool operator ==(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee == op2.boxee;
+            }
+
+            public static double operator -(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee - op2.boxee;
+            }
+
+            public static double operator +(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee + op2.boxee;
+            }
+
+            public static double operator *(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee * op2.boxee;
+            }
+
+            public static double operator /(MagicDouble op1, MagicDouble op2)
+            {
+                return op1.boxee / op2.boxee;
+            }
+
+            //MagicDouble Operators - Magic , normal
+            public static bool operator <(MagicDouble op1, double op2)
+            {
+                return op1.boxee < op2;
+            }
+
+            public static bool operator >(MagicDouble op1, double op2)
+            {
+                return op1.boxee > op2;
+            }
+
+            public static bool operator <=(MagicDouble op1, double op2)
+            {
+                return op1.boxee <= op2;
+            }
+
+            public static bool operator >=(MagicDouble op1, double op2)
+            {
+                return op1.boxee >= op2;
+            }
+
+            public static bool operator !=(MagicDouble op1, double op2)
+            {
+                return op1.boxee != op2;
+            }
+
+            public static bool operator ==(MagicDouble op1, double op2)
+            {
+                return op1.boxee == op2;
+            }
+
+            public static double operator -(MagicDouble op1, double op2)
+            {
+                return op1.boxee - op2;
+            }
+
+            public static double operator +(MagicDouble op1, double op2)
+            {
+                return op1.boxee + op2;
+            }
+
+            public static double operator *(MagicDouble op1, double op2)
+            {
+                return op1.boxee * op2;
+            }
+
+            public static double operator /(MagicDouble op1, double op2)
+            {
+                return op1.boxee / op2;
+            }
+
+            //MagicDouble Operators - Normal, Magic
+            public static bool operator <(double op1, MagicDouble op2)
+            {
+                return op1 < op2.boxee;
+            }
+
+            public static bool operator >(double op1, MagicDouble op2)
+            {
+                return op1 > op2.boxee;
+            }
+
+            public static bool operator <=(double op1, MagicDouble op2)
+            {
+                return op1 <= op2.boxee;
+            }
+
+            public static bool operator >=(double op1, MagicDouble op2)
+            {
+                return op1 >= op2.boxee;
+            }
+
+            public static bool operator !=(double op1, MagicDouble op2)
+            {
+                return op1 != op2.boxee;
+            }
+
+            public static bool operator ==(double op1, MagicDouble op2)
+            {
+                return op1 == op2.boxee;
+            }
+
+            public static double operator -(double op1, MagicDouble op2)
+            {
+                return op1 - op2.boxee;
+            }
+
+            public static double operator +(double op1, MagicDouble op2)
+            {
+                return op1 + op2.boxee;
+            }
+
+            public static double operator *(double op1, MagicDouble op2)
+            {
+                return op1 * op2.boxee;
+            }
+
+            public static double operator /(double op1, MagicDouble op2)
+            {
+                return op1 / op2.boxee;
+            }
+
+            public static implicit operator bool(MagicDouble d)
+            {
+                return d.boxee >= 0;
+            }
+
+            public static implicit operator double(MagicDouble d)
+            {
+                return d.boxee;
+            }
+
+        }
+
         public class BuffProxy : Proxy
         {
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.Spells);
+                _resolvePriority.Add(dbc.ClassSpells);
+            }
+
+            public override CacheInternal NewInternal(string name)
+            {
+                return new BuffInternal(name);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                 return  new BuffInternal(name);
+            }
+
             public static int cShots;
-            private readonly Dictionary<int, BuffInternal> itemsById = new Dictionary<int, BuffInternal>();
-            private readonly Dictionary<string, BuffInternal> itemsByName = new Dictionary<string, BuffInternal>();
 
             public BuffProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
+                overrides["pre_steady_focus"] = new PreSteadyFocus();
+                overrides["bloodlust"] = new Bloodlust(simc);
+                overrides["potion"] = new Potion(simc);
+                overrides["anytrinket"] = new AnyTrinket(simc);
+               
             }
+
+            public IncantersFlow incanters_flow = new IncantersFlow("incanters_flow");
+
+            public class IncantersFlow : BuffInternal
+            {
+                private int oldstack = 0;
+                public int dir = 1;
+                public IncantersFlow(string name) : base(name)
+                {
+                }
+
+                public override int stack
+                {
+                    get
+                    {
+                        var bstack = base.stack;
+                        if (oldstack < bstack) dir = 1;
+                            else if (oldstack > bstack)  dir = -1;
+                        oldstack = bstack;
+                        return bstack;
+                    }
+                }
+            }
+
+            public class PreSteadyFocus : BuffInternal
+            {
+                public PreSteadyFocus() : base("pre_steady_focus")
+                {
+                }
+
+                public override Superbool up
+                {
+                    get { return new Superbool(cShots == 1); }
+                }
+            }
+
+            public class Potion : BuffInternal
+            {
+                private SimcraftImpl simc;
+
+                public Potion(SimcraftImpl simc)
+                    : base("potion")
+                {
+                    this.simc = simc;
+                }
+
+                public override Superbool up
+                {
+                    get { return new Superbool(simc.buff[simc.PotionName].up); }
+                } 
+            }
+
+            public class AnyTrinket : BuffInternal
+            {
+                private SimcraftImpl simc;
+
+                public AnyTrinket(SimcraftImpl simc)
+                    : base("anytrinket")
+                {
+                    this.simc = simc;
+                }
+
+                public List<String> get_procs
+                {
+                    get
+                    {
+                        List<String> procs = new List<string>();
+
+                        var t1 = Me.Inventory.GetItemBySlot((uint)WoWEquipSlot.Trinket1);
+                        var t2 = Me.Inventory.GetItemBySlot((uint)WoWEquipSlot.Trinket2);
+
+                        if (dbc.ItemProcs.ContainsKey((int)t2.ItemInfo.Id))
+                        {
+                            procs.Add(dbc.ItemProcs[(int)t2.ItemInfo.Id]);
+                        }
+                        if (dbc.ItemProcs.ContainsKey((int)t1.ItemInfo.Id))
+                        {
+                            procs.Add(dbc.ItemProcs[(int)t1.ItemInfo.Id]);
+                        }
+                        return procs;
+                    }
+                } 
+
+                public override Superbool up
+                {
+                    get
+                    {
+                        foreach (var proc in get_procs)
+                        {
+                            if (simc.buff[DBGetSpell(proc)].up) return up;
+                        }
+                        return new Superbool(false); 
+                    }
+                }
+
+                public override MagicDouble remains
+                {
+                    get
+                    {
+                        double dur = Double.MinValue;
+                        foreach (var proc in get_procs)
+                        {
+                            var r = simc.buff[DBGetSpell(proc)].remains;
+                            if (dur < r) dur = r;
+                        }
+                        return new MagicDouble(dur);
+                    }
+                }
+
+                public override int stack
+                {
+                    get
+                    {
+                        int dur = int.MinValue;
+                        foreach (var proc in get_procs)
+                        {
+                            var r = simc.buff[DBGetSpell(proc)].Stack;
+                            if (dur < r) dur = r;
+                        }
+                        return dur;
+                    }
+
+
+                }
+
+            }
+
+
+
+            public class Bloodlust : BuffInternal
+            {
+                private SimcraftImpl simc;
+
+                public Bloodlust(SimcraftImpl simc)
+                    : base("bloodlust")
+                {
+                    this.simc = simc;
+                }
+
+                public override Superbool up
+                {
+                    get { return new Superbool(simc.buff["Heroism"].up || simc.buff["Bloodlust"].up || simc.buff["Time_Warp"].up); }
+                }
+
+                public override MagicDouble remains
+                {
+                    get
+                    {
+                        return new MagicDouble(simc.buff["Heroism"].up
+                            ? simc.buff["Heroism"].remains
+                            : simc.buff["Bloodlust"].up ? simc.buff["Bloodlust"].remains : simc.buff["Time_Warp"].up ? simc.buff["Time_Warp"].remains : 0.0);
+                    }
+                }
+
+            }
+
 
             public bool Pre_Steady_Focus
             {
@@ -167,7 +922,7 @@ namespace Simcraft
                 get
                 {
                     if (!itemsByName.ContainsKey(name)) itemsByName.Add(name, new BuffInternal(name));
-                    return itemsByName[name];
+                    return (BuffInternal)itemsByName[name];
                 }
             }
 
@@ -176,7 +931,7 @@ namespace Simcraft
                 get
                 {
                     if (!itemsById.ContainsKey(id)) itemsById.Add(id, new BuffInternal(id));
-                    return itemsById[id];
+                    return (BuffInternal)itemsById[id];
                 }
             }
 
@@ -184,7 +939,7 @@ namespace Simcraft
             {
                 private readonly string _name;
                 private readonly int spellid;
-                private double _remains;
+                private MagicDouble _remains;
                 private int _stack;
                 private bool _up;
                 private int lastIteRemains = -1;
@@ -201,12 +956,12 @@ namespace Simcraft
                     this.spellid = spellid;
                 }
 
-                public bool down
+                public virtual Superbool down
                 {
                     get { return !up; }
                 }
 
-                public bool up
+                public virtual Superbool up
                 {
                     get
                     {
@@ -222,26 +977,26 @@ namespace Simcraft
                                         spellid + "\"); return name == nil", 0);
                             lastIteUp = iterationCounter;
                         }
-                        return _up;
+                        return new Superbool(_up);
                     }
                 }
 
-                public double remains
+                public virtual MagicDouble remains
                 {
                     get
                     {
                         if (lastIteRemains + iterationCache < iterationCounter || lastIteRemains > iterationCounter)
                         {
-                            _remains = spellid == 0
+                            _remains = new MagicDouble(spellid == 0
                                 ? GetAuraTimeLeft(StyxWoW.Me.ToUnit(), _name).TotalSeconds
-                                : GetAuraTimeLeft(StyxWoW.Me.ToUnit(), spellid).TotalSeconds;
+                                : GetAuraTimeLeft(StyxWoW.Me.ToUnit(), spellid).TotalSeconds);
                             lastIteRemains = iterationCounter;
                         }
                         return _remains;
                     }
                 }
 
-                public int Stack
+                public virtual int stack
                 {
                     get
                     {
@@ -256,31 +1011,127 @@ namespace Simcraft
                     }
                 }
 
-                public bool react
+                public virtual Superbool react
                 {
-                    get { return remains > 0.1; }
+                    get { return new Superbool(remains > 0.1); }
                 }
             }
         }
 
+        public class ObliterateProxy
+        {
+            public double ready_in
+            {
+                get
+                {
+                    var t =
+                        Lua.GetReturnVal<double>(
+                            "start, duration, enabled = GetSpellCooldown('Obliterate'); t =GetTime()-start; if t < 1 then return 1-t else return 10-t end",
+                            0);
+                    if (t < 0) return 0;
+                    return t;
+                }
+            }
+        }
+
+
+        public class ItemProxy
+        {
+
+            private MagicDouble _remains;
+
+            public ItemProxy cooldown
+            {
+                get { return this; }
+            }
+
+            private WoWEquipSlot slot;
+
+            public ItemProxy(WoWEquipSlot slot)
+            {
+                this.slot = slot;
+            }
+
+            public bool Down
+            {
+                get { return !up; }
+            }
+
+            public virtual bool up
+            {
+                get
+                {
+                    return remains < 1.5;
+                }
+            }
+
+            public virtual MagicDouble remains
+            {
+                get
+                {
+                    _remains = new MagicDouble(Me.Inventory.GetItemBySlot((uint) slot).CooldownTimeLeft.TotalSeconds);
+                    return _remains;
+                }
+            }
+
+            public virtual bool React
+            {
+                get { return up; }
+            }
+        }
+
+
+
         public class CooldownProxy : Proxy
         {
-            private readonly Dictionary<int, CooldownInternal> itemsById = new Dictionary<int, CooldownInternal>();
 
-            private readonly Dictionary<string, CooldownInternal> itemsByName =
-                new Dictionary<string, CooldownInternal>();
+            public override CacheInternal NewInternal(string name)
+            {
+                return new CooldownInternal(name);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                return new CooldownInternal(name);
+            }
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.ClassSpells);
+                _resolvePriority.Add(dbc.Spells);
+                
+
+            }
 
             public CooldownProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
+                overrides["potion"] = new BuffProxy.Potion(simc);
             }
+
+            public class Potion : CooldownInternal
+            {
+                private SimcraftImpl simc;
+
+                public Potion(SimcraftImpl simc)
+                    : base("potion")
+                {
+                    this.simc = simc;
+                }
+
+                public override bool up
+                {
+                    get { return !(simc.PotionCooldown > 0); }
+                }
+            }
+
 
             public CooldownInternal this[String name]
             {
                 get
                 {
                     if (!itemsByName.ContainsKey(name)) itemsByName.Add(name, new CooldownInternal(name));
-                    return itemsByName[name];
+                    return (CooldownInternal)itemsByName[name];
                 }
             }
 
@@ -289,7 +1140,7 @@ namespace Simcraft
                 get
                 {
                     if (!itemsById.ContainsKey(id)) itemsById.Add(id, new CooldownInternal(id));
-                    return itemsById[id];
+                    return (CooldownInternal)itemsById[id];
                 }
             }
 
@@ -297,10 +1148,8 @@ namespace Simcraft
             {
                 private readonly string _name;
                 private readonly int spellid;
-                private double _remains;
-                private bool _up;
+                private MagicDouble _remains;
                 private int lastIteRemains = -1;
-                private int lastIteUp = -1;
 
                 public CooldownInternal(string name)
                 {
@@ -317,17 +1166,61 @@ namespace Simcraft
                     get { return !up; }
                 }
 
-                public bool up
+                public virtual bool up
                 {
                     get
                     {
                         return remains < 1.5;
-                        _up =
-                            spellid == 0
-                                ? !GetSpellOnCooldown(_name)
-                                : !GetSpellOnCooldownId(spellid);
-                        lastIteUp = iterationCounter;
-                        return _up;
+                    }
+                }
+
+                public virtual MagicDouble remains
+                {
+                    get
+                    {
+                        _remains = new MagicDouble(spellid == 0
+                            ? GetSpellCooldown(_name).TotalSeconds
+                            : GetSpellCooldownId(spellid).TotalSeconds);
+                        lastIteRemains = iterationCounter;
+                        return _remains;
+                    }
+                }
+
+                public virtual bool React
+                {
+                    get { return up; }
+                }
+            }
+        }
+
+        public class PetProxy : DynamicObject
+        {
+            public PetCooldownProxy cooldown = new PetCooldownProxy();
+            public PetBuffProxy buff = new PetBuffProxy();
+
+            public Dictionary<String, PetProxy> children = new Dictionary<String, PetProxy>(); 
+
+            private String name = "def";
+
+            public class ElementalTotem
+            {
+                private WoWTotemType type;
+
+                public ElementalTotem(WoWTotemType type)
+                {
+                    this.type = type;
+                }
+
+                public bool active
+                {
+                    get
+                    {
+                        foreach (var tinfo in Me.Totems)
+                        {
+                            if (!tinfo.Expired && tinfo.Type == type)
+                                return true;
+                        }
+                        return false;
                     }
                 }
 
@@ -335,25 +1228,271 @@ namespace Simcraft
                 {
                     get
                     {
-                        _remains = spellid == 0
-                            ? GetSpellCooldown(_name).TotalSeconds
-                            : GetSpellCooldownId(spellid).TotalSeconds;
-                        lastIteRemains = iterationCounter;
-                        return _remains;
+                        foreach (var tinfo in Me.Totems)
+                        {
+                            if (!tinfo.Expired && tinfo.Type == type)
+                            {
+                                var diff = (tinfo.Expires - DateTime.Now).TotalSeconds;
+                                return diff >= 0 ? diff : 0;
+                            }
+                        }
+                        return 0;
                     }
                 }
 
-                public bool React
+            }
+
+            public double remains
+            {
+                get
                 {
-                    get { return up; }
+                    foreach (var tinfo in Me.Totems)
+                    {
+                        if (Tokenize(tinfo.Name).Equals(name))
+                        {
+                            //tinfo.
+                            var diff = (tinfo.Expires - DateTime.Now).TotalSeconds;
+                            return diff >= 0 ? diff : 0;
+                        } 
+                    }
+                    if (Me.Pet != null) return 1;
+                    return 0;
                 }
+            }
+
+            public virtual bool active 
+            {
+                get { return remains > 0; }
+            }
+
+            public ElementalTotem fire = new ElementalTotem(WoWTotemType.Fire);
+            public ElementalTotem water = new ElementalTotem(WoWTotemType.Water);
+            public ElementalTotem air = new ElementalTotem(WoWTotemType.Air);
+            public ElementalTotem earth = new ElementalTotem(WoWTotemType.Earth);
+
+            public PetProxy()
+            {
+                
+            }
+
+            public PetProxy(String name)
+            {
+                this.name = name;
+            }
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                if (!children.ContainsKey(binder.Name)) 
+                    children[binder.Name] = new PetProxy(binder.Name);
+                result = children[binder.Name];
+                //result = this;
+                return true;
+            }
+
+            public class PetCooldownProxy : DynamicObject
+            {
+
+                public override bool TryGetMember(GetMemberBinder binder, out object result)
+                {
+                    result = new CooldownInternal(DBGetSpell(binder.Name).Name);
+                    return true;
+                }
+
+                public class CooldownInternal : CacheInternal
+                {
+                    private readonly string _name;
+                    private readonly int spellid;
+                    private MagicDouble _remains;
+                    private int lastIteRemains = -1;
+
+                    public CooldownInternal(string name)
+                    {
+                        _name = name;
+                    }
+
+                    public CooldownInternal(int spellid)
+                    {
+                        this.spellid = spellid;
+                    }
+
+                    public bool Down
+                    {
+                        get { return !up; }
+                    }
+
+                    public virtual bool up
+                    {
+                        get
+                        {
+                            return remains < 1.5;
+                        }
+                    }
+
+                    public virtual MagicDouble remains
+                    {
+                        get
+                        {
+                            _remains = new MagicDouble(Lua.GetReturnVal<double>("start, duration, enabled = GetSpellCooldown(\"" + _name + "\"); t =GetTime()-start; return duration-t;", 0));
+                            lastIteRemains = iterationCounter;
+                            if (_remains < 0) _remains = new MagicDouble(0);
+                            return _remains;
+                        }
+                    }
+
+                    public virtual bool React
+                    {
+                        get { return up; }
+                    }
+                }              
+            }
+
+
+
+            public class PetBuffProxy : DynamicObject
+            {
+
+                public PrismaticCrystal prismatic_crystal = new PrismaticCrystal();
+
+                public class PrismaticCrystal
+                {
+                    public bool active
+                    {
+                        get { return Me.Minions.Any(ret => ret.Name == "Prismatic Crystal"); }
+                    }
+
+                    public double remains
+                    {
+                        get
+                        {
+                            if (Me.Totems.FirstOrDefault() != default(WoWTotemInfo))
+                                return (Me.Totems.First().Expires - DateTime.Now).TotalSeconds;
+                            return 0;
+                        }
+                       
+                    }
+
+                }
+
+                public override bool TryGetMember(GetMemberBinder binder, out object result)
+                {
+                    result = new BuffInternal(DBGetSpell(binder.Name).Name);
+                    return true;
+                }
+
+
+                public class BuffInternal : CacheInternal
+                {
+                    private readonly string _name;
+                    private readonly int spellid;
+                    private MagicDouble _remains;
+                    private int _stack;
+                    private bool _up;
+                    private int lastIteRemains = -1;
+                    private int lastIteStack = -1;
+                    private int lastIteUp = -1;
+
+                    public BuffInternal(string name)
+                    {
+                        _name = name;
+                    }
+
+                    public BuffInternal(int spellid)
+                    {
+                        this.spellid = spellid;
+                    }
+
+                    public virtual bool down
+                    {
+                        get { return !up; }
+                    }
+
+                    public virtual bool up
+                    {
+                        get
+                        {
+                            if (lastIteUp + iterationCache < iterationCounter || lastIteUp > iterationCounter)
+                            {
+                                _up =
+                                    spellid == 0
+                                        ? !Lua.GetReturnVal<bool>(
+                                            "name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitAura(\"playerpet\", \"" +
+                                            _name + "\"); return name == nil", 0)
+                                        : !Lua.GetReturnVal<bool>(
+                                            "name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitAura(\"playerpet\", \"" +
+                                            spellid + "\"); return name == nil", 0);
+                                lastIteUp = iterationCounter;
+                            }
+                            return _up;
+                        }
+                    }
+
+                    public virtual MagicDouble remains
+                    {
+                        get
+                        {
+                            if (lastIteRemains + iterationCache < iterationCounter || lastIteRemains > iterationCounter)
+                            {
+                                _remains = new MagicDouble(spellid == 0
+                                    ? GetAuraTimeLeft(StyxWoW.Me.ToUnit().Pet, _name).TotalSeconds
+                                    : GetAuraTimeLeft(StyxWoW.Me.ToUnit().Pet, spellid).TotalSeconds);
+                                lastIteRemains = iterationCounter;
+                            }
+                            return _remains;
+                        }
+                    }
+
+                    public virtual int Stack
+                    {
+                        get
+                        {
+                            if (lastIteStack + iterationCache < iterationCounter || lastIteStack > iterationCounter)
+                            {
+                                _stack = spellid == 0
+                                    ? GetAuraStacks(StyxWoW.Me.ToUnit().Pet, _name)
+                                    : GetAuraStacks(StyxWoW.Me.ToUnit().Pet, spellid);
+                                lastIteStack = iterationCounter;
+                            }
+                            return _stack;
+                        }
+                    }
+
+                    public virtual Superbool react
+                    {
+                        get { return new Superbool(remains > 0.1); }
+                    }
+                }
+            }
+        }
+
+        public class SealProxy : DynamicObject
+        {
+            public String active { get; set; }
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                result = active.Equals(binder.Name);
+                return true;
             }
         }
 
         public class SpellProxy : Proxy
         {
-            private readonly Dictionary<int, SpellInternal> itemsById = new Dictionary<int, SpellInternal>();
-            private readonly Dictionary<string, SpellInternal> itemsByName = new Dictionary<string, SpellInternal>();
+
+            public override CacheInternal NewInternal(string name)
+            {
+                return new SpellInternal(name);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                return new SpellInternal(name);
+            }
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.ClassSpells);
+                _resolvePriority.Add(dbc.Spells);
+            }
 
             public SpellProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
@@ -365,7 +1504,7 @@ namespace Simcraft
                 get
                 {
                     if (!itemsByName.ContainsKey(name)) itemsByName.Add(name, new SpellInternal(name));
-                    return itemsByName[name];
+                    return (SpellInternal)itemsByName[name];
                 }
             }
 
@@ -374,7 +1513,7 @@ namespace Simcraft
                 get
                 {
                     if (!itemsById.ContainsKey(id)) itemsById.Add(id, new SpellInternal(id));
-                    return itemsById[id];
+                    return (SpellInternal)itemsById[id];
                 }
             }
 
@@ -384,8 +1523,49 @@ namespace Simcraft
                 itemsById.Clear();
             }
 
+
+            public override bool TryGetMember(
+                GetMemberBinder binder, out object result)
+            {
+                var name = binder.Name.ToLower();
+
+                //SimcraftImpl.Write(name);
+
+                if (overrides.ContainsKey(name))
+                {
+                    result = overrides[name];
+                    return true;
+                }
+
+                var val = ResolveName(name).Name;
+
+                int n;
+                bool isNumeric = int.TryParse(val, out n);
+
+                //Logging.Write("binder: {0} name: {1} byId?: {2}", name, val, isNumeric);
+
+                if (isNumeric)
+                {
+                    if (!itemsById.ContainsKey(n))
+                        itemsById[n] = NewInternal(n);
+                    return itemsById.TryGetValue(n, out result);
+                }
+                else
+                {
+                    if (!itemsByName.ContainsKey(val))
+                        itemsByName[val] = NewInternal(val);
+                    return itemsByName.TryGetValue(val, out result);
+                }
+            }
+
             public class SpellInternal : CacheInternal
             {
+
+                public MagicDouble travel_time
+                {
+                    get { return new MagicDouble(1); }
+                }
+
                 private readonly bool _hasMe;
                 private readonly string _name;
                 private readonly int spellid;
@@ -398,11 +1578,37 @@ namespace Simcraft
                 private int lastIteCharges = -1;
                 private int lastIteRecharge = -1;
 
+                
                 public SpellInternal(string name)
                 {
-                    _name = name;
-                    _hasMe = SpellManager.HasSpell(name);
-                    Logging.Write(_hasMe ? Colors.Green : Colors.Red, (_hasMe ? "Found " : "Missing ") + name);
+                    StackFrame frame = new StackFrame(4);
+                    var method = frame.GetMethod();
+                    var type = method.DeclaringType;
+                    var __name = method.Name;
+
+                    //SimcraftImpl.Write(name+"::"+__name);
+                    _name = name;// dbc.ClassSpells[Tokenize(name)].Name;
+                    _hasMe = SpellManager.HasSpell(_name);
+                    //SimcraftImpl.Write((_hasMe ? "Found " : "Missing ") + name);
+                }
+
+                public double execute_time
+                {
+                    get
+                    {
+                       
+                        return Math.Max(Math.Max(gcd.nat, cast_time), channel_time);
+                    }
+                }
+
+                public MagicDouble gcd
+                {
+                    get
+                    {
+
+                        if (DBHasSpell(_name)) return new MagicDouble(DBGetSpell(_name).Gcd);
+                        return new MagicDouble(1.5);
+                    }
                 }
 
                 public SpellInternal(int spellid)
@@ -411,7 +1617,7 @@ namespace Simcraft
                     _hasMe = SpellManager.HasSpell(spellid);
                 }
 
-                public double Range
+                public double range
                 {
                     get
                     {
@@ -424,7 +1630,7 @@ namespace Simcraft
                     }
                 }
 
-                public int Charges
+                public int charges
                 {
                     get
                     {
@@ -444,7 +1650,7 @@ namespace Simcraft
                     }
                 }
 
-                public double CastTime
+                public double cast_time
                 {
                     get
                     {
@@ -460,7 +1666,12 @@ namespace Simcraft
                     }
                 }
 
-                public double ChannelTime
+                public bool in_flight
+                {
+                    get { return false; }
+                }
+
+                public double channel_time
                 {
                     get
                     {
@@ -477,7 +1688,22 @@ namespace Simcraft
                     }
                 }
 
-                public double RechargeTime
+
+                public double duration
+                {
+                    get
+                    {
+                        if (!_hasMe) return 0;
+
+                       return  spellid == 0
+                                ? (double)GetSpell(_name).BaseDuration / 1000
+                                : (double)GetSpell(spellid).BaseDuration / 1000;
+                            lastIteChanneltime = iterationCounter;
+
+                    }                   
+                }
+
+                public double recharge_time
                 {
                     get
                     {
@@ -500,11 +1726,125 @@ namespace Simcraft
                         return _rechargeTime;
                     }
                 }
+
+
+                public double charges_fractional
+                {
+                    get
+                    {
+                        if (!_hasMe) return 0;
+                        if (lastIteRecharge + iterationCache < iterationCounter || lastIteRecharge > iterationCounter)
+                        {
+                            _rechargeTime = spellid == 0
+                                ? Lua.GetReturnVal<double>(
+                                    "currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(\"" +
+                                    _name +
+                                    "\"); cd = (cooldownDuration-(GetTime()-cooldownStart)); if (cd > cooldownDuration or cd < 0) then cd = 0; end return (cd*100/cooldownDuration)",
+                                    0)+charges
+                                : Lua.GetReturnVal<double>(
+                                    "currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(\"" +
+                                    spellid +
+                                    "\"); cd = (cooldownDuration-(GetTime()-cooldownStart)); if (cd > cooldownDuration or cd < 0) then cd = 0; end return (cd*100/cooldownDuration)",
+                                    0)+charges;
+                            lastIteRecharge = iterationCounter;
+                        }
+                        return _rechargeTime;
+                    }
+                }
+
+            }
+        }
+
+        public class ActiveDot : DynamicObject
+        {
+            private int lastIte = 0;
+            private Dictionary<String, int> counts = new Dictionary<string, int>();
+
+
+            //public int living_bomb = 0;
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+
+                //SimcraftImpl.Write(binder.Name);
+                //We need the true spellname to check for auras un special units
+                var spellname = DBGetSpell(binder.Name).Name;
+                if (SimcraftImpl.iterationCounter > lastIte) counts.Clear();
+
+                if (!counts.ContainsKey(spellname))
+                    counts[spellname] = SimcraftImpl.inst.actives.Count(ret => GetAuraUp(ret, spellname, true));
+
+                //SimcraftImpl.Write(spellname+": "+counts[spellname]);
+
+                result = counts[spellname];
+                return true;
             }
         }
 
         public class TargetProxy : Proxy
         {
+            protected bool Equals(TargetProxy other)
+            {
+                return Equals(health, other.health);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((TargetProxy) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return (health != null ? health.GetHashCode() : 0);
+            }
+
+            public dynamic dot
+            {
+                get {return simc.dot; }
+            }
+
+            public dynamic debuff
+            {
+                get { return simc.dot; }
+            }
+
+            public static bool operator ==(WoWUnit h1, TargetProxy val)
+            {
+                return h1 == val.GetUnit();
+            }
+            public static bool operator !=(WoWUnit h1, TargetProxy val)
+            {
+                return h1 != val.GetUnit();
+            }
+            public static bool operator ==(TargetProxy val,WoWUnit h1)
+            {
+                return h1 == val.GetUnit();
+            }
+            public static bool operator !=(TargetProxy val,WoWUnit h1)
+            {
+                return h1 != val.GetUnit();
+            }
+            public override CacheInternal NewInternal(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                throw new NotImplementedException();
+            }
+            public override void InitResolvePriority()
+            {
+            }
+
+            public double distance
+            {
+                get { return GetUnit().Distance; }
+            }
+
             public HealthProxy health;
 
             public TargetProxy(GetUnitDelegate del, SimcraftImpl simc)
@@ -532,24 +1872,63 @@ namespace Simcraft
             {
                 get { return GetUnit().Location; }
             }
+
+ 
         }
 
         public class DebuffProxy : Proxy
         {
-            private readonly Dictionary<int, DebuffInternal> DebuffsById = new Dictionary<int, DebuffInternal>();
-            private readonly Dictionary<string, DebuffInternal> DebuffsByName = new Dictionary<string, DebuffInternal>();
 
+            public class Casting : DebuffInternal
+            {
+                public override MagicDouble remains
+                {
+                    get
+                    {
+                        return _owner.GetUnit().IsCasting
+                            ? new MagicDouble(_owner.GetUnit().CurrentCastTimeLeft.TotalSeconds)
+                            : new MagicDouble(0);
+                    }
+                }
+                public override bool up
+                {
+                    get { return _owner.GetUnit().IsCasting; }
+                }
+                public Casting(string name, DebuffProxy owner) : base(name, owner)
+                {
+                }
+            }
+
+            public Casting casting;
+
+            public override CacheInternal NewInternal(string name)
+            {
+                return new DebuffInternal(name, this);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                return new DebuffInternal(name, this);
+            }
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.Spells);
+                _resolvePriority.Add(dbc.ClassSpells);
+                
+            }
             public DebuffProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
+                casting = new Casting("casting",this);
             }
 
             public DebuffInternal this[String name]
             {
                 get
                 {
-                    if (!DebuffsByName.ContainsKey(name)) DebuffsByName.Add(name, new DebuffInternal(name, this));
-                    return DebuffsByName[name];
+                    if (!itemsByName.ContainsKey(name)) itemsByName.Add(name, new DebuffInternal(name, this));
+                    return (DebuffInternal)itemsByName[name];
                 }
             }
 
@@ -557,15 +1936,17 @@ namespace Simcraft
             {
                 get
                 {
-                    if (!DebuffsById.ContainsKey(id)) DebuffsById.Add(id, new DebuffInternal(id, this));
-                    return DebuffsById[id];
+                    if (!itemsById.ContainsKey(id)) itemsById.Add(id, new DebuffInternal(id, this));
+                    return (DebuffInternal)itemsById[id];
                 }
             }
+
+
 
             public class DebuffInternal : CacheInternal
             {
                 private readonly string _name;
-                private readonly DebuffProxy _owner;
+                protected DebuffProxy _owner;
                 private readonly int spellid;
 
                 public DebuffInternal(string name, DebuffProxy owner)
@@ -582,10 +1963,10 @@ namespace Simcraft
 
                 public bool down
                 {
-                    get { return !Up; }
+                    get { return !up; }
                 }
 
-                public bool Up
+                public virtual bool up
                 {
                     get
                     {
@@ -604,7 +1985,56 @@ namespace Simcraft
                     }
                 }
 
-                public double remains
+
+                private Regex tick = new Regex("every (\\d+) sec");
+
+                private int spt = 0;
+
+                public double tick_time
+                {
+                    get
+                    {
+                        if (!up) return 0;
+                        if (spt == 0)
+                        {
+
+                            WoWSpell sp = spellid == 0
+                                    ? GetSpell(_name)
+                                    : GetSpell(spellid);
+                            var d = sp.AuraDescription;
+                            if (tick.IsMatch(d))
+                            {
+                                spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
+                            }
+                        }
+                        return spt;
+
+                    }                 
+                }
+
+                public int ticks_remain
+                {
+                    get
+                    {
+                        if (!up) return 0;
+                        if (spt == 0)
+                        {
+
+                            WoWSpell sp = spellid == 0
+                                    ? GetSpell(_name)
+                                    : GetSpell(spellid);
+                            var d = sp.AuraDescription;
+                            if (tick.IsMatch(d))
+                            {
+                                spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
+                            }
+                        }
+                        return (int)Math.Floor(remains/spt);
+
+                    }
+                }
+
+                public virtual MagicDouble remains
                 {
                     get
                     {
@@ -613,16 +2043,16 @@ namespace Simcraft
                         dynamic cach = _cache[guid];
                         if (cach.remains.Ite + iterationCache < iterationCounter || cach.remains.Ite > iterationCounter)
                         {
-                            cach.remains.Value = spellid == 0
+                            cach.remains.Value = new MagicDouble(spellid == 0
                                 ? GetAuraTimeLeft(_owner.GetUnit(), _name, true).TotalSeconds
-                                : GetAuraTimeLeft(_owner.GetUnit(), spellid, true).TotalSeconds;
+                                : GetAuraTimeLeft(_owner.GetUnit(), spellid, true).TotalSeconds);
                             cach.remains.Ite = iterationCounter;
                         }
                         return cach.remains.Value;
                     }
                 }
 
-                public int Stack
+                public virtual int stack
                 {
                     get
                     {
@@ -640,16 +2070,49 @@ namespace Simcraft
                     }
                 }
 
-                public bool Ticking
+
+
+                public Superbool react
                 {
-                    get { return Up; }
+                    get { return new Superbool(up); }
+                }
+
+                public bool ticking
+                {
+                    get { return up; }
                 }
             }
         }
+        public class PrevGcdProxy : DynamicObject
+        {
+            public int Id { get; set; }
 
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                var n = binder.Name;
+                result = (Id == DBGetSpell(n).Id);
+                return true;
+            }
+        }
         public class TalentProxy : Proxy
         {
-            private readonly Dictionary<String, Talent> _talents = new Dictionary<string, Talent>();
+
+            public override CacheInternal NewInternal(string name)
+            {
+                return new Talent(name);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.Spells);
+            }
+
+            //private readonly Dictionary<String, Talent> itemsByName = new Dictionary<string, Talent>();
 
             public TalentProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
@@ -660,17 +2123,17 @@ namespace Simcraft
             {
                 get
                 {
-                    if (!_talents.ContainsKey(name)) _talents.Add(name, new Talent(name));
-                    return _talents[name];
+                    if (!itemsByName.ContainsKey(name)) itemsByName.Add(name, new Talent(name));
+                    return (Talent)itemsByName[name];
                 }
             }
 
             public void Reset()
             {
-                _talents.Clear();
+                itemsByName.Clear();
             }
 
-            public class Talent
+            public class Talent : CacheInternal
             {
                 private readonly string _name;
                 private bool? _enabled;
@@ -680,16 +2143,145 @@ namespace Simcraft
                     _name = name;
                 }
 
-                public bool enabled
+                public Superbool enabled
                 {
                     get
                     {
                         if (_enabled == null) _enabled = StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _name) > 0;
-                        return _enabled.Value;
+                        return new Superbool(_enabled.Value);
                     }
                 }
             }
         }
+
+        public class RaidEventProxy
+        {
+            public class FakeEvent
+            {
+                public double _in
+                {
+                    get { return Double.PositiveInfinity; }
+                }
+
+                public MagicDouble distance
+                {
+                    get { return new MagicDouble(0); }
+                }
+                public bool exists
+                {
+                    get
+                    {
+                        return false;
+                    }
+                }
+                public MagicDouble cooldown
+                {
+                    get { return new MagicDouble(Double.PositiveInfinity); }
+                }
+
+                public MagicDouble remains
+                {
+                    get { return new MagicDouble(0); }
+                }
+                
+                public int count
+                {
+                    get { return 0; }
+                }
+            }
+
+            public FakeEvent adds
+            {
+                get
+                {
+                    return new FakeEvent();
+                }
+            }
+
+            public FakeEvent movement
+            {
+                get
+                {
+                    return new FakeEvent();
+                }
+            }
+
+        }
+
+        public class GlyphProxy : Proxy
+        {
+
+            public override CacheInternal NewInternal(string name)
+            {
+                return new Glyph(name);
+            }
+
+            public override CacheInternal NewInternal(int name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void InitResolvePriority()
+            {
+                _resolvePriority.Add(dbc.Glyphs);
+                
+            }
+
+            //private readonly Dictionary<String, Talent> itemsByName = new Dictionary<string, Talent>();
+
+            public GlyphProxy(GetUnitDelegate del, SimcraftImpl simc)
+                : base(del, simc)
+            {
+            }
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                var n = binder.Name;
+                if (!n.Contains("glyph_of")) n = "glyph_of_" + n;
+                result = new Glyph(dbc.Glyphs[n].Name);
+                return true;
+            }
+
+
+            public void Reset()
+            {
+                itemsByName.Clear();
+            }
+
+            public class Glyph : CacheInternal
+            {
+                private readonly string _name;
+                private bool? _enabled;
+
+                public Glyph(string name)
+                {
+                    _name = name;
+                }
+
+                public Superbool enabled
+                {
+                    get
+                    {
+                        if (_enabled == null)
+                        {
+                            var _lua = @"for i = 1, NUM_GLYPH_SLOTS do
+                             e, gt, gti, gsi, ic = GetGlyphSocketInfo(i);
+                             if ( e ) then
+                                n, r, icon, ct, mir, mar = GetSpellInfo(gsi);
+                                if n == '"+_name+@"' then
+                                    return true;
+                                end
+                             end
+                            end
+                            return false;";
+                             _enabled = Lua.GetReturnVal<bool>(_lua, 0);
+                        }
+                        return new Superbool(_enabled.Value);
+                    }
+                }
+            }
+        }
+
 
         /*public static class WoWUnit
         {
@@ -701,9 +2293,13 @@ namespace Simcraft
             public int TimeToDie = 3600;
         }*/
 
-        public abstract class Proxy
+        public abstract class Proxy : DynamicObject
         {
             public delegate WoWUnit GetUnitDelegate();
+
+            protected readonly Dictionary<int, object> itemsById = new Dictionary<int, object>();
+            public readonly Dictionary<string, object> itemsByName = new Dictionary<string, object>();
+
 
             protected GetUnitDelegate GetUnit;
             protected int lastIte = 0;
@@ -713,11 +2309,104 @@ namespace Simcraft
             {
                 GetUnit = del;
                 this.simc = simc;
+                InitResolvePriority();
             }
+
+            public abstract void InitResolvePriority();
+
+            protected List<Dictionary<String, dbc.Spell>> _resolvePriority = new List<Dictionary<string, dbc.Spell>>();
+
+            public dbc.Spell ResolveName(String name)
+            {
+                for (int i = 0; i < _resolvePriority.Count; i++)
+                {
+                    if (_resolvePriority[i].ContainsKey(name)) return _resolvePriority[i][name];
+                }
+                throw new MissingMemberException(this.GetType().ToString(), name);
+            }
+
+
+            protected Dictionary<String, CacheInternal> overrides = new Dictionary<string, CacheInternal>();
+
+            public override bool TryGetMember(
+                GetMemberBinder binder, out object result)
+            {
+                var name = binder.Name.ToLower();
+
+                if (overrides.ContainsKey(name))
+                {
+                    result = overrides[name];
+                    return true;
+                }
+
+                var val = ResolveName(name).Name;
+
+                int n;
+                bool isNumeric = int.TryParse(val, out n);
+
+                //Logging.Write("binder: {0} name: {1} byId?: {2}", name, val, isNumeric);
+
+                if (isNumeric)
+                {
+                    if (!itemsById.ContainsKey(n))
+                        itemsById[n] = NewInternal(n);
+                    return itemsById.TryGetValue(n, out result);
+                }
+                else
+                {
+                    if (!itemsByName.ContainsKey(val))
+                        itemsByName[val] = NewInternal(val);
+                    return itemsByName.TryGetValue(val, out result);
+                }       
+            }
+
+            public CacheInternal TryGetMember(String name)
+            {
+
+                if (overrides.ContainsKey(name))
+                {
+                    return overrides[name];
+                }
+
+                var val = ResolveName(name).Name;
+
+                int n;
+                bool isNumeric = int.TryParse(val, out n);
+
+                //Logging.Write("binder: {0} name: {1} byId?: {2}", name, val, isNumeric);
+
+                if (isNumeric)
+                {
+                    if (!itemsById.ContainsKey(n))
+                        itemsById[n] = NewInternal(n);
+                    return (CacheInternal)itemsById[n];
+                }
+                else
+                {
+                    if (!itemsByName.ContainsKey(val))
+                        itemsByName[val] = NewInternal(val);
+                    return (CacheInternal)itemsByName[val];
+                }
+            }
+
+            public abstract CacheInternal NewInternal(String name);
+            public abstract CacheInternal NewInternal(int name);
+
+
         }
 
         public abstract class ResourceProxy : Proxy
         {
+            public override CacheInternal NewInternal(int name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override CacheInternal NewInternal(string name)
+            {
+                throw new NotImplementedException();
+            }
+
             private double _crt;
             private double _max;
             private double _pct;
@@ -731,7 +2420,12 @@ namespace Simcraft
 
             public double time_to_max
             {
-                get { return deficit/Regen; }
+                get { return deficit/regen; }
+            }
+
+            public override void InitResolvePriority()
+            {
+                //Resources dont need resolution
             }
 
             public double pct
@@ -747,7 +2441,12 @@ namespace Simcraft
                 }
             }
 
-            public double Current
+            public double percent
+            {
+                get { return pct; }
+            }
+
+            public double current
             {
                 get
                 {
@@ -760,7 +2459,7 @@ namespace Simcraft
                 }
             }
 
-            public double Max
+            public double max
             {
                 get
                 {
@@ -779,80 +2478,100 @@ namespace Simcraft
 
             public int deficit
             {
-                get { return GetUnit() != null ? (int) (Max - Current) : 0; }
+                get { return GetUnit() != null ? (int) (max - current) : 0; }
             }
 
-            public double Regen { get; private set; }
+            public double regen { get; private set; }
 
-            public double Cast_Regen(double seconds)
+            public double cast_regen(double seconds)
             {
-                return Regen*seconds;
+                return regen*seconds;
             }
 
             public static bool operator <(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null && h1.Current < val;
+                return h1.GetUnit() != null && h1.current < val;
             }
 
             public static bool operator >(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null && h1.Current > val;
+                return h1.GetUnit() != null && h1.current > val;
             }
 
             public static bool operator <=(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null && h1.Current <= val;
+                return h1.GetUnit() != null && h1.current <= val;
             }
 
             public static bool operator >=(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null && h1.Current >= val;
+                return h1.GetUnit() != null && h1.current >= val;
             }
 
             public static bool operator !=(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null ? h1.Current != val : false;
+                return h1.GetUnit() != null ? h1.current != val : false;
             }
 
             public static bool operator ==(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null ? h1.Current == val : false;
+                return h1.GetUnit() != null ? h1.current == val : false;
             }
 
             public static double operator -(double val, ResourceProxy h1)
             {
-                return h1.GetUnit() != null ? val - h1.Current : 0;
+                return h1.GetUnit() != null ? val - h1.current : 0;
             }
 
             public static double operator -(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null ? h1.Current - val : 0;
+                return h1.GetUnit() != null ? h1.current - val : 0;
             }
 
             public static double operator +(double val, ResourceProxy h1)
             {
-                return h1.GetUnit() != null ? val + h1.Current : 0;
+                return h1.GetUnit() != null ? val + h1.current : 0;
             }
 
             public static double operator +(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null ? val + h1.Current : 0;
+                return h1.GetUnit() != null ? val + h1.current : 0;
+            }
+
+            public static double operator +(ResourceProxy h1, ResourceProxy h2)
+            {
+                return h1.GetUnit() != null ? h2.current + h1.current : 0;
+            }
+
+            public static double operator -(ResourceProxy h1, ResourceProxy h2)
+            {
+                return h1.GetUnit() != null ? h1.current - h2.current : 0;
+            }
+
+            public static double operator *(ResourceProxy h1, ResourceProxy h2)
+            {
+                return h1.GetUnit() != null ? h2.current * h1.current : 0;
+            }
+
+            public static double operator /(ResourceProxy h1, ResourceProxy h2)
+            {
+                return h1.GetUnit() != null ? h1.current / h2.current : 0;
             }
 
             public static double operator *(double val, ResourceProxy h1)
             {
-                return h1.GetUnit() != null ? val*h1.Current : 0;
+                return h1.GetUnit() != null ? val*h1.current : 0;
             }
 
             public static double operator *(ResourceProxy h1, double val)
             {
-                return h1.GetUnit() != null ? val*h1.Current : 0;
+                return h1.GetUnit() != null ? val*h1.current : 0;
             }
 
             public override bool Equals(object obj)
             {
                 if (!(obj is ResourceProxy)) return false;
-                return ((ResourceProxy) obj).Current == Current;
+                return ((ResourceProxy) obj).current == current;
             }
 
             public override int GetHashCode()
@@ -862,7 +2581,7 @@ namespace Simcraft
 
             public void Pulse()
             {
-                Regen = Lua.GetReturnVal<double>(
+                regen = Lua.GetReturnVal<double>(
                     "inactiveRegen, activeRegen = GetPowerRegen(); return activeRegen;", 0);
             }
         }
@@ -896,11 +2615,39 @@ namespace Simcraft
                 get
                 {
                     var g = (int) StyxWoW.Me.GroupInfo.GroupSize;
+                 
                     if (g > 0)
                         return GetCurrent/(StyxWoW.Me.GroupInfo.GroupSize*0.6*AVG_DPS);
+
                     return GetCurrent/(AVG_DPS);
                 }
             }
+        }
+
+        public class ManaProxy : ResourceProxy
+        {
+            public static int AVG_DPS = 22000;
+
+            public ManaProxy(GetUnitDelegate del, SimcraftImpl simc)
+                : base(del, simc)
+            {
+            }
+
+            public override double GetPercent
+            {
+                get { return GetUnit().ManaPercent; }
+            }
+
+            public override int GetCurrent
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().CurrentMana) : 0; }
+            }
+
+            public override int GetMax
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().MaxMana) : 0; }
+            }
+
         }
 
         public class ComboPointProxy : ResourceProxy
@@ -924,6 +2671,113 @@ namespace Simcraft
             {
                 get { return 5; }
             }
+        }
+
+        public class HolyPowerProxy : ResourceProxy
+        {
+            public HolyPowerProxy(GetUnitDelegate del, SimcraftImpl simc)
+                : base(del, simc)
+            {
+            }
+
+            public override double GetPercent
+            {
+                get { return GetUnit() != null ? StyxWoW.Me.HolyPowerPercent : 0; }
+            }
+
+            public override int GetCurrent
+            {
+                get { return GetUnit() != null ? (int)StyxWoW.Me.CurrentHolyPower : 0; }
+            }
+
+            public override int GetMax
+            {
+                get { return (int)Me.MaxHolyPower; }
+            }
+        }
+
+        public class RuneProxy : ResourceProxy
+        {
+            public RuneProxy(GetUnitDelegate del, SimcraftImpl simc, RuneType type)
+                : base(del, simc)
+            {
+                this.type = type;
+            }
+
+            private RuneType type;
+
+            public double frac
+            {
+                get
+                {
+                    if (type == RuneType.Blood)
+                    {
+                        var o1 = get_rune_frac(1);                        
+                        var o2 = get_rune_frac(2);
+                        var m = Math.Max(o1, o2);
+                        var t = 200 - m;
+                        return t/100;
+                    }
+                    if (type == RuneType.Frost)
+                    {
+                        var o1 = get_rune_frac(5);
+                        var o2 = get_rune_frac(6);
+                        var m = Math.Max(o1, o2);
+                        var t = 200 - m;
+                        return t / 100;
+                    }
+                    if (type == RuneType.Unholy)
+                    {
+                        var o1 = get_rune_frac(3);
+                        var o2 = get_rune_frac(4);
+                        var m = Math.Max(o1, o2);
+                        var t = 200 - m;
+                        return t / 100;
+                    }
+                    return 0;
+                }
+            }
+
+            private double get_rune_frac(int id)
+            {
+
+                //"start, duration, runeReady = GetRuneCooldown("+id+"); if (runeReady) then return 0 else local t= ((duration-(GetTime()-start))*100/duration); if (t > 100) then t = t; end return t end"
+                return
+                    Lua.GetReturnVal<double>(
+                        "start, duration, runeReady = GetRuneCooldown(" + id + "); if (runeReady) then return 0 else local t= ((duration-(GetTime()-start))*100/duration); if (t > 100) then t = t; end return t end",
+                        0);
+            }
+
+            public override double GetPercent
+            {
+                get { return frac; }
+            }
+
+            public override int GetCurrent
+            {
+                get { return Me.GetRuneCount(type); } 
+            }
+
+            public override int GetMax
+            {
+                get { return 2; }
+            }
+
+            public static bool operator !(RuneProxy op1)
+            {
+                return op1 == 0;
+            }
+
+            /*public static bool operator false(RuneProxy x)
+            {
+                return x.frac < 1;
+            }
+
+            public static bool operator true(RuneProxy x)
+            {
+                return x.frac >= 1;
+            }*/
+
         }
 
         public class ChiProxy : ResourceProxy
@@ -972,6 +2826,54 @@ namespace Simcraft
             }
         }
 
+        public class EclipseProxy : ResourceProxy
+        {
+            public EclipseProxy(GetUnitDelegate del, SimcraftImpl simc)
+                : base(del, simc)
+            {
+            }
+
+            public override double GetPercent
+            {
+                get { return StyxWoW.Me.EclipsePercent; }
+            }
+
+            public override int GetMax
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().MaxEclipse) : 0; }
+            }
+
+            public override int GetCurrent
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().CurrentEclipse) : 0; }
+            }
+        }
+
+
+        public class RunicPowerProxy : ResourceProxy
+        {
+            public RunicPowerProxy(GetUnitDelegate del, SimcraftImpl simc)
+                : base(del, simc)
+            {
+            }
+
+            public override double GetPercent
+            {
+                get { return StyxWoW.Me.EnergyPercent; }
+            }
+
+            public override int GetMax
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().MaxRunicPower) : 0; }
+            }
+
+            public override int GetCurrent
+            {
+                get { return GetUnit() != null ? (int)(GetUnit().CurrentRunicPower) : 0; }
+            }
+        }
+
+
         public class FocusProxy : ResourceProxy
         {
             public FocusProxy(GetUnitDelegate del, SimcraftImpl simc)
@@ -993,6 +2895,9 @@ namespace Simcraft
             {
                 get { return GetUnit() != null ? (int) (GetUnit().CurrentFocus) : 0; }
             }
+
+            //public bool cast_regen
+
         }
 
         public class RageProxy : ResourceProxy
