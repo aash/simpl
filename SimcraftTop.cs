@@ -133,12 +133,15 @@ namespace Simcraft
         }
 
 
-        public static String SimcraftProfilePath = @"Simcraft Profiles";
+        public static String SimcraftProfilePath = @"Simcraft Profiles/";
+        public static String SimcraftLogPath = @"Logs/Simcraft/";
+        public static String SimcraftLogfile = SimcraftLogPath+DateTime.Now.ToShortDateString() + ".log";
 
         public SimcraftImpl()
         {
 
             Directory.CreateDirectory(SimcraftProfilePath);
+            Directory.CreateDirectory(SimcraftLogPath);
             inst = this;
             active_dot = new ActiveDot();
             //trinket = new TrinketProxy(() => StyxWoW.Me.ToUnit(), this);
