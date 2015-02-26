@@ -520,7 +520,7 @@ namespace Simcraft
 
                 public override MagicValueType up
                 {
-                    get { return new MagicValueType(simc.buff[simc.PotionName].up); }
+                    get { return simc.buff[simc.PotionName].up; }
                 } 
             }
 
