@@ -133,7 +133,7 @@ namespace Simcraft
                 ret = val;
             }
             */
-            public MagicValueType MagicValueType
+            public MagicValueType min_remains
             {
                 get
                 {
