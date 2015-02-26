@@ -274,7 +274,7 @@ namespace Simcraft
                         if (isbool)
                             Results.Add("false");
                         else
-                            Results.Add("new SimcraftImpl.MagicDouble(0)");*/
+                            Results.Add("new SimcraftImpl.MagicValueType(0)");*/
 
                 }
             }
@@ -309,7 +309,7 @@ namespace Simcraft
                     if (splits[splits.Count() - 1].Equals("up") || splits[splits.Count() - 1].Equals("down"))
                         Results.Add("false");
                     else
-                        Results.Add("new SimcraftImpl.MagicDouble(0)");
+                        Results.Add("new SimcraftImpl.MagicValueType(0)");
                 }
             }
             else if (pexprtype == trinket_proc_expr_e.PROC_EXISTS)
@@ -354,7 +354,7 @@ namespace Simcraft
                         if (isbool)
                             Results.Add("false");
                         else
-                            Results.Add("new SimcraftImpl.MagicDouble(0)");
+                            Results.Add("new SimcraftImpl.MagicValueType(0)");
                     }                 
                 }
             }

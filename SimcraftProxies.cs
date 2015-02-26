@@ -318,88 +318,6 @@ namespace Simcraft
 
         }
 
-        public class Superbool
-        {
-            protected bool Equals(Superbool other)
-            {
-                return native.Equals(other.native);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
-                return Equals((Superbool) obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return native.GetHashCode();
-            }
-
-            private bool native;
-
-            public Superbool(bool n)
-            {
-                native = n;
-            }
-
-            public static double operator *(Superbool op1, int op2)
-            {
-                return (op1.native ? 1 : 0) * op2;
-            }
-
-            public static double operator *(int op1, Superbool op2)
-            {
-                return op1 * (op2.native ? 1 : 0);
-            }
-
-            public static double operator +(Superbool op1, Superbool op2)
-            {
-                return (op1.native ? 1 : 0) + (op2.native ? 1 : 0);
-            }
-
-            public static Superbool operator !(Superbool op1)
-            {
-                return new Superbool(!op1.native);
-            }
-
-
-            public static bool operator ==(Superbool op1, int op2)
-            {
-                return (op1.native ? 1 : 0) == op2;
-            }
-            public static bool operator !=(Superbool op1, int op2)
-            {
-                return (op1.native ? 1 : 0) == op2;
-            }
-
-            public static bool operator ==(int op1, Superbool op2)
-            {
-                return op1 == (op2.native ? 1 : 0);
-            }
-            public static bool operator !=(int op1, Superbool op2)
-            {
-                return op1 == (op2.native ? 1 : 0);
-            }
-
-            public static bool operator ==(Superbool op1, Superbool op2)
-            {
-                return op1.native == op2.native;
-            }
-            public static bool operator !=(Superbool op1, Superbool op2)
-            {
-                return op1.native == op2.native;
-            }
-
-            static public implicit operator bool(Superbool binary)
-            {
-                return binary.native;
-            }
-
-        }
-
         public class ActionProxy : DynamicObject
         {
             private readonly Dictionary<string, object> itemsByName = new Dictionary<string, object>();
@@ -520,210 +438,7 @@ namespace Simcraft
 
 
 
-        public class MagicDouble
-        {
-            protected bool Equals(MagicDouble other)
-            {
-                return boxee.Equals(other.boxee);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
-                return Equals((MagicDouble) obj);
-            }
-
-            public double nat
-            {
-                get { return boxee; }
-            }
-
-            public double max
-            {
-                get
-                {
-                    return boxee;
-                }
-            }
-
-            public override int GetHashCode()
-            {
-                return boxee.GetHashCode();
-            }
-
-            public MagicDouble(double v)
-            {
-                boxee = v;
-            }
-            protected double boxee;
-
-
-            //MagicDouble Operators - Both Magic Double
-            public static bool operator <(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee < op2.boxee;
-            }
-
-            public static bool operator >(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee > op2.boxee;
-            }
-
-            public static bool operator <=(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee <= op2.boxee;
-            }
-
-            public static bool operator >=(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee >= op2.boxee;
-            }
-
-            public static bool operator !=(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee != op2.boxee;
-            }
-
-            public static bool operator ==(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee == op2.boxee;
-            }
-
-            public static double operator -(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee - op2.boxee;
-            }
-
-            public static double operator +(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee + op2.boxee;
-            }
-
-            public static double operator *(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee * op2.boxee;
-            }
-
-            public static double operator /(MagicDouble op1, MagicDouble op2)
-            {
-                return op1.boxee / op2.boxee;
-            }
-
-            //MagicDouble Operators - Magic , normal
-            public static bool operator <(MagicDouble op1, double op2)
-            {
-                return op1.boxee < op2;
-            }
-
-            public static bool operator >(MagicDouble op1, double op2)
-            {
-                return op1.boxee > op2;
-            }
-
-            public static bool operator <=(MagicDouble op1, double op2)
-            {
-                return op1.boxee <= op2;
-            }
-
-            public static bool operator >=(MagicDouble op1, double op2)
-            {
-                return op1.boxee >= op2;
-            }
-
-            public static bool operator !=(MagicDouble op1, double op2)
-            {
-                return op1.boxee != op2;
-            }
-
-            public static bool operator ==(MagicDouble op1, double op2)
-            {
-                return op1.boxee == op2;
-            }
-
-            public static double operator -(MagicDouble op1, double op2)
-            {
-                return op1.boxee - op2;
-            }
-
-            public static double operator +(MagicDouble op1, double op2)
-            {
-                return op1.boxee + op2;
-            }
-
-            public static double operator *(MagicDouble op1, double op2)
-            {
-                return op1.boxee * op2;
-            }
-
-            public static double operator /(MagicDouble op1, double op2)
-            {
-                return op1.boxee / op2;
-            }
-
-            //MagicDouble Operators - Normal, Magic
-            public static bool operator <(double op1, MagicDouble op2)
-            {
-                return op1 < op2.boxee;
-            }
-
-            public static bool operator >(double op1, MagicDouble op2)
-            {
-                return op1 > op2.boxee;
-            }
-
-            public static bool operator <=(double op1, MagicDouble op2)
-            {
-                return op1 <= op2.boxee;
-            }
-
-            public static bool operator >=(double op1, MagicDouble op2)
-            {
-                return op1 >= op2.boxee;
-            }
-
-            public static bool operator !=(double op1, MagicDouble op2)
-            {
-                return op1 != op2.boxee;
-            }
-
-            public static bool operator ==(double op1, MagicDouble op2)
-            {
-                return op1 == op2.boxee;
-            }
-
-            public static double operator -(double op1, MagicDouble op2)
-            {
-                return op1 - op2.boxee;
-            }
-
-            public static double operator +(double op1, MagicDouble op2)
-            {
-                return op1 + op2.boxee;
-            }
-
-            public static double operator *(double op1, MagicDouble op2)
-            {
-                return op1 * op2.boxee;
-            }
-
-            public static double operator /(double op1, MagicDouble op2)
-            {
-                return op1 / op2.boxee;
-            }
-
-            public static implicit operator bool(MagicDouble d)
-            {
-                return d.boxee >= 0;
-            }
-
-            public static implicit operator double(MagicDouble d)
-            {
-                return d.boxee;
-            }
-
-        }
+   
 
         public class BuffProxy : Proxy
         {
@@ -785,9 +500,9 @@ namespace Simcraft
                 {
                 }
 
-                public override Superbool up
+                public override MagicValueType up
                 {
-                    get { return new Superbool(cShots == 1); }
+                    get { return new MagicValueType(cShots == 1); }
                 }
             }
 
@@ -801,9 +516,9 @@ namespace Simcraft
                     this.simc = simc;
                 }
 
-                public override Superbool up
+                public override MagicValueType up
                 {
-                    get { return new Superbool(simc.buff[simc.PotionName].up); }
+                    get { return new MagicValueType(simc.buff[simc.PotionName].up); }
                 } 
             }
 
@@ -838,7 +553,7 @@ namespace Simcraft
                     }
                 } 
 
-                public override Superbool up
+                public override MagicValueType up
                 {
                     get
                     {
@@ -846,11 +561,11 @@ namespace Simcraft
                         {
                             if (simc.buff[DBGetSpell(proc)].up) return up;
                         }
-                        return new Superbool(false); 
+                        return new MagicValueType(false); 
                     }
                 }
 
-                public override MagicDouble remains
+                public override MagicValueType remains
                 {
                     get
                     {
@@ -860,7 +575,7 @@ namespace Simcraft
                             var r = simc.buff[DBGetSpell(proc)].remains;
                             if (dur < r) dur = r;
                         }
-                        return new MagicDouble(dur);
+                        return new MagicValueType(dur);
                     }
                 }
 
@@ -894,16 +609,16 @@ namespace Simcraft
                     this.simc = simc;
                 }
 
-                public override Superbool up
+                public override MagicValueType up
                 {
-                    get { return new Superbool(simc.buff["Heroism"].up || simc.buff["Bloodlust"].up || simc.buff["Time_Warp"].up); }
+                    get { return new MagicValueType(simc.buff["Heroism"].up || simc.buff["Bloodlust"].up || simc.buff["Time_Warp"].up); }
                 }
 
-                public override MagicDouble remains
+                public override MagicValueType remains
                 {
                     get
                     {
-                        return new MagicDouble(simc.buff["Heroism"].up
+                        return new MagicValueType(simc.buff["Heroism"].up
                             ? simc.buff["Heroism"].remains
                             : simc.buff["Bloodlust"].up ? simc.buff["Bloodlust"].remains : simc.buff["Time_Warp"].up ? simc.buff["Time_Warp"].remains : 0.0);
                     }
@@ -939,7 +654,7 @@ namespace Simcraft
             {
                 private readonly string _name;
                 private readonly int spellid;
-                private MagicDouble _remains;
+                private MagicValueType _remains;
                 private int _stack;
                 private bool _up;
                 private int lastIteRemains = -1;
@@ -956,12 +671,12 @@ namespace Simcraft
                     this.spellid = spellid;
                 }
 
-                public virtual Superbool down
+                public virtual MagicValueType down
                 {
                     get { return !up; }
                 }
 
-                public virtual Superbool up
+                public virtual MagicValueType up
                 {
                     get
                     {
@@ -977,17 +692,17 @@ namespace Simcraft
                                         spellid + "\"); return name == nil", 0);
                             lastIteUp = iterationCounter;
                         }
-                        return new Superbool(_up);
+                        return new MagicValueType(_up);
                     }
                 }
 
-                public virtual MagicDouble remains
+                public virtual MagicValueType remains
                 {
                     get
                     {
                         if (lastIteRemains + iterationCache < iterationCounter || lastIteRemains > iterationCounter)
                         {
-                            _remains = new MagicDouble(spellid == 0
+                            _remains = new MagicValueType(spellid == 0
                                 ? GetAuraTimeLeft(StyxWoW.Me.ToUnit(), _name).TotalSeconds
                                 : GetAuraTimeLeft(StyxWoW.Me.ToUnit(), spellid).TotalSeconds);
                             lastIteRemains = iterationCounter;
@@ -1011,16 +726,16 @@ namespace Simcraft
                     }
                 }
 
-                public virtual Superbool react
+                public virtual MagicValueType react
                 {
-                    get { return new Superbool(remains > 0.1); }
+                    get { return new MagicValueType(remains > (Decimal)0.1); }
                 }
             }
         }
 
         public class ObliterateProxy
         {
-            public double ready_in
+            public MagicValueType ready_in
             {
                 get
                 {
@@ -1028,8 +743,8 @@ namespace Simcraft
                         Lua.GetReturnVal<double>(
                             "start, duration, enabled = GetSpellCooldown('Obliterate'); t =GetTime()-start; if t < 1 then return 1-t else return 10-t end",
                             0);
-                    if (t < 0) return 0;
-                    return t;
+                    if (t < 0) return new MagicValueType(0);
+                    return new MagicValueType(t);
                 }
             }
         }
@@ -1038,7 +753,7 @@ namespace Simcraft
         public class ItemProxy
         {
 
-            private MagicDouble _remains;
+            private MagicValueType _remains;
 
             public ItemProxy cooldown
             {
@@ -1052,12 +767,12 @@ namespace Simcraft
                 this.slot = slot;
             }
 
-            public bool Down
+            public MagicValueType Down
             {
                 get { return !up; }
             }
 
-            public virtual bool up
+            public virtual MagicValueType up
             {
                 get
                 {
@@ -1065,16 +780,16 @@ namespace Simcraft
                 }
             }
 
-            public virtual MagicDouble remains
+            public virtual MagicValueType remains
             {
                 get
                 {
-                    _remains = new MagicDouble(Me.Inventory.GetItemBySlot((uint) slot).CooldownTimeLeft.TotalSeconds);
+                    _remains = new MagicValueType(Me.Inventory.GetItemBySlot((uint) slot).CooldownTimeLeft.TotalSeconds);
                     return _remains;
                 }
             }
 
-            public virtual bool React
+            public virtual MagicValueType React
             {
                 get { return up; }
             }
@@ -1148,7 +863,7 @@ namespace Simcraft
             {
                 private readonly string _name;
                 private readonly int spellid;
-                private MagicDouble _remains;
+                private MagicValueType _remains;
                 private int lastIteRemains = -1;
 
                 public CooldownInternal(string name)
@@ -1174,11 +889,11 @@ namespace Simcraft
                     }
                 }
 
-                public virtual MagicDouble remains
+                public virtual MagicValueType remains
                 {
                     get
                     {
-                        _remains = new MagicDouble(spellid == 0
+                        _remains = new MagicValueType(spellid == 0
                             ? GetSpellCooldown(_name).TotalSeconds
                             : GetSpellCooldownId(spellid).TotalSeconds);
                         lastIteRemains = iterationCounter;
@@ -1211,20 +926,20 @@ namespace Simcraft
                     this.type = type;
                 }
 
-                public bool active
+                public MagicValueType active
                 {
                     get
                     {
                         foreach (var tinfo in Me.Totems)
                         {
                             if (!tinfo.Expired && tinfo.Type == type)
-                                return true;
+                                return  new MagicValueType( true);
                         }
-                        return false;
+                        return new MagicValueType(false);
                     }
                 }
 
-                public double remains
+                public MagicValueType remains
                 {
                     get
                     {
@@ -1233,16 +948,16 @@ namespace Simcraft
                             if (!tinfo.Expired && tinfo.Type == type)
                             {
                                 var diff = (tinfo.Expires - DateTime.Now).TotalSeconds;
-                                return diff >= 0 ? diff : 0;
+                                return new MagicValueType(diff >= 0 ? diff : 0);
                             }
                         }
-                        return 0;
+                        return new MagicValueType(0);
                     }
                 }
 
             }
 
-            public double remains
+            public MagicValueType remains
             {
                 get
                 {
@@ -1252,15 +967,15 @@ namespace Simcraft
                         {
                             //tinfo.
                             var diff = (tinfo.Expires - DateTime.Now).TotalSeconds;
-                            return diff >= 0 ? diff : 0;
+                            return new MagicValueType(diff >= 0 ? diff : 0);
                         } 
                     }
-                    if (Me.Pet != null) return 1;
-                    return 0;
+                    if (Me.Pet != null) return new MagicValueType(1);
+                    return new MagicValueType(0);
                 }
             }
 
-            public virtual bool active 
+            public virtual MagicValueType active 
             {
                 get { return remains > 0; }
             }
@@ -1302,7 +1017,7 @@ namespace Simcraft
                 {
                     private readonly string _name;
                     private readonly int spellid;
-                    private MagicDouble _remains;
+                    private MagicValueType _remains;
                     private int lastIteRemains = -1;
 
                     public CooldownInternal(string name)
@@ -1328,13 +1043,13 @@ namespace Simcraft
                         }
                     }
 
-                    public virtual MagicDouble remains
+                    public virtual MagicValueType remains
                     {
                         get
                         {
-                            _remains = new MagicDouble(Lua.GetReturnVal<double>("start, duration, enabled = GetSpellCooldown(\"" + _name + "\"); t =GetTime()-start; return duration-t;", 0));
+                            _remains = new MagicValueType(Lua.GetReturnVal<double>("start, duration, enabled = GetSpellCooldown(\"" + _name + "\"); t =GetTime()-start; return duration-t;", 0));
                             lastIteRemains = iterationCounter;
-                            if (_remains < 0) _remains = new MagicDouble(0);
+                            if (_remains < 0) _remains = new MagicValueType(0);
                             return _remains;
                         }
                     }
@@ -1360,13 +1075,13 @@ namespace Simcraft
                         get { return Me.Minions.Any(ret => ret.Name == "Prismatic Crystal"); }
                     }
 
-                    public double remains
+                    public MagicValueType remains
                     {
                         get
                         {
                             if (Me.Totems.FirstOrDefault() != default(WoWTotemInfo))
-                                return (Me.Totems.First().Expires - DateTime.Now).TotalSeconds;
-                            return 0;
+                                return new MagicValueType((Me.Totems.First().Expires - DateTime.Now).TotalSeconds);
+                            return new MagicValueType(0);
                         }
                        
                     }
@@ -1384,7 +1099,7 @@ namespace Simcraft
                 {
                     private readonly string _name;
                     private readonly int spellid;
-                    private MagicDouble _remains;
+                    private MagicValueType _remains;
                     private int _stack;
                     private bool _up;
                     private int lastIteRemains = -1;
@@ -1401,12 +1116,12 @@ namespace Simcraft
                         this.spellid = spellid;
                     }
 
-                    public virtual bool down
+                    public virtual MagicValueType down
                     {
                         get { return !up; }
                     }
 
-                    public virtual bool up
+                    public virtual MagicValueType up
                     {
                         get
                         {
@@ -1422,17 +1137,17 @@ namespace Simcraft
                                             spellid + "\"); return name == nil", 0);
                                 lastIteUp = iterationCounter;
                             }
-                            return _up;
+                            return new MagicValueType(_up);
                         }
                     }
 
-                    public virtual MagicDouble remains
+                    public virtual MagicValueType remains
                     {
                         get
                         {
                             if (lastIteRemains + iterationCache < iterationCounter || lastIteRemains > iterationCounter)
                             {
-                                _remains = new MagicDouble(spellid == 0
+                                _remains = new MagicValueType(spellid == 0
                                     ? GetAuraTimeLeft(StyxWoW.Me.ToUnit().Pet, _name).TotalSeconds
                                     : GetAuraTimeLeft(StyxWoW.Me.ToUnit().Pet, spellid).TotalSeconds);
                                 lastIteRemains = iterationCounter;
@@ -1441,7 +1156,7 @@ namespace Simcraft
                         }
                     }
 
-                    public virtual int Stack
+                    public virtual MagicValueType Stack
                     {
                         get
                         {
@@ -1452,13 +1167,13 @@ namespace Simcraft
                                     : GetAuraStacks(StyxWoW.Me.ToUnit().Pet, spellid);
                                 lastIteStack = iterationCounter;
                             }
-                            return _stack;
+                            return new MagicValueType(_stack);
                         }
                     }
 
-                    public virtual Superbool react
+                    public virtual MagicValueType react
                     {
-                        get { return new Superbool(remains > 0.1); }
+                        get { return new MagicValueType(remains > (Decimal)0.1); }
                     }
                 }
             }
@@ -1561,9 +1276,9 @@ namespace Simcraft
             public class SpellInternal : CacheInternal
             {
 
-                public MagicDouble travel_time
+                public MagicValueType travel_time
                 {
-                    get { return new MagicDouble(1); }
+                    get { return new MagicValueType(1); }
                 }
 
                 private readonly bool _hasMe;
@@ -1592,22 +1307,22 @@ namespace Simcraft
                     //SimcraftImpl.Write((_hasMe ? "Found " : "Missing ") + name);
                 }
 
-                public double execute_time
+                public MagicValueType execute_time
                 {
                     get
                     {
                        
-                        return Math.Max(Math.Max(gcd.nat, cast_time), channel_time);
+                        return new MagicValueType(Math.Max(Math.Max(gcd.nat, cast_time), channel_time));
                     }
                 }
 
-                public MagicDouble gcd
+                public MagicValueType gcd
                 {
                     get
                     {
 
-                        if (DBHasSpell(_name)) return new MagicDouble(DBGetSpell(_name).Gcd);
-                        return new MagicDouble(1.5);
+                        if (DBHasSpell(_name)) return new MagicValueType(DBGetSpell(_name).Gcd);
+                        return new MagicValueType(1.5);
                     }
                 }
 
@@ -1617,7 +1332,7 @@ namespace Simcraft
                     _hasMe = SpellManager.HasSpell(spellid);
                 }
 
-                public double range
+                public MagicValueType range
                 {
                     get
                     {
@@ -1626,15 +1341,15 @@ namespace Simcraft
                             ? GetSpell(_name)
                             : GetSpell(spellid);
 
-                        return spell.HasRange ? spell.MaxRange : Me.CombatReach+5;
+                        return new MagicValueType(spell.HasRange ? spell.MaxRange : Me.CombatReach+5);
                     }
                 }
 
-                public int charges
+                public MagicValueType charges
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
                         if (lastIteCharges + iterationCache < iterationCounter || lastIteCharges > iterationCounter)
                         {
                             _charges = spellid == 0
@@ -1646,15 +1361,15 @@ namespace Simcraft
                                     0);
                             lastIteCharges = iterationCounter;
                         }
-                        return _charges;
+                        return new MagicValueType(_charges);
                     }
                 }
 
-                public double cast_time
+                public MagicValueType cast_time
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
                         if (lastIteCasttime + iterationCache < iterationCounter || lastIteCasttime > iterationCounter)
                         {
                             _castime = spellid == 0
@@ -1662,20 +1377,20 @@ namespace Simcraft
                                 : (double) GetSpell(spellid).CastTime/1000;
                             lastIteCasttime = iterationCounter;
                         }
-                        return _castime;
+                        return new MagicValueType(_castime);
                     }
                 }
 
-                public bool in_flight
+                public MagicValueType in_flight
                 {
-                    get { return false; }
+                    get { return new MagicValueType(false); }
                 }
 
-                public double channel_time
+                public MagicValueType channel_time
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
                         if (lastIteChanneltime + iterationCache < iterationCounter ||
                             lastIteChanneltime > iterationCounter)
                         {
@@ -1684,30 +1399,30 @@ namespace Simcraft
                                 : (double) GetSpell(spellid).BaseDuration/1000;
                             lastIteChanneltime = iterationCounter;
                         }
-                        return _channeltime;
+                        return new MagicValueType(_channeltime); ;
                     }
                 }
 
 
-                public double duration
+                public MagicValueType duration
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
 
-                       return  spellid == 0
+                       return  new MagicValueType(spellid == 0
                                 ? (double)GetSpell(_name).BaseDuration / 1000
-                                : (double)GetSpell(spellid).BaseDuration / 1000;
+                                : (double)GetSpell(spellid).BaseDuration / 1000); 
                             lastIteChanneltime = iterationCounter;
 
                     }                   
                 }
 
-                public double recharge_time
+                public MagicValueType recharge_time
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
                         if (lastIteRecharge + iterationCache < iterationCounter || lastIteRecharge > iterationCounter)
                         {
                             _rechargeTime = spellid == 0
@@ -1723,16 +1438,16 @@ namespace Simcraft
                                     0);
                             lastIteRecharge = iterationCounter;
                         }
-                        return _rechargeTime;
+                        return new MagicValueType(_rechargeTime);
                     }
                 }
 
 
-                public double charges_fractional
+                public MagicValueType charges_fractional
                 {
                     get
                     {
-                        if (!_hasMe) return 0;
+                        if (!_hasMe) return new MagicValueType(0);
                         if (lastIteRecharge + iterationCache < iterationCounter || lastIteRecharge > iterationCounter)
                         {
                             _rechargeTime = spellid == 0
@@ -1748,7 +1463,7 @@ namespace Simcraft
                                     0)+charges;
                             lastIteRecharge = iterationCounter;
                         }
-                        return _rechargeTime;
+                        return  new MagicValueType(_rechargeTime);
                     }
                 }
 
@@ -1840,9 +1555,9 @@ namespace Simcraft
             {
             }
 
-            public double distance
+            public MagicValueType distance
             {
-                get { return GetUnit().Distance; }
+                get { return new MagicValueType(GetUnit().Distance); }
             }
 
             public HealthProxy health;
@@ -1853,19 +1568,19 @@ namespace Simcraft
                 health = new HealthProxy(() => GetUnit(), simc);
             }
 
-            public double time_to_die
+            public MagicValueType time_to_die
             {
                 get { return health.TimeToDie; }
             }
 
-            public bool melee_range
+            public MagicValueType melee_range
             {
-                get { return GetUnit().IsWithinMeleeRange; }
+                get { return new MagicValueType(GetUnit().IsWithinMeleeRange); }
             }
 
-            public bool facing
+            public MagicValueType facing
             {
-                get { return Me.IsFacing(GetUnit()); }
+                get { return new MagicValueType(Me.IsFacing(GetUnit())); }
             }
 
             public WoWPoint Location
@@ -1881,18 +1596,18 @@ namespace Simcraft
 
             public class Casting : DebuffInternal
             {
-                public override MagicDouble remains
+                public override MagicValueType remains
                 {
                     get
                     {
                         return _owner.GetUnit().IsCasting
-                            ? new MagicDouble(_owner.GetUnit().CurrentCastTimeLeft.TotalSeconds)
-                            : new MagicDouble(0);
+                            ? new MagicValueType(_owner.GetUnit().CurrentCastTimeLeft.TotalSeconds)
+                            : new MagicValueType(0);
                     }
                 }
-                public override bool up
+                public override MagicValueType up
                 {
-                    get { return _owner.GetUnit().IsCasting; }
+                    get { return new MagicValueType(_owner.GetUnit().IsCasting); }
                 }
                 public Casting(string name, DebuffProxy owner) : base(name, owner)
                 {
@@ -1961,12 +1676,12 @@ namespace Simcraft
                     _owner = owner;
                 }
 
-                public bool down
+                public MagicValueType down
                 {
                     get { return !up; }
                 }
 
-                public virtual bool up
+                public virtual MagicValueType up
                 {
                     get
                     {
@@ -1988,13 +1703,13 @@ namespace Simcraft
 
                 private Regex tick = new Regex("every (\\d+) sec");
 
-                private int spt = 0;
+                private Decimal spt = 0;
 
-                public double tick_time
+                public MagicValueType tick_time
                 {
                     get
                     {
-                        if (!up) return 0;
+                        if (!up) return new MagicValueType(0);
                         if (spt == 0)
                         {
 
@@ -2007,16 +1722,16 @@ namespace Simcraft
                                 spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
                             }
                         }
-                        return spt;
+                        return  new MagicValueType(spt);
 
                     }                 
                 }
 
-                public int ticks_remain
+                public MagicValueType ticks_remain
                 {
                     get
                     {
-                        if (!up) return 0;
+                        if (!up) return new MagicValueType(0);
                         if (spt == 0)
                         {
 
@@ -2029,12 +1744,12 @@ namespace Simcraft
                                 spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
                             }
                         }
-                        return (int)Math.Floor(remains/spt);
+                        return new MagicValueType(Math.Floor(remains/spt));
 
                     }
                 }
 
-                public virtual MagicDouble remains
+                public virtual MagicValueType remains
                 {
                     get
                     {
@@ -2043,7 +1758,7 @@ namespace Simcraft
                         dynamic cach = _cache[guid];
                         if (cach.remains.Ite + iterationCache < iterationCounter || cach.remains.Ite > iterationCounter)
                         {
-                            cach.remains.Value = new MagicDouble(spellid == 0
+                            cach.remains.Value = new MagicValueType(spellid == 0
                                 ? GetAuraTimeLeft(_owner.GetUnit(), _name, true).TotalSeconds
                                 : GetAuraTimeLeft(_owner.GetUnit(), spellid, true).TotalSeconds);
                             cach.remains.Ite = iterationCounter;
@@ -2052,7 +1767,7 @@ namespace Simcraft
                     }
                 }
 
-                public virtual int stack
+                public virtual MagicValueType stack
                 {
                     get
                     {
@@ -2072,12 +1787,12 @@ namespace Simcraft
 
 
 
-                public Superbool react
+                public MagicValueType react
                 {
-                    get { return new Superbool(up); }
+                    get { return up; }
                 }
 
-                public bool ticking
+                public MagicValueType ticking
                 {
                     get { return up; }
                 }
@@ -2143,12 +1858,12 @@ namespace Simcraft
                     _name = name;
                 }
 
-                public Superbool enabled
+                public MagicValueType enabled
                 {
                     get
                     {
                         if (_enabled == null) _enabled = StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _name) > 0;
-                        return new Superbool(_enabled.Value);
+                        return new MagicValueType(_enabled.Value);
                     }
                 }
             }
@@ -2158,35 +1873,35 @@ namespace Simcraft
         {
             public class FakeEvent
             {
-                public double _in
+                public MagicValueType _in
                 {
-                    get { return Double.PositiveInfinity; }
+                    get { return new MagicValueType(Decimal.MaxValue); }
                 }
 
-                public MagicDouble distance
+                public MagicValueType distance
                 {
-                    get { return new MagicDouble(0); }
+                    get { return new MagicValueType(0); }
                 }
-                public bool exists
+                public MagicValueType exists
                 {
                     get
                     {
-                        return false;
+                        return new MagicValueType(false);
                     }
                 }
-                public MagicDouble cooldown
+                public MagicValueType cooldown
                 {
-                    get { return new MagicDouble(Double.PositiveInfinity); }
+                    get { return new MagicValueType(Decimal.MaxValue); }
                 }
 
-                public MagicDouble remains
+                public MagicValueType remains
                 {
-                    get { return new MagicDouble(0); }
+                    get { return new MagicValueType(0); }
                 }
-                
-                public int count
+
+                public MagicValueType count
                 {
-                    get { return 0; }
+                    get { return new MagicValueType(0); }
                 }
             }
 
@@ -2258,7 +1973,7 @@ namespace Simcraft
                     _name = name;
                 }
 
-                public Superbool enabled
+                public MagicValueType enabled
                 {
                     get
                     {
@@ -2276,7 +1991,7 @@ namespace Simcraft
                             return false;";
                              _enabled = Lua.GetReturnVal<bool>(_lua, 0);
                         }
-                        return new Superbool(_enabled.Value);
+                        return new MagicValueType(_enabled.Value);
                     }
                 }
             }
@@ -2418,7 +2133,7 @@ namespace Simcraft
             {
             }
 
-            public double time_to_max
+            public MagicValueType time_to_max
             {
                 get { return deficit/regen; }
             }
@@ -2428,7 +2143,7 @@ namespace Simcraft
                 //Resources dont need resolution
             }
 
-            public double pct
+            public MagicValueType pct
             {
                 get
                 {
@@ -2437,16 +2152,16 @@ namespace Simcraft
                         _pct = GetPercent;
                         lastItePct = iterationCounter;
                     }
-                    return _pct;
+                    return new MagicValueType(_pct);
                 }
             }
 
-            public double percent
+            public MagicValueType percent
             {
                 get { return pct; }
             }
 
-            public double current
+            public MagicValueType current
             {
                 get
                 {
@@ -2455,11 +2170,11 @@ namespace Simcraft
                         _crt = GetCurrent;
                         lastIteCrt = iterationCounter;
                     }
-                    return _crt;
+                    return new MagicValueType(_crt);
                 }
             }
 
-            public double max
+            public MagicValueType max
             {
                 get
                 {
@@ -2468,22 +2183,22 @@ namespace Simcraft
                         _max = GetMax;
                         lastIteMax = iterationCounter;
                     }
-                    return _max;
+                    return new MagicValueType(_max);
                 }
             }
 
-            public abstract double GetPercent { get; }
-            public abstract int GetMax { get; }
-            public abstract int GetCurrent { get; }
+            public abstract MagicValueType GetPercent { get; }
+            public abstract MagicValueType GetMax { get; }
+            public abstract MagicValueType GetCurrent { get; }
 
-            public int deficit
+            public MagicValueType deficit
             {
-                get { return GetUnit() != null ? (int) (max - current) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int) (max - current) : 0); }
             }
 
-            public double regen { get; private set; }
+            public MagicValueType regen { get; private set; }
 
-            public double cast_regen(double seconds)
+            public MagicValueType cast_regen(double seconds)
             {
                 return regen*seconds;
             }
@@ -2581,45 +2296,45 @@ namespace Simcraft
 
             public void Pulse()
             {
-                regen = Lua.GetReturnVal<double>(
-                    "inactiveRegen, activeRegen = GetPowerRegen(); return activeRegen;", 0);
+                regen = new MagicValueType(Lua.GetReturnVal<double>(
+                    "inactiveRegen, activeRegen = GetPowerRegen(); return activeRegen;", 0));
             }
         }
 
         public class HealthProxy : ResourceProxy
         {
-            public static int AVG_DPS = 22000;
+            public static Decimal AVG_DPS = 22000;
 
             public HealthProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return GetUnit().HealthPercent; }
+                get { return new MagicValueType(GetUnit().HealthPercent); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int) (GetUnit().CurrentHealth) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int) (GetUnit().CurrentHealth) : 0); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int) (GetUnit().MaxHealth) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxHealth) : 0); }
             }
 
-            public double TimeToDie
+            public MagicValueType TimeToDie
             {
                 get
                 {
                     var g = (int) StyxWoW.Me.GroupInfo.GroupSize;
                  
                     if (g > 0)
-                        return GetCurrent/(StyxWoW.Me.GroupInfo.GroupSize*0.6*AVG_DPS);
+                        return new MagicValueType(GetCurrent/(((Decimal)StyxWoW.Me.GroupInfo.GroupSize)*(Decimal)0.6*AVG_DPS));
 
-                    return GetCurrent/(AVG_DPS);
+                    return new MagicValueType(GetCurrent/(AVG_DPS));
                 }
             }
         }
@@ -2633,19 +2348,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return GetUnit().ManaPercent; }
+                get { return new MagicValueType(GetUnit().ManaPercent); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int)(GetUnit().CurrentMana) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().CurrentMana) : 0); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int)(GetUnit().MaxMana) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxMana) : 0); }
             }
 
         }
@@ -2657,19 +2372,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return 0; }
+                get { return new MagicValueType(0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? StyxWoW.Me.ComboPoints : 0; }
+                get { return new MagicValueType(GetUnit() != null ? StyxWoW.Me.ComboPoints : 0); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return 5; }
+                get { return new MagicValueType(5); }
             }
         }
 
@@ -2680,19 +2395,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return GetUnit() != null ? StyxWoW.Me.HolyPowerPercent : 0; }
+                get { return new MagicValueType(GetUnit() != null ? StyxWoW.Me.HolyPowerPercent : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int)StyxWoW.Me.CurrentHolyPower : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)StyxWoW.Me.CurrentHolyPower : 0); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return (int)Me.MaxHolyPower; }
+                get { return new MagicValueType((int)Me.MaxHolyPower); }
             }
         }
 
@@ -2748,19 +2463,19 @@ namespace Simcraft
                         0);
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return frac; }
+                get { return new MagicValueType(frac); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return Me.GetRuneCount(type); } 
+                get { return new MagicValueType(Me.GetRuneCount(type)); } 
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return 2; }
+                get { return new MagicValueType(2); }
             }
 
             public static bool operator !(RuneProxy op1)
@@ -2787,19 +2502,19 @@ namespace Simcraft
             {
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return (int) GetUnit().MaxChi; }
+                get { return new MagicValueType((int)GetUnit().MaxChi); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return (int) GetUnit().CurrentChi; }
+                get { return new MagicValueType((int)GetUnit().CurrentChi); }
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return 0; }
+                get { return new MagicValueType(0); }
             }
         }
 
@@ -2810,19 +2525,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return StyxWoW.Me.EnergyPercent; }
+                get { return new MagicValueType(StyxWoW.Me.EnergyPercent); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int) (GetUnit().MaxEnergy) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxEnergy) : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int) (GetUnit().CurrentEnergy) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().CurrentEnergy) : 0); }
             }
         }
 
@@ -2833,19 +2548,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return StyxWoW.Me.EclipsePercent; }
+                get { return new MagicValueType(StyxWoW.Me.EclipsePercent); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int)(GetUnit().MaxEclipse) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxEclipse) : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int)(GetUnit().CurrentEclipse) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().CurrentEclipse) : 0); }
             }
         }
 
@@ -2857,19 +2572,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return StyxWoW.Me.EnergyPercent; }
+                get { return new MagicValueType(StyxWoW.Me.EnergyPercent); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int)(GetUnit().MaxRunicPower) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxRunicPower) : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int)(GetUnit().CurrentRunicPower) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().CurrentRunicPower) : 0); }
             }
         }
 
@@ -2881,19 +2596,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return StyxWoW.Me.FocusPercent; }
+                get { return new MagicValueType(StyxWoW.Me.FocusPercent); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int) (GetUnit().MaxFocus) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxFocus) : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int) (GetUnit().CurrentFocus) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().CurrentFocus) : 0); }
             }
 
             //public bool cast_regen
@@ -2907,19 +2622,19 @@ namespace Simcraft
             {
             }
 
-            public override double GetPercent
+            public override MagicValueType GetPercent
             {
-                get { return StyxWoW.Me.RagePercent; }
+                get { return new MagicValueType(StyxWoW.Me.RagePercent); }
             }
 
-            public override int GetMax
+            public override MagicValueType GetMax
             {
-                get { return GetUnit() != null ? (int) (GetUnit().MaxRage) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int)(GetUnit().MaxRage) : 0); }
             }
 
-            public override int GetCurrent
+            public override MagicValueType GetCurrent
             {
-                get { return GetUnit() != null ? (int) (GetUnit().CurrentRage) : 0; }
+                get { return new MagicValueType(GetUnit() != null ? (int) (GetUnit().CurrentRage) : 0); }
             }
         }
     }

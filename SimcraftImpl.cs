@@ -142,11 +142,11 @@ namespace Simcraft
         private int o_soul_shard = 0;
         private Stopwatch SoulShardTimer = new Stopwatch();
 
-        public Superbool ptr
+        public MagicValueType ptr
         {
             get
             {
-                return new Superbool(false);
+                return new MagicValueType(false);
             }
         }
 
@@ -417,7 +417,7 @@ namespace Simcraft
             get { return buff["Anticipation"].Stack; }
         }
 
-        public MagicDouble remains
+        public MagicValueType remains
         {
             get { return debuff[_conditionSpell].remains; }
         }
@@ -899,6 +899,7 @@ namespace Simcraft
         {
             try
             {
+                Console.WriteLine(format);
                 if (c == default(Color)) c = Colors.White;
                 if (pars == null) pars = new object[0];
                 if (logf == null) logf = RandomString(10);

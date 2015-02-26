@@ -25,7 +25,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Simcraft.APL;
 using System.Windows.Media;
-
+using System.Windows.Media.Animation;
 
 
 namespace Simcraft
@@ -272,6 +272,7 @@ namespace Simcraft
                 var old = Superlog;
                 Superlog = true;
                 SimcraftImpl.Write(code, Colors.White, LogLevel.Diagnostic);
+                //Console.WriteLine(code);
                 Superlog = old;
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
@@ -286,12 +287,138 @@ namespace Simcraft
             }
         }
 
+        public struct v_t : IComparable<v_t>, IEquatable<v_t>, IConvertible, IComparable<int>, IEquatable<int>
+        {
+            public int CompareTo(v_t other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Equals(v_t other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public TypeCode GetTypeCode()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool ToBoolean(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public char ToChar(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public sbyte ToSByte(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public byte ToByte(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public short ToInt16(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ushort ToUInt16(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int ToInt32(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public uint ToUInt32(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public long ToInt64(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ulong ToUInt64(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public float ToSingle(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public double ToDouble(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public decimal ToDecimal(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public DateTime ToDateTime(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToString(IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public object ToType(Type conversionType, IFormatProvider provider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int CompareTo(int other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Equals(int other)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
 
         public static void Main()
         {
 
-         
+            var a = new MagicValueType(5);
+            var b = new MagicValueType(true);
+            var c = new MagicValueType(5.5);
+            var d = new MagicValueType(false);
 
+            var ob = new ObliterateProxy();
+
+            /*v_t u = 5;
+
+            //Console.WriteLine(!ob.ready_in<0.5);
+            Int32 _a = 5;
+            var z = _a < 5;
+            //Console.WriteLine(""+(k < 5));
+            //GenerateApls();*/
+            
+            a = b;
+            
+            Console.WriteLine(""+b);
+
+            Console.ReadKey();
 
         }
 
@@ -335,12 +462,12 @@ namespace Simcraft
             });
         }
 
-        public MagicDouble gcd
+        public MagicValueType gcd
         {
             get
             {
-                //if (!dbc.ClassSpells.ContainsKey(Tokenize(_conditionSpell))) return new MagicDouble(1.5);
-                //return new MagicDouble(dbc.ClassSpells[Tokenize(_conditionSpell)].Gcd);
+                //if (!dbc.ClassSpells.ContainsKey(Tokenize(_conditionSpell))) return new MagicValueType(1.5);
+                //return new MagicValueType(dbc.ClassSpells[Tokenize(_conditionSpell)].Gcd);
                 return spell[_conditionSpell].gcd;
             }
         }

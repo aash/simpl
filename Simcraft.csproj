@@ -130,6 +130,7 @@
     <Compile Include="ConfigWindow.Designer.cs">
       <DependentUpon>ConfigWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="MagicValueType.cs" />
     <Compile Include="ProfileSelector.cs">
       <SubType>Form</SubType>
     </Compile>
