@@ -189,11 +189,19 @@ namespace Simcraft
             return dbc.Spells[n];
         }
 
+        public static bool DBHasClassSpell(String name)
+        {
+            var n = Tokenize(name);
+            return dbc.ClassSpells.ContainsKey(n);
+        }
+
         public static dbc.Spell DBGetTalentSpell(String name)
         {
             var n = Tokenize(name);
             return dbc.Spells[n];
         }
+
+
 
         public bool in_flight_to_target = false;
         public bool in_flight = false;

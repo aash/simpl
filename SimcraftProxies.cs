@@ -1766,6 +1766,7 @@ namespace Simcraft
                                 spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
                             }
                         }
+                        if (spt == 0) return new MagicValueType(0);
                         return new MagicValueType(Math.Floor(remains/spt));
 
                     }

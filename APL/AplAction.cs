@@ -8,6 +8,9 @@ using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
+using JetBrains.Annotations;
 using Styx;
 using Styx.Common;
 
@@ -362,6 +365,8 @@ namespace Simcraft
             
         }
 
+        public bool Understood { get; set; }
+
         public String ToCode(Dictionary<String, EquippedItem> items, String indent)
         {
            
@@ -452,7 +457,8 @@ namespace Simcraft
                 Comments.Add("Dont use swing timers man ...");
                 prefix += "//";
             }
-               
+
+            Understood = true;
 
             switch (this.type)
             {
@@ -521,6 +527,17 @@ namespace Simcraft
                              (hastarget ? ",simc.Target" + target.content : "") +
                              ",\""+condition_string+"\""+
                              ");";
+
+                    if (!SimcraftImpl.DBHasClassSpell(action))
+                    {
+                        //SimcraftImpl.Write("Couldnt find ClassSpell: "+action+" trying to find Spell");
+                        if (!SimcraftImpl.DBHasSpell(action))
+                        {
+                            SimcraftImpl.Write("Invalid Spell: " + action + ", skippings");
+                            Understood = false;
+                        }
+                    }
+
                     break;
                 case ActionType.run_action_list:
                     __code = comments(indent) + "" + prefix + "simc.actions" + (apl == "default" ? "" : "[\"" + apl + "\"]") +
