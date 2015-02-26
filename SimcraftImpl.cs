@@ -414,7 +414,7 @@ namespace Simcraft
 
         public int anticipation_charges
         {
-            get { return buff["Anticipation"].Stack; }
+            get { return buff["Anticipation"].stack; }
         }
 
         public MagicValueType remains
@@ -1013,145 +1013,8 @@ namespace Simcraft
             public WoWPoint ideal_location()
             {
                 var unfs = UnfriendlyUnitsNearMe((float) (range));
-                var cList = new List<Circle>();
-
-                unfs.ForEach(ret => cList.Add(new Circle(ret.CombatReach, ret.Location, ret == Me.CurrentTarget)));
-                /*cList.ForEach(ret =>
-                {
-                    if (ret.Location.X > maxx) maxx = ret.Location.X;
-                    if (ret.Location.X < minx) minx = ret.Location.X;
-                    if (ret.Location.Y > maxy) maxy = ret.Location.Y;
-                    if (ret.Location.Y < miny) miny = ret.Location.Y;
-                });
-                int v = 150;
-
-                var rincx = Math.Ceiling((maxx - minx) / v);
-                var rincy = Math.Ceiling((maxy - miny) / v);
-
-                var circlex = minx + radius;
-                var circley = miny + radius;
-
-                double px = 0;
-                double py = 0;
-
-                var cints = 0;
-                var ddist = Double.PositiveInfinity;
-                var cmt = false;
-
-                /*
-                 10 Grad Schritte
-                    X = r * cosine(angle)
-                    Y = r * sine(angle)
-                */
-
-
-                var centerx = Me.CurrentTarget.Location.X;
-                var centery = Me.CurrentTarget.Location.Y;
-                var cints = 0;
-                var ddist = Double.PositiveInfinity;
-                double px = 0;
-                double py = 0;
-                int ites = 0;
-
-                for (int i = 0; i < 360; i += 20)
-                {
-                    for (int y = (int)Math.Ceiling(radius)+2; y > 0; y--)
-                    {
-                        var cx = centerx + (y - 1) * Math.Cos(i);
-                        var cy = centery + (y - 1) * Math.Sin(i);
-                        var ints = 0;
-                        double dist = 0;
-
-                        ites++;
-                        
-
-                        cList.ForEach(
-                            ret =>
-                            {
-                                if (DoCirclesIntersect(cx, cy, radius, ret.Location.X,
-                                    ret.Location.Y, ret.Radius))
-                                {
-                                    var dx = (cx) - ret.Location.X;
-                                    var dy = (cy) - ret.Location.Y;
-                                    var _dist = Math.Sqrt(dx * dx + dy * dy);
-                                    dist += dist <= radius / 2 ? radius / 2 : _dist;
-                                    ints++;
-                                }
-                            });
-
-                        if (ints > cints)
-                        {
-                            cints = ints;
-                            px = cx;
-                            py = cy;
-                            //Logging.Write("New Biggest Cluster " + ints + " dist: " + dist + " " + px + "/" + py);
-                        }
-                        if (dist < ddist && ints == cints)
-                        {
-                            ddist = dist;
-                            px = cx;
-                            py = cy;
-                            //Logging.Write("New Best Cluster for MT and Dist" + ints + " dist: " + dist + " "+px+"/"+py);
-                        }
-
-                    }
-
-                }
-
-                /*for (var x = 0; x < v; x++)
-                {
-                    for (var y = 0; y < v; y++)
-                    {
-                        var ints = 0;
-                        double dist = 0;
-                        bool mt = false;
-                        cList.ForEach(
-                            ret =>
-                            {
-                                if (DoCirclesIntersect(circlex + rincx*x, circley + rincy*y, radius, ret.Location.X,
-                                    ret.Location.Y, ret.Radius))
-                                {
-
-                                    var dx = (circlex + rincx * x) - ret.Location.X;
-                                    var dy = (circley + rincy * y) - ret.Location.Y;
-                                    var _dist = Math.Sqrt(dx * dx + dy * dy);
-                                    dist += ret.MT ? _dist : _dist <= radius / 2 ? radius / 2 : _dist;
-                                    ints++;
-                                    if (ret.MT) mt = true;
-                                }
-                            });
-                        if (!mt) continue;
-                        if (ints > cints)
-                        {
-                            cints = ints;
-                            px = circlex + rincx*x;
-                            py = circley + rincy*y;
-                           // Logging.Write("New Biggest Cluster " + ints + " dist: " + dist + " " + px + "/" + py);
-                        }
-                        if (ints == cints)
-                        {
-                            /*if (mt && !cmt)
-                            {
-                                cmt = true;
-                                ddist = dist;
-                                px = circlex + rinc * x;
-                                py = circley + rinc * y;
-                                Logging.Write("New Best Cluster for MT " + ints + " dist: " + dist + " " + px + "/" + py);
-                            }*/
-                            /*if (dist < ddist)
-                            {
-                                ddist = dist;
-                                px = circlex + rincx * x;
-                                py = circley + rincy * y;
-                                //Logging.Write("New Best Cluster for MT and Dist" + ints + " dist: " + dist + " "+px+"/"+py);
-                            }
-                        }
-                    }
-                }*/
-                //Logging.Write("Found Cluster of {0} px {1} py {2} ites {3}", cints,  px, py, ites);
-                if (cints == 0) return Me.CurrentTarget.Location;
-                if (cints == 1) return Me.CurrentTarget.Location;
-                return new WoWPoint(px, py, StyxWoW.Me.CurrentTarget.Z);
+           
+                return StyxWoW.Me.CurrentTarget.Location;
             }
 
             public class Circle

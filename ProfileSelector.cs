@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,10 @@ namespace Simcraft
         protected override void OnShown(EventArgs e)
         {
             listBox1.Items.Clear();
-            SimcraftImpl.GenerateApls();
+            if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
+                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Trunk\Profiles\");
+            else
+                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Profiles\");
             foreach (var apl in SimcraftImpl.apls )
             {
                     //if (apl.Key.Match(StyxWoW.Me.Class, StyxWoW.Me.Specialization, WoWContext.PvE))
@@ -61,7 +65,10 @@ namespace Simcraft
 
         private void button3_Click(object sender, EventArgs e)
         {
-            SimcraftImpl.GenerateApls();
+            if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
+                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Trunk\Profiles\");
+            else
+                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Profiles\");
             listBox1.Items.Clear();
 
             foreach (var apl in SimcraftImpl.apls)

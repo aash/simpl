@@ -251,7 +251,7 @@ namespace Simcraft
 
         public static Dictionary<String, ActionPrioriyList> apls = new Dictionary<String, ActionPrioriyList>(); 
 
-        public static void GenerateApls(String folder = @"Bots\Simcraft\Profiles\")
+        public static void GenerateApls(String folder)
         {
             apls.Clear();
 
@@ -263,7 +263,7 @@ namespace Simcraft
                 if (!filename.EndsWith(".simc")) continue;
                 String contents = File.ReadAllText(filename);
                 var currentApl = ActionPrioriyList.FromString(contents);
-                //if (currentApl.Class != Me.Class) continue;
+                if (currentApl.Class != Me.Class) continue;
                 
                 var code = currentApl.ToCode();
                 var classname = RandomString(10);
@@ -287,113 +287,7 @@ namespace Simcraft
             }
         }
 
-        public struct v_t : IComparable<v_t>, IEquatable<v_t>, IConvertible, IComparable<int>, IEquatable<int>
-        {
-            public int CompareTo(v_t other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Equals(v_t other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public TypeCode GetTypeCode()
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool ToBoolean(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public char ToChar(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public sbyte ToSByte(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public byte ToByte(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public short ToInt16(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ushort ToUInt16(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int ToInt32(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public uint ToUInt32(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public long ToInt64(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ulong ToUInt64(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public float ToSingle(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public double ToDouble(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public decimal ToDecimal(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public DateTime ToDateTime(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public string ToString(IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public object ToType(Type conversionType, IFormatProvider provider)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int CompareTo(int other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Equals(int other)
-            {
-                throw new NotImplementedException();
-            }
-        }
+        
 
 
         public static void Main()

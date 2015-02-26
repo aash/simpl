@@ -42,6 +42,8 @@ namespace Simcraft
                 result = false;
                 try
                 {
+
+                   //var p = double.PositiveInfinity;
                     var n = binder.Name;
                     var splits = n.Split('_');
                     var set = dbc.Sets[splits[0]];
@@ -72,7 +74,7 @@ namespace Simcraft
         public class DiseaseProxy
         {
 
-            public bool max_ticking
+            public MagicValueType max_ticking
             {
                 get
                 {
@@ -92,11 +94,11 @@ namespace Simcraft
                     if (ret == default_value)
                         ret = false;
 
-                    return ret;
+                    return new MagicValueType(ret);
                 }
             }
 
-            public bool min_ticking
+            public MagicValueType min_ticking
             {
                 get
                 {
@@ -115,7 +117,7 @@ namespace Simcraft
                     if (ret == default_value)
                         ret = false;
 
-                    return ret;
+                    return new MagicValueType(ret);
                 }
             }
 
@@ -131,11 +133,11 @@ namespace Simcraft
                 ret = val;
             }
             */
-            public double min_remains
+            public MagicValueType MagicValueType
             {
                 get
                 {
-                    var default_value = double.MaxValue;
+                    var default_value = Decimal.MaxValue;
                     var ret = default_value;
            
                     var val = simc.debuff["Blood Plague"].remains;
@@ -151,15 +153,15 @@ namespace Simcraft
                     if (ret == default_value)
                         ret = 0;
 
-                    return ret;
+                    return new MagicValueType(ret);
                 }
             }
 
-            public double max_remains
+            public MagicValueType max_remains
             {
                 get
                 {
-                    var default_value = double.MinValue;
+                    var default_value = Decimal.MinValue;
                     var ret = default_value;
 
                     var val = simc.debuff["Blood Plague"].remains;
@@ -175,11 +177,11 @@ namespace Simcraft
                     if (ret == default_value)
                         ret = 0;
 
-                    return ret;
+                    return new MagicValueType(ret);
                 }
             }
 
-            public bool ticking
+            public MagicValueType ticking
             {
                 get
                 {
@@ -193,7 +195,7 @@ namespace Simcraft
                     if (val)
                         return val;
 
-                    return false;
+                    return new MagicValueType(false);
                 }           
             }
 
@@ -481,7 +483,7 @@ namespace Simcraft
                 {
                 }
 
-                public override int stack
+                public override MagicValueType stack
                 {
                     get
                     {
@@ -559,7 +561,7 @@ namespace Simcraft
                     {
                         foreach (var proc in get_procs)
                         {
-                            if (simc.buff[DBGetSpell(proc)].up) return up;
+                            if (simc.buff[DBGetSpell(proc).Name].up) return up;
                         }
                         return new MagicValueType(false); 
                     }
@@ -569,27 +571,27 @@ namespace Simcraft
                 {
                     get
                     {
-                        double dur = Double.MinValue;
+                        Decimal dur = Decimal.MinValue;
                         foreach (var proc in get_procs)
                         {
-                            var r = simc.buff[DBGetSpell(proc)].remains;
+                            var r = simc.buff[DBGetSpell(proc).Name].remains;
                             if (dur < r) dur = r;
                         }
                         return new MagicValueType(dur);
                     }
                 }
 
-                public override int stack
+                public override MagicValueType stack
                 {
                     get
                     {
                         int dur = int.MinValue;
                         foreach (var proc in get_procs)
                         {
-                            var r = simc.buff[DBGetSpell(proc)].Stack;
+                            var r = simc.buff[DBGetSpell(proc).Name].Stack;
                             if (dur < r) dur = r;
                         }
-                        return dur;
+                        return new MagicValueType(dur);
                     }
 
 
@@ -621,6 +623,14 @@ namespace Simcraft
                         return new MagicValueType(simc.buff["Heroism"].up
                             ? simc.buff["Heroism"].remains
                             : simc.buff["Bloodlust"].up ? simc.buff["Bloodlust"].remains : simc.buff["Time_Warp"].up ? simc.buff["Time_Warp"].remains : 0.0);
+                    }
+                }
+
+                public override MagicValueType duration
+                {
+                    get
+                    {
+                        return new MagicValueType(40);
                     }
                 }
 
@@ -711,7 +721,7 @@ namespace Simcraft
                     }
                 }
 
-                public virtual int stack
+                public virtual MagicValueType stack
                 {
                     get
                     {
@@ -722,7 +732,15 @@ namespace Simcraft
                                 : GetAuraStacks(StyxWoW.Me.ToUnit(), spellid);
                             lastIteStack = iterationCounter;
                         }
-                        return _stack;
+                        return new MagicValueType(_stack);
+                    }
+                }
+
+                public virtual MagicValueType duration
+                {
+                    get
+                    {
+                        return new MagicValueType(15);
                     }
                 }
 
@@ -1263,13 +1281,17 @@ namespace Simcraft
                 {
                     if (!itemsById.ContainsKey(n))
                         itemsById[n] = NewInternal(n);
-                    return itemsById.TryGetValue(n, out result);
+                    result = itemsById[n];
+                    return true;
+                    //return itemsById.TryGetValue(n, out result);
                 }
                 else
                 {
                     if (!itemsByName.ContainsKey(val))
                         itemsByName[val] = NewInternal(val);
-                    return itemsByName.TryGetValue(val, out result);
+                    result = itemsById[n];
+                    return true;
+                    //return itemsByName.TryGetValue(val, out result);
                 }
             }
 
