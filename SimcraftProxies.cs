@@ -930,7 +930,7 @@ namespace Simcraft
         {
             public PetCooldownProxy cooldown = new PetCooldownProxy();
             public PetBuffProxy buff = new PetBuffProxy();
-
+            public HealthProxy health = new HealthProxy(()=>Me.Pet, SimcraftImpl.inst);
             public Dictionary<String, PetProxy> children = new Dictionary<String, PetProxy>(); 
 
             private String name = "def";
