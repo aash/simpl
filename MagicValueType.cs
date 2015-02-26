@@ -429,6 +429,11 @@ namespace Simcraft
             return d.boxee > 0;
         }
 
+        /*public static implicit operator MagicValueType(bool d)
+        {
+            return new MagicValueType(d);
+        }*/
+
         public static implicit operator double(MagicValueType d)
         {
             return (double)d.boxee;

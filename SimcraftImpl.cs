@@ -806,14 +806,14 @@ namespace Simcraft
 
         public String PotionName = "";
 
-        public double PotionCooldown
+        public MagicValueType PotionCooldown
         {
             get
             {
                 var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Equals(PotionName));
                 //Logging.Write(item.ToString() + " " + item.CooldownTimeLeft.TotalSeconds);
-                if (item == default(WoWItem)) return Double.PositiveInfinity;
-                return item.Cooldown;
+                if (item == default(WoWItem)) return new MagicValueType(Decimal.MaxValue);
+                return new MagicValueType(item.Cooldown);
             }
                            
         }

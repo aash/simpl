@@ -834,7 +834,7 @@ namespace Simcraft
                     this.simc = simc;
                 }
 
-                public override bool up
+                public override MagicValueType up
                 {
                     get { return !(simc.PotionCooldown > 0); }
                 }
@@ -876,12 +876,12 @@ namespace Simcraft
                     this.spellid = spellid;
                 }
 
-                public bool Down
+                public MagicValueType Down
                 {
                     get { return !up; }
                 }
 
-                public virtual bool up
+                public virtual MagicValueType up
                 {
                     get
                     {
@@ -901,7 +901,7 @@ namespace Simcraft
                     }
                 }
 
-                public virtual bool React
+                public virtual MagicValueType React
                 {
                     get { return up; }
                 }
@@ -1030,12 +1030,12 @@ namespace Simcraft
                         this.spellid = spellid;
                     }
 
-                    public bool Down
+                    public MagicValueType Down
                     {
                         get { return !up; }
                     }
 
-                    public virtual bool up
+                    public virtual MagicValueType up
                     {
                         get
                         {
@@ -1696,7 +1696,7 @@ namespace Simcraft
                                     : GetAuraUp(_owner.GetUnit(), spellid, true);
                             cach.Up.Ite = iterationCounter;
                         }
-                        return cach.Up.Value;
+                        return new MagicValueType(cach.Up.Value);
                     }
                 }
 
