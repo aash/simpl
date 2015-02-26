@@ -177,8 +177,14 @@ namespace Simcraft
             stat = new StatProxy();
             obliterate = new ObliterateProxy();
 
- 
-
+            dbc.Spells["invoke_xuen"] = dbc.Spells["invoke_xuen_the_white_tiger"];
+            dbc.Spells["tigereye_brew_use"] = dbc.Spells["tigereye_brew"];
+            dbc.Spells["combo_breaker_bok"] = dbc.Spells["combo_breaker_blackout_kick"];
+            dbc.Spells["combo_breaker_tp"] = dbc.Spells["tigereye_brew"];
+            dbc.Spells["combo_breaker_ce"] = dbc.Spells["combo_breaker_tiger_palm"];
+            dbc.Spells["storm_earth_and_fire_target"] = dbc.Spells["storm_earth_and_fire"];
+            //combo_breaker_bok combo_breaker_tp combo_breaker_ce storm_earth_and_fire_target
+             
         }
 
         public override Form ConfigurationForm

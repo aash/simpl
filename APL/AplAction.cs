@@ -516,18 +516,20 @@ namespace Simcraft
                                    (haslinecd ? " && simc.line_cd(" + linecd.content + ")" : "") +
                                    (hassync ? " && simc.sync(\"" + sync.content + "\")" : "")+
                                    (hasmoving ? " && simc.moving" : "")+
-                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "")
+                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "")+
+                                   (hastarget ? " && simc.Target" + target.content + " != null" : "") 
                                    + ")"
                                  : "true"+
                                    (haslinecd ? " && simc.line_cd(" + linecd.content + ")" : "") +
                                    (hassync ? " && simc.sync(\"" + sync.content + "\")" : "") +
                                    (hasmoving ? " && simc.moving" : "") +
-                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "")
+                                   (hasfivestacks ? " && simc.buff.frenzy.stack == 5" : "") +
+                                   (hastarget ? " && simc.Target" + target.content + " != null" : "") 
                                    + ")") +
                              (hastarget ? ",simc.Target" + target.content : "") +
                              ",\""+condition_string+"\""+
                              ");";
-
+                    
                     if (!SimcraftImpl.DBHasClassSpell(action))
                     {
                         //SimcraftImpl.Write("Couldnt find ClassSpell: "+action+" trying to find Spell");

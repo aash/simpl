@@ -1230,7 +1230,6 @@ namespace Simcraft
             public SpellProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
-                //overrides.Add("invoke_xuen"");
             }
 
             public SpellInternal this[String name]
@@ -1270,7 +1269,7 @@ namespace Simcraft
                     result = overrides[name];
                     return true;
                 }
-                if (binder.Name == "invoke_xuen") name = "invoke_xuen_the_white_tiger";
+
                 var val = ResolveName(name).Name;
 
                 int n;
