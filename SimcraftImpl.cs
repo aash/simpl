@@ -913,7 +913,14 @@ namespace Simcraft
                 if (c == default(Color)) c = Colors.White;
                 if (pars == null) pars = new object[0];
                 if (logf == null) logf = RandomString(10);
-                if (Superlog) File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                if (Superlog)
+                {
+                    if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
+                        File.AppendAllText(@"Bots\Simcraft\Trunk\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                    else
+                        File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                    
+                }
                 if (l != LogLevel.Diagnostic) Logging.Write("<" + DateTime.Now.ToShortTimeString() + ">:" + format);
             }
             catch (Exception e)
