@@ -135,11 +135,11 @@ namespace Simcraft
 
         public static String SimcraftProfilePath = @"Simcraft Profiles/";
         public static String SimcraftLogPath = @"Logs/Simcraft/";
-        public static String SimcraftLogfile = SimcraftLogPath+DateTime.Now.ToShortDateString() + ".log";
+        public static String SimcraftLogfile;//
 
         public SimcraftImpl()
         {
-
+            SimcraftLogfile = SimcraftLogPath + DateTime.Now.ToShortDateString() + " - " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + " " + Tokenize(Me.Name) + ".log";
             Directory.CreateDirectory(SimcraftProfilePath);
             Directory.CreateDirectory(SimcraftLogPath);
             inst = this;
