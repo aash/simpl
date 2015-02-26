@@ -184,7 +184,9 @@ namespace Simcraft
         public static dbc.Spell DBGetClassSpell(String name)
         {
             var n = Tokenize(name);
-            return dbc.ClassSpells[n];
+            if (dbc.ClassSpells.ContainsKey(n))
+                return dbc.ClassSpells[n];
+            return dbc.Spells[n];
         }
 
         public static dbc.Spell DBGetTalentSpell(String name)
