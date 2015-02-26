@@ -1081,6 +1081,12 @@ namespace Simcraft
         {
             get { return Me; }
         }
+
+        public WoWUnit Targetself
+        {
+            get { return Me; }
+        }
+
         public WoWUnit Target3
         {
             get
