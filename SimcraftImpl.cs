@@ -915,10 +915,11 @@ namespace Simcraft
                 if (logf == null) logf = RandomString(10);
                 if (Superlog)
                 {
-                    if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
+                    File.AppendAllText(@"Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                    /*if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
                         File.AppendAllText(@"Bots\Simcraft\Trunk\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
                     else
-                        File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                        File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);*/
                     
                 }
                 if (l != LogLevel.Diagnostic) Logging.Write("<" + DateTime.Now.ToShortTimeString() + ">:" + format);

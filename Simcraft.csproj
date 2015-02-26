@@ -49,30 +49,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Profiles\Death_Knight_Frost_1h_T17H.simc" />
-    <None Include="Profiles\Death_Knight_Frost_2h_T17H.simc" />
-    <None Include="Profiles\Death_Knight_Unholy_T17H.simc" />
-    <None Include="Profiles\Druid_Balance_T17H.simc" />
-    <None Include="Profiles\Hunter_BM_T17H.simc" />
-    <None Include="Profiles\Hunter_MM_T17H.simc" />
-    <None Include="Profiles\Hunter_SV_T17H.simc" />
-    <None Include="Profiles\Mage_Arcane_T17H.simc" />
-    <None Include="Profiles\Mage_Fire_T17H.simc" />
-    <None Include="Profiles\Mage_Frost_T17H.simc" />
-    <None Include="Profiles\Monk_Windwalker_1h_T17H.simc" />
-    <None Include="Profiles\Monk_Windwalker_2h_T17H.simc" />
-    <None Include="Profiles\Paladin_Retribution_T17H.simc" />
-    <None Include="Profiles\Rogue_Assassination_T17H.simc" />
-    <None Include="Profiles\Rogue_Combat_T17H.simc" />
-    <None Include="Profiles\Shaman_Elemental_T17H.simc" />
-    <None Include="Profiles\Shaman_Enhancement_T17H.simc" />
-    <None Include="Profiles\Warlock_Affliction_T17H.simc" />
-    <None Include="Profiles\Warlock_Demonology_T17H.simc" />
-    <None Include="Profiles\Warlock_Destruction_T17H.simc" />
-    <None Include="Profiles\Warrior_Arms_T17H.simc" />
-    <None Include="Profiles\Warrior_Fury_1h_T17H.simc" />
-    <None Include="Profiles\Warrior_Fury_2h_T17H.simc" />
-    <None Include="Profiles\Warrior_Gladiator_T17H.simc" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GreyMagic">
@@ -130,7 +106,6 @@
     <Compile Include="ConfigWindow.Designer.cs">
       <DependentUpon>ConfigWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Logs\removeme.cs" />
     <Compile Include="MagicValueType.cs" />
     <Compile Include="ProfileSelector.cs">
       <SubType>Form</SubType>
@@ -155,6 +130,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Profiles\" />
     <Folder Include="Properties\DataSources\" />
   </ItemGroup>
   <ItemGroup>

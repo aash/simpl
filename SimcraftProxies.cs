@@ -1703,6 +1703,16 @@ namespace Simcraft
                     get { return !up; }
                 }
 
+                public MagicValueType duration
+                {
+                    get
+                    {
+                        return new MagicValueType(0);
+                        //if (up!)
+                        //return DBGetSpell()
+                    }
+                }
+
                 public virtual MagicValueType up
                 {
                     get

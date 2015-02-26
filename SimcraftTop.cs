@@ -133,10 +133,12 @@ namespace Simcraft
         }
 
 
-
+        public static String SimcraftProfilePath = @"Simcraft Profiles";
 
         public SimcraftImpl()
-        {      
+        {
+
+            Directory.CreateDirectory(SimcraftProfilePath);
             inst = this;
             active_dot = new ActiveDot();
             //trinket = new TrinketProxy(() => StyxWoW.Me.ToUnit(), this);

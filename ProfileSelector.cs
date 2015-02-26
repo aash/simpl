@@ -22,10 +22,12 @@ namespace Simcraft
         protected override void OnShown(EventArgs e)
         {
             listBox1.Items.Clear();
-            if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
-                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Trunk\Profiles\");
+            SimcraftImpl.GenerateApls(SimcraftImpl.SimcraftProfilePath);
+            
+            /*if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
+                
             else
-                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Profiles\");
+                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Profiles\");*/
             foreach (var apl in SimcraftImpl.apls )
             {
                     //if (apl.Key.Match(StyxWoW.Me.Class, StyxWoW.Me.Specialization, WoWContext.PvE))
@@ -65,10 +67,7 @@ namespace Simcraft
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
-                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Trunk\Profiles\");
-            else
-                SimcraftImpl.GenerateApls(@"Bots\Simcraft\Profiles\");
+            SimcraftImpl.GenerateApls(SimcraftImpl.SimcraftProfilePath);
             listBox1.Items.Clear();
 
             foreach (var apl in SimcraftImpl.apls)
