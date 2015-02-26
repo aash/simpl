@@ -386,11 +386,13 @@ namespace Simcraft
             return s;
         }
 
+        private String[] weird_gcd_fuckers = new[] {"Ravager"};
+
         private void UNIT_SPELLCAST_SUCCEEDED(object sender, LuaEventArgs args)
         {
             if (args.Args[0].ToString().Equals("player"))
             {
-
+                //Logging.Write(""+DBGetSpell("Whirlwind").Gcd);
                 //SimcraftImpl.Write(blood.frac + " " + frost.frac + " " + unholy.frac + " " + death.frac+ " " +blood.current + " " + frost.current + " " + unholy.current + " " + death.current+ " "+disease.ticking+ " "+disease.max_remains+ " "+disease.min_remains);
 
                 LastSpellCast = args.Args[1].ToString();
@@ -419,8 +421,9 @@ namespace Simcraft
                     last_judgment_target = conditionUnit;
                 }
                 var spell = DBGetClassSpell(LastSpellCast);
-                if (spell.Gcd > 0)
+                if (spell.Gcd > 0 || weird_gcd_fuckers.Contains(spell.Name))
                 {
+                    Logging.Write(spell.Name);
                     prev_gcd.Id = spell.Id;
                     //Logging.Write(spell.Name + " using Gcd Cast");
                 }       

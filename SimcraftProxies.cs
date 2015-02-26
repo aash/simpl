@@ -1343,7 +1343,7 @@ namespace Simcraft
                     get
                     {
 
-                        if (DBHasSpell(_name)) return new MagicValueType(DBGetSpell(_name).Gcd);
+                        if (DBHasSpell(_name)) return new MagicValueType(DBGetSpell(_name).Gcd/1000);
                         return new MagicValueType(1.5);
                     }
                 }
