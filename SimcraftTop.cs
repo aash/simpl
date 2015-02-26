@@ -139,7 +139,7 @@ namespace Simcraft
 
         public SimcraftImpl()
         {
-            SimcraftLogfile = SimcraftLogPath + DateTime.Now.ToShortDateString() + " - " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + " " + Tokenize(Me.Name) + ".log";
+            SimcraftLogfile = SimcraftLogPath + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + " - " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + " " + Tokenize(Me.Name) + ".log";
             Directory.CreateDirectory(SimcraftProfilePath);
             Directory.CreateDirectory(SimcraftLogPath);
             inst = this;
