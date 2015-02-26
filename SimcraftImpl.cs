@@ -63,6 +63,11 @@ namespace Simcraft
             }
         }
 
+        public int desired_targets
+        {
+            get { return 1; }
+        }
+
         public int mind_harvest
         {
             get { return conditionUnit.MindHarvest() ? 1 : 0; }
