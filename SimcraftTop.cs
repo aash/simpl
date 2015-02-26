@@ -254,7 +254,7 @@ namespace Simcraft
         public static void GenerateApls(String folder)
         {
             apls.Clear();
-
+            SimcraftImpl.inst.actions.Reset();
             SimcraftImpl.Write("Compiling Action Lists");
 
             foreach (var filename in Directory.GetFiles(folder))
@@ -465,7 +465,7 @@ namespace Simcraft
             spell.Reset();
             spell.Reset();
             line_cds.Clear();
-            action.Reset();
+            actions.Reset();
             _class = StyxWoW.Me.Class;
 
             var oldctx = Context;
