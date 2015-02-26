@@ -172,18 +172,21 @@ namespace Simcraft
         public static dbc.Spell DBGetSpell(String name)
         {
             var n = Tokenize(name);
+            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
             return dbc.Spells[n];
         }
 
         public static bool DBHasSpell(String name)
         {
             var n = Tokenize(name);
+            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
             return dbc.Spells.ContainsKey(n);
         }
 
         public static dbc.Spell DBGetClassSpell(String name)
         {
             var n = Tokenize(name);
+            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
             if (dbc.ClassSpells.ContainsKey(n))
                 return dbc.ClassSpells[n];
             return dbc.Spells[n];
@@ -192,12 +195,15 @@ namespace Simcraft
         public static bool DBHasClassSpell(String name)
         {
             var n = Tokenize(name);
+            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
+
             return dbc.ClassSpells.ContainsKey(n);
         }
 
         public static dbc.Spell DBGetTalentSpell(String name)
         {
             var n = Tokenize(name);
+            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
             return dbc.Spells[n];
         }
 
