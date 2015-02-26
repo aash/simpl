@@ -130,6 +130,7 @@
     <Compile Include="ConfigWindow.Designer.cs">
       <DependentUpon>ConfigWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logs\removeme.cs" />
     <Compile Include="MagicValueType.cs" />
     <Compile Include="ProfileSelector.cs">
       <SubType>Form</SubType>
@@ -154,7 +155,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Logs\" />
     <Folder Include="Properties\DataSources\" />
   </ItemGroup>
   <ItemGroup>
