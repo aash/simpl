@@ -479,17 +479,17 @@ namespace Simcraft
             }
         }
 
-        public static bool damage_enabled
+        public bool damage_enabled
         {
             get { return !_damageEnabled; }
         }
 
-        public static bool aoe_enabled
+        public bool aoe_enabled
         {
             get { return !_aoeEnabled; }
         }
 
-        public static bool cooldowns_enabled
+        public bool cooldowns_enabled
         {
             get { return !_cdsEnabled; }
         }
