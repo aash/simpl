@@ -250,10 +250,10 @@ namespace Simcraft
 
                     if (_items == default(EquippedItem))
                         throw new MissingItemException("You need to add trinket" + outval + " as an equipped item");
-                    if (!dbc.ItemProcs.ContainsKey(_items.id))
+                    if (!SimcraftImpl.dbc.ItemProcs.ContainsKey(_items.id))
                         throw new MissingProcException("trinket" + outval + " has no proc / on use effect");
 
-                    Results.Add("simc.buff." + dbc.ItemProcs[_items.id] + "." + splits[splits.Count() - 1]);
+                    Results.Add("simc.buff." + SimcraftImpl.dbc.ItemProcs[_items.id] + "." + splits[splits.Count() - 1]);
                     //Console.WriteLine(_items.name+" "+_dbc.ItemProcs[_items.id]);
                 }
                 else
@@ -291,7 +291,7 @@ namespace Simcraft
 
                     if (_items == default(EquippedItem))
                         throw new MissingItemException("You need to add trinket" + outval + " as an equipped item");
-                    if (!dbc.ItemProcs.ContainsKey(_items.id))
+                    if (!SimcraftImpl.dbc.ItemProcs.ContainsKey(_items.id))
                         throw new MissingProcException("trinket" + outval + " has no proc / on use effect");
 
                     Results.Add("simc.trinket"+outval+".cooldown." + splits[splits.Count() - 1]);
@@ -333,7 +333,7 @@ namespace Simcraft
 
                         if (_items == default(EquippedItem))
                             throw new MissingItemException("You need to add trinket" + outval + " as an equipped item");
-                        if (dbc.ItemProcs.ContainsKey(_items.id))
+                        if (SimcraftImpl.dbc.ItemProcs.ContainsKey(_items.id))
                             Results.Add("true");
                         else Results.Add("false");
                     }

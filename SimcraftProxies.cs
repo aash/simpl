@@ -53,9 +53,9 @@ namespace Simcraft
                     {
                         if (it == null) continue;
                         
-                        var i = (int) it.ItemInfo.Id;
+                        var i = (uint) it.ItemInfo.Id;
                                        
-                        if (set.Contains(i)) count++;
+                        if (set.Keys.Contains(i)) count++;
                     }
                     //Logging.Write(splits[1]+" "+count);
                     result = (Convert.ToInt32(splits[1][0]) <= count);
@@ -445,10 +445,20 @@ namespace Simcraft
         public class BuffProxy : Proxy
         {
 
-            public override void InitResolvePriority()
+            public override spell_data_t ResolveName(string name)
             {
-                _resolvePriority.Add(dbc.Spells);
-                _resolvePriority.Add(dbc.ClassSpells);
+                name = Tokenize(name);
+                //Logging.Write(""+dbc.Spells[name]);
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    foreach (var k in dbc.Spells[name])
+                    {
+                        if (dbc.Spells[k].name.Contains("!"))
+                            return dbc.Spells[k];
+                    }
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name, name);
             }
 
             public override CacheInternal NewInternal(string name)
@@ -543,13 +553,13 @@ namespace Simcraft
                         var t1 = Me.Inventory.GetItemBySlot((uint)WoWEquipSlot.Trinket1);
                         var t2 = Me.Inventory.GetItemBySlot((uint)WoWEquipSlot.Trinket2);
 
-                        if (dbc.ItemProcs.ContainsKey((int)t2.ItemInfo.Id))
+                        if (dbc.ItemProcs.ContainsKey((uint)t2.ItemInfo.Id))
                         {
-                            procs.Add(dbc.ItemProcs[(int)t2.ItemInfo.Id]);
+                            procs.Add(dbc.ItemProcs[(uint)t2.ItemInfo.Id]);
                         }
-                        if (dbc.ItemProcs.ContainsKey((int)t1.ItemInfo.Id))
+                        if (dbc.ItemProcs.ContainsKey((uint)t1.ItemInfo.Id))
                         {
-                            procs.Add(dbc.ItemProcs[(int)t1.ItemInfo.Id]);
+                            procs.Add(dbc.ItemProcs[(uint)t1.ItemInfo.Id]);
                         }
                         return procs;
                     }
@@ -561,7 +571,7 @@ namespace Simcraft
                     {
                         foreach (var proc in get_procs)
                         {
-                            if (simc.buff[DBGetSpell(proc).Name].up) return up;
+                            if (simc.buff[DBGetSpell(proc).name].up) return up;
                         }
                         return new MagicValueType(false); 
                     }
@@ -574,7 +584,7 @@ namespace Simcraft
                         Decimal dur = Decimal.MinValue;
                         foreach (var proc in get_procs)
                         {
-                            var r = simc.buff[DBGetSpell(proc).Name].remains;
+                            var r = simc.buff[DBGetSpell(proc).name].remains;
                             if (dur < r) dur = r;
                         }
                         return new MagicValueType(dur);
@@ -588,7 +598,7 @@ namespace Simcraft
                         int dur = int.MinValue;
                         foreach (var proc in get_procs)
                         {
-                            var r = simc.buff[DBGetSpell(proc).Name].Stack;
+                            var r = simc.buff[DBGetSpell(proc).name].Stack;
                             if (dur < r) dur = r;
                         }
                         return new MagicValueType(dur);
@@ -818,6 +828,19 @@ namespace Simcraft
         public class CooldownProxy : Proxy
         {
 
+            public override spell_data_t ResolveName(string name)
+            {
+                if (dbc.ClassSpells.ContainsKey(name))
+                {
+                    return dbc.Spells[dbc.ClassSpells[name]];
+                }
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name, name);
+            }
+
             public override CacheInternal NewInternal(string name)
             {
                 return new CooldownInternal(name);
@@ -828,13 +851,6 @@ namespace Simcraft
                 return new CooldownInternal(name);
             }
 
-            public override void InitResolvePriority()
-            {
-                _resolvePriority.Add(dbc.ClassSpells);
-                _resolvePriority.Add(dbc.Spells);
-                
-
-            }
 
             public CooldownProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
@@ -1027,7 +1043,7 @@ namespace Simcraft
 
                 public override bool TryGetMember(GetMemberBinder binder, out object result)
                 {
-                    result = new CooldownInternal(DBGetSpell(binder.Name).Name);
+                    result = new CooldownInternal(DBGetSpell(binder.Name).name);
                     return true;
                 }
 
@@ -1108,7 +1124,7 @@ namespace Simcraft
 
                 public override bool TryGetMember(GetMemberBinder binder, out object result)
                 {
-                    result = new BuffInternal(DBGetSpell(binder.Name).Name);
+                    result = new BuffInternal(DBGetSpell(binder.Name).name);
                     return true;
                 }
 
@@ -1221,11 +1237,6 @@ namespace Simcraft
                 return new SpellInternal(name);
             }
 
-            public override void InitResolvePriority()
-            {
-                _resolvePriority.Add(dbc.ClassSpells);
-                _resolvePriority.Add(dbc.Spells);
-            }
 
             public SpellProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
@@ -1257,6 +1268,19 @@ namespace Simcraft
             }
 
 
+            public override spell_data_t ResolveName(string name)
+            {
+                if (dbc.ClassSpells.ContainsKey(name))
+                {
+                    return dbc.Spells[dbc.ClassSpells[name]];
+                }
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name,name);
+            }
+
             public override bool TryGetMember(
                 GetMemberBinder binder, out object result)
             {
@@ -1270,7 +1294,7 @@ namespace Simcraft
                     return true;
                 }
 
-                var val = ResolveName(name).Name;
+                var val = ResolveName(name).name;
 
                 int n;
                 bool isNumeric = int.TryParse(val, out n);
@@ -1343,7 +1367,7 @@ namespace Simcraft
                     get
                     {
 
-                        if (DBHasSpell(_name)) return new MagicValueType(DBGetSpell(_name).Gcd/1000);
+                        if (DBHasSpell(_name)) return new MagicValueType((Decimal)(DBGetSpell(_name).gcd/1000));
                         return new MagicValueType(1.5);
                     }
                 }
@@ -1505,7 +1529,7 @@ namespace Simcraft
 
                 //SimcraftImpl.Write(binder.Name);
                 //We need the true spellname to check for auras un special units
-                var spellname = DBGetSpell(binder.Name).Name;
+                var spellname = DBGetSpell(binder.Name).name;
                 if (SimcraftImpl.iterationCounter > lastIte) counts.Clear();
 
                 if (!counts.ContainsKey(spellname))
@@ -1564,6 +1588,12 @@ namespace Simcraft
             {
                 return h1 != val.GetUnit();
             }
+
+            public override spell_data_t ResolveName(string name)
+            {
+                throw new NotImplementedException();
+            }
+
             public override CacheInternal NewInternal(string name)
             {
                 throw new NotImplementedException();
@@ -1572,9 +1602,6 @@ namespace Simcraft
             public override CacheInternal NewInternal(int name)
             {
                 throw new NotImplementedException();
-            }
-            public override void InitResolvePriority()
-            {
             }
 
             public MagicValueType distance
@@ -1616,6 +1643,19 @@ namespace Simcraft
         public class DebuffProxy : Proxy
         {
 
+            public override spell_data_t ResolveName(string name)
+            {
+                if (dbc.ClassSpells.ContainsKey(name))
+                {
+                    return dbc.Spells[dbc.ClassSpells[name]];
+                }
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name, name);
+            }
+
             public class Casting : DebuffInternal
             {
                 public override MagicValueType remains
@@ -1648,12 +1688,6 @@ namespace Simcraft
                 return new DebuffInternal(name, this);
             }
 
-            public override void InitResolvePriority()
-            {
-                _resolvePriority.Add(dbc.Spells);
-                _resolvePriority.Add(dbc.ClassSpells);
-                
-            }
             public DebuffProxy(GetUnitDelegate del, SimcraftImpl simc)
                 : base(del, simc)
             {
@@ -1707,9 +1741,9 @@ namespace Simcraft
                 {
                     get
                     {
-                        return new MagicValueType(0);
-                        //if (up!)
-                        //return DBGetSpell()
+                        //return new MagicValueType(0);
+                        if (up) return new MagicValueType((Decimal)GetAura(_owner.GetUnit(), _name, true).Duration);
+                        return new MagicValueType(DBGetClassSpell(_name).duration);
                     }
                 }
 
@@ -1838,12 +1872,25 @@ namespace Simcraft
             public override bool TryGetMember(GetMemberBinder binder, out object result)
             {
                 var n = binder.Name;
-                result = (Id == DBGetSpell(n).Id);
+                result = (Id == DBGetSpell(n).id);
                 return true;
             }
         }
         public class TalentProxy : Proxy
         {
+            public override spell_data_t ResolveName(string name)
+            {
+                if (dbc.ClassSpells.ContainsKey(name))
+                {
+                    return dbc.Spells[dbc.ClassSpells[name]];
+                }
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name, name);
+            }
+
 
             public override CacheInternal NewInternal(string name)
             {
@@ -1855,10 +1902,6 @@ namespace Simcraft
                 throw new NotImplementedException();
             }
 
-            public override void InitResolvePriority()
-            {
-                _resolvePriority.Add(dbc.Spells);
-            }
 
             //private readonly Dictionary<String, Talent> itemsByName = new Dictionary<string, Talent>();
 
@@ -1958,7 +2001,18 @@ namespace Simcraft
 
         public class GlyphProxy : Proxy
         {
-
+            public override spell_data_t ResolveName(string name)
+            {
+                if (dbc.ClassSpells.ContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Glyphs[name]];
+                }
+                if (dbc.Spells.RelationContainsKey(name))
+                {
+                    return dbc.Spells[dbc.Spells[name].Min()];
+                }
+                throw new MissingMemberException(this.GetType().Name, name);
+            }
             public override CacheInternal NewInternal(string name)
             {
                 return new Glyph(name);
@@ -1967,12 +2021,6 @@ namespace Simcraft
             public override CacheInternal NewInternal(int name)
             {
                 throw new NotImplementedException();
-            }
-
-            public override void InitResolvePriority()
-            {
-                _resolvePriority.Add(dbc.Glyphs);
-                
             }
 
             //private readonly Dictionary<String, Talent> itemsByName = new Dictionary<string, Talent>();
@@ -1986,7 +2034,7 @@ namespace Simcraft
             {
                 var n = binder.Name;
                 if (!n.Contains("glyph_of")) n = "glyph_of_" + n;
-                result = new Glyph(dbc.Glyphs[n].Name);
+                result = new Glyph(dbc.Spells[dbc.Glyphs[n]].name);
                 return true;
             }
 
@@ -2057,22 +2105,9 @@ namespace Simcraft
             {
                 GetUnit = del;
                 this.simc = simc;
-                InitResolvePriority();
             }
 
-            public abstract void InitResolvePriority();
-
-            protected List<Dictionary<String, dbc.Spell>> _resolvePriority = new List<Dictionary<string, dbc.Spell>>();
-
-            public dbc.Spell ResolveName(String name)
-            {
-                for (int i = 0; i < _resolvePriority.Count; i++)
-                {
-                    if (_resolvePriority[i].ContainsKey(name)) return _resolvePriority[i][name];
-                }
-                throw new MissingMemberException(this.GetType().ToString(), name);
-            }
-
+            public abstract spell_data_t ResolveName(String name);
 
             protected Dictionary<String, CacheInternal> overrides = new Dictionary<string, CacheInternal>();
 
@@ -2087,7 +2122,7 @@ namespace Simcraft
                     return true;
                 }
 
-                var val = ResolveName(name).Name;
+                var val = ResolveName(name).name;
 
                 int n;
                 bool isNumeric = int.TryParse(val, out n);
@@ -2108,7 +2143,7 @@ namespace Simcraft
                 }       
             }
 
-            public CacheInternal TryGetMember(String name)
+            /*public CacheInternal TryGetMember(String name)
             {
 
                 if (overrides.ContainsKey(name))
@@ -2116,7 +2151,7 @@ namespace Simcraft
                     return overrides[name];
                 }
 
-                var val = ResolveName(name).Name;
+                var val = ResolveName(name).name;
 
                 int n;
                 bool isNumeric = int.TryParse(val, out n);
@@ -2135,7 +2170,7 @@ namespace Simcraft
                         itemsByName[val] = NewInternal(val);
                     return (CacheInternal)itemsByName[val];
                 }
-            }
+            }*/
 
             public abstract CacheInternal NewInternal(String name);
             public abstract CacheInternal NewInternal(int name);
@@ -2145,6 +2180,12 @@ namespace Simcraft
 
         public abstract class ResourceProxy : Proxy
         {
+            public override spell_data_t ResolveName(string name)
+            {
+                //Ressource Proxys dont need name resolution
+                throw new NotImplementedException();
+            }
+
             public override CacheInternal NewInternal(int name)
             {
                 throw new NotImplementedException();
@@ -2171,10 +2212,6 @@ namespace Simcraft
                 get { return deficit/regen; }
             }
 
-            public override void InitResolvePriority()
-            {
-                //Resources dont need resolution
-            }
 
             public MagicValueType pct
             {

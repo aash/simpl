@@ -91,7 +91,7 @@ namespace Simcraft
             get
             {
                 return conditionUnit;
-                
+
             }
         }
 
@@ -164,7 +164,7 @@ namespace Simcraft
         {
             get
             {
-                int ss = (int) Me.CurrentSoulShards;
+                int ss = (int)Me.CurrentSoulShards;
                 if (ss > o_soul_shard)
                 {
                     SoulShardTimer.Restart();
@@ -174,42 +174,50 @@ namespace Simcraft
             }
         }
 
-        public static dbc.Spell DBGetSpell(String name)
+        public static spell_data_t DBGetSpell(String name)
         {
-            var n = Tokenize(name);
-            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
-            return dbc.Spells[n];
+            name = Tokenize(name);
+
+            if (dbc.Spells.RelationContainsKey(name))
+            {
+                return dbc.Spells[dbc.Spells[name].Min()];
+            }
+            throw new MissingMemberException("DBGetSpell", name);
         }
 
         public static bool DBHasSpell(String name)
         {
             var n = Tokenize(name);
-            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
-            return dbc.Spells.ContainsKey(n);
+            //if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
+            return dbc.Spells.RelationContainsKey(n);
         }
 
-        public static dbc.Spell DBGetClassSpell(String name)
+        public static spell_data_t DBGetClassSpell(String name)
         {
-            var n = Tokenize(name);
-            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
-            if (dbc.ClassSpells.ContainsKey(n))
-                return dbc.ClassSpells[n];
-            return dbc.Spells[n];
+            name = Tokenize(name);
+
+            if (dbc.ClassSpells.ContainsKey(name))
+            {
+                return dbc.Spells[dbc.ClassSpells[name]];
+            }
+            if (dbc.Spells.RelationContainsKey(name))
+            {
+                return dbc.Spells[dbc.Spells[name].Min()];
+            }
+            throw new MissingMemberException("DBGetClassSpell", name);
         }
 
         public static bool DBHasClassSpell(String name)
         {
             var n = Tokenize(name);
-            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
 
             return dbc.ClassSpells.ContainsKey(n);
         }
 
-        public static dbc.Spell DBGetTalentSpell(String name)
+        public static spell_data_t DBGetTalentSpell(String name)
         {
-            var n = Tokenize(name);
-            if (n == "invoke_xuen") n = "invoke_xuen_the_white_tiger";
-            return dbc.Spells[n];
+            //var n = Tokenize(name);
+            return DBGetClassSpell(name);
         }
 
 
@@ -219,18 +227,18 @@ namespace Simcraft
 
         public double charges_fractional
         {
-           get
-           {
-               var sp = spell[DBGetSpell(_conditionSpell)].charges_fractional;
-               return sp;
-           }
+            get
+            {
+                var sp = spell[DBGetSpell(_conditionSpell)].charges_fractional;
+                return sp;
+            }
         }
 
         public double travel_time
         {
             get
             {
-                return (conditionUnit.Distance - conditionUnit.CombatReach)/DBGetSpell(_conditionSpell).Speed;
+                return (conditionUnit.Distance - conditionUnit.CombatReach) / DBGetSpell(_conditionSpell).speed;
             }
         }
 
@@ -257,8 +265,8 @@ namespace Simcraft
         {
             get
             {
-                var be = Lua.GetReturnVal<int>("UnitPower(\"player\", SPELL_POWER_BURNING_EMBERS, true)",0);
-                return ((double) be)/10;
+                var be = Lua.GetReturnVal<int>("UnitPower(\"player\", SPELL_POWER_BURNING_EMBERS, true)", 0);
+                return ((double)be) / 10;
             }
         }
 
@@ -266,7 +274,7 @@ namespace Simcraft
         {
             get
             {
-                return debuff[_conditionSpell].tick_time; 
+                return debuff[_conditionSpell].tick_time;
             }
         }
 
@@ -292,11 +300,11 @@ namespace Simcraft
                 double time_to_next_lunar, time_to_next_solar, eclipse_ch;
                 double M_PI = Math.PI;
 
-                double phi_lunar = Math.Asin( 100.0 / 105.0 );
+                double phi_lunar = Math.Asin(100.0 / 105.0);
 
                 double phi_solar = phi_lunar + M_PI;
 
-                double omega = 2 * M_PI /  40000;
+                double omega = 2 * M_PI / 40000;
 
                 //double balance_time = (20000 * (2 * M_PI - Math.Asin(eclipse_amount / 105))) / M_PI;
 
@@ -304,13 +312,13 @@ namespace Simcraft
                 double phi;
 
                 if (dir.Equals("moon"))
-                    phi = 2 * M_PI - Math.Asin(eclipse_amount / 105) +M_PI; 
+                    phi = 2 * M_PI - Math.Asin(eclipse_amount / 105) + M_PI;
                 else
-                    phi = 2 * M_PI + Math.Asin(eclipse_amount / 105); 
+                    phi = 2 * M_PI + Math.Asin(eclipse_amount / 105);
 
                 if (talent.euphoria.enabled) omega *= 2;
 
-                phi = phi%( 2 * M_PI);
+                phi = phi % (2 * M_PI);
 
                 if (eclipse_amount >= 100)
                     time_to_next_lunar = 0;
@@ -322,7 +330,7 @@ namespace Simcraft
                 else
                     time_to_next_solar = ((phi_solar - phi + 2 * M_PI) % (2 * M_PI)) / omega / 1000;
 
-               
+
                 eclipse_ch = (M_PI - (phi % M_PI)) / omega / 1000;
 
                 //Logging.Write("energy {3} change: {0} next_solar: {1} next_lunar: {2} phi: {4}",eclipse_ch,time_to_next_solar,time_to_next_lunar,eclipse_energy.current,phi);
@@ -448,7 +456,7 @@ namespace Simcraft
             get { return spell[_conditionSpell].duration; }
         }
 
-        public int level{get { return Me.Level; }}
+        public int level { get { return Me.Level; } }
 
         public bool melee_range
         {
@@ -556,7 +564,7 @@ namespace Simcraft
             if (!line_cds.ContainsKey(conditionName))
                 line_cds[conditionName] = new Stopwatch();
 
-            var b = !line_cds[conditionName].IsRunning || line_cds[conditionName].ElapsedMilliseconds/1000 > seconds;
+            var b = !line_cds[conditionName].IsRunning || line_cds[conditionName].ElapsedMilliseconds / 1000 > seconds;
             //line_cds[conditionName].Restart();
             return b;
         }
@@ -612,7 +620,7 @@ namespace Simcraft
         {
             NameCount++;
             if (_spell.Contains(":")) _spell = _spell.Split(':')[1];
-            _spell = this.spell.ResolveName(_spell).Name;
+            _spell = this.spell.ResolveName(_spell).name;
 
             return new NamedComposite("" + NameCount, _spell,
                 new Action(delegate
@@ -637,7 +645,7 @@ namespace Simcraft
                     {
                         if (CastSpell(_spell, CycleTarget, 3, Reason))
                         {
-                            LogDebug(_spell+" "+Reason + " => SUCCESS!");
+                            LogDebug(_spell + " " + Reason + " => SUCCESS!");
                             return RunStatus.Success;
                         }
                         return RunStatus.Failure;
@@ -685,7 +693,7 @@ namespace Simcraft
                         clickUnit = conditionUnit;
                         if (CastSpell(spell, conditionUnit is ClusterUnit ? Me.CurrentTarget : conditionUnit, 3, Reason))
                         {
-                            LogDebug(spell+" "+Reason + " => SUCCESS!");
+                            LogDebug(spell + " " + Reason + " => SUCCESS!");
                             start_line_cd();
                             return RunStatus.Success;
                         }
@@ -703,7 +711,7 @@ namespace Simcraft
 
             //if (spell.Equals("wait")) return new Decorator(del, new ActionAlwaysSucceed());
 
-            spell = this.spell.ResolveName(spell).Name;
+            spell = this.spell.ResolveName(spell).name;
             //Logging.Write(this.spell.ResolveName(spell));
             return new NamedComposite("" + NameCount, spell,
                 new Action(delegate
@@ -717,27 +725,27 @@ namespace Simcraft
                 }),
                 new Decorator((_ret) =>
                 {
-                   var d = del ?? (ret => true);
+                    var d = del ?? (ret => true);
                     try
                     {
                         var r = d(_ret);
-                        LogDebug(spell+" "+Reason + " => " + r);
+                        LogDebug(spell + " " + Reason + " => " + r);
                         return r;
                     }
                     catch (Exception e)
                     {
-                        SimcraftImpl.Write(conditionName+" "+spell+" "+e.ToString());
+                        SimcraftImpl.Write(conditionName + " " + spell + " " + e.ToString());
                         return false;
                     }
                 },
                     new Action(delegate
                     {
-                        
+
                         clickUnit = conditionUnit;
                         if (CastSpell(spell, conditionUnit is ClusterUnit ? Me.CurrentTarget : conditionUnit, 3, Reason))
                         {
-                            LogDebug(spell+" "+Reason + " => SUCCESS!");
-                            start_line_cd();                      
+                            LogDebug(spell + " " + Reason + " => SUCCESS!");
+                            start_line_cd();
                             return RunStatus.Success;
                         }
                         return RunStatus.Failure;
@@ -804,7 +812,7 @@ namespace Simcraft
                 new Action(delegate
                 {
                     var item = Me.Inventory.Equipped.PhysicalItems.FirstOrDefault(it => it.ItemInfo.Id == id);
-                    
+
                     if (item == default(WoWItem)) return RunStatus.Failure; ;
                     if (item.Cooldown <= 0) item.Use();
                     return RunStatus.Failure;
@@ -836,7 +844,7 @@ namespace Simcraft
                 if (item == default(WoWItem)) return new MagicValueType(Decimal.MaxValue);
                 return new MagicValueType(item.Cooldown);
             }
-                           
+
         }
 
         public Composite UsePotion(String name, CanRunDecoratorDelegate del = null, String Reason = "")
@@ -914,7 +922,7 @@ namespace Simcraft
                 "return _G[\"kane_cds\"] == true", 0);
         }
 
-        public static String logf = null; 
+        public static String logf = null;
 
         public static void Write(String format = "", Color c = default(Color), LogLevel l = LogLevel.Normal, params object[] pars)
         {
@@ -931,7 +939,7 @@ namespace Simcraft
                         File.AppendAllText(@"Bots\Simcraft\Trunk\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
                     else
                         File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);*/
-                    
+
                 }
                 if (l != LogLevel.Diagnostic) Logging.Write("<" + DateTime.Now.ToShortTimeString() + ">:" + format);
             }
@@ -965,9 +973,9 @@ namespace Simcraft
 
             //Logging.Write("{7}: CR: {0} / {1} - BR {2} / {3} - MR {4} - Combat {5} {6} - CanCast: {8} / {9}", Me.CombatReach, Me.CurrentTarget.CombatReach, Me.BoundingRadius, Me.CurrentTarget.BoundingRadius, Me.CurrentTarget.IsWithinMeleeRange, Me.IsActuallyInCombat, Me.Combat, DateTime.Now, SpellManager.CanCast(spellName, u), spellName);
 
-            
+
             if (SpellManager.CanCast(spellName, u) && GetSpell(spellName).ActualMinRange(u) < u.Distance)
-                
+
                 if (SpellManager.Cast(spellName, u))
                 {
                     //if (Reason.Length > 1) SimcraftImpl.Write("Casting " + spellName + " to " + Reason);
@@ -983,12 +991,12 @@ namespace Simcraft
 
         public bool CanCast(string spellname)
         {
-            return Lua.GetReturnVal<bool>("usable, nomana = IsUsableSpell(\"" + spellname + "\"); return usable;",0);
+            return Lua.GetReturnVal<bool>("usable, nomana = IsUsableSpell(\"" + spellname + "\"); return usable;", 0);
         }
 
         #endregion [Spell / Logging]
 
-        
+
 
         public class NamedComposite : PrioritySelector
         {
@@ -1015,7 +1023,8 @@ namespace Simcraft
             private readonly double radius;
             private readonly double range;
 
-            public ClusterUnit(double range, double radius) : base(IntPtr.Zero)
+            public ClusterUnit(double range, double radius)
+                : base(IntPtr.Zero)
             {
                 this.range = range;
                 this.radius = radius;
@@ -1034,15 +1043,15 @@ namespace Simcraft
             {
                 var dx = cx0 - cx1;
                 var dy = cy0 - cy1;
-                var dist = Math.Sqrt(dx*dx + dy*dy);
+                var dist = Math.Sqrt(dx * dx + dy * dy);
 
                 return (dist <= radius0 + radius1);
             }
 
             public WoWPoint ideal_location()
             {
-                var unfs = UnfriendlyUnitsNearMe((float) (range));
-           
+                var unfs = UnfriendlyUnitsNearMe((float)(range));
+
                 return StyxWoW.Me.CurrentTarget.Location;
             }
 
@@ -1118,7 +1127,7 @@ namespace Simcraft
                                                                                                    && u.CanSelect
                                                                                                    && u.Attackable
                                                                                                    && !u.IsFriendly
-                                                                                                   //&& u.Distance <= 10
+                    //&& u.Distance <= 10
                     ).ToList();
                 return unfriendlyCache;
             }
@@ -1248,9 +1257,23 @@ namespace Simcraft
                     unit.GetAllAuras()
                         .FirstOrDefault(
                             a => a.Name == auraName && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? (int) wantedAura.StackCount : 0;
+                return wantedAura != null ? (int)wantedAura.StackCount : 0;
             }
             return 0;
+        }
+
+
+        public static WoWAura GetAura(WoWUnit unit, string auraName, bool fromMyAura = false)
+        {
+            if (unit != null)
+            {
+                var wantedAura =
+                    unit.GetAllAuras()
+                        .FirstOrDefault(
+                            a => a.Name == auraName && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
+                return wantedAura != null ? wantedAura : null;
+            }
+            return null;
         }
 
         public static TimeSpan GetAuraTimeLeft(WoWUnit unit, string auraName, bool fromMyAura = false)
@@ -1294,7 +1317,7 @@ namespace Simcraft
                     unit.GetAllAuras()
                         .FirstOrDefault(
                             a => a.SpellId == spellid && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? (int) wantedAura.StackCount : 0;
+                return wantedAura != null ? (int)wantedAura.StackCount : 0;
             }
             return 0;
         }

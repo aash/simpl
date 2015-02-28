@@ -133,13 +133,44 @@ namespace Simcraft
         }
 
 
+        public String FindDatabase()
+        {
+            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(),
+                "db.dbc",
+                SearchOption.AllDirectories);
+            return files.First();
+        }
+
         public static String SimcraftProfilePath = @"Simcraft Profiles/";
         public static String SimcraftLogPath = @"Logs/Simcraft/";
         public static String SimcraftLogfile;//
 
+        public static Database dbc;
+
         public SimcraftImpl()
         {
             SimcraftLogfile = SimcraftLogPath + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + " - " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + " " + Tokenize(Me.Name) + ".log";
+
+            //Logging.Write("go!");
+            try
+            {
+                dbc = Serializer.DeSerializeObject(FindDatabase());
+            }
+            catch (Exception e)
+            {
+                Logging.Write(e.ToString());
+            }
+
+            spell_data_t[] a = new spell_data_t[dbc.Spells.Values.Count];
+            dbc.Spells.Values.CopyTo(a, 0);
+
+            foreach (var v in a)
+            {
+                dbc.Spells[v.id, v.token] = v;
+            }
+
+            Logging.Write("Count "+dbc.Spells.Count);
+
             Directory.CreateDirectory(SimcraftProfilePath);
             Directory.CreateDirectory(SimcraftLogPath);
             inst = this;
@@ -177,14 +208,25 @@ namespace Simcraft
             stat = new StatProxy();
             obliterate = new ObliterateProxy();
 
-            dbc.Spells["invoke_xuen"] = dbc.Spells["invoke_xuen_the_white_tiger"];
-            dbc.Spells["tigereye_brew_use"] = dbc.Spells["tigereye_brew"];
-            dbc.Spells["combo_breaker_bok"] = dbc.Spells["combo_breaker_blackout_kick"];
-            dbc.Spells["combo_breaker_tp"] = dbc.Spells["tigereye_brew"];
-            dbc.Spells["combo_breaker_ce"] = dbc.Spells["combo_breaker_tiger_palm"];
-            dbc.Spells["storm_earth_and_fire_target"] = dbc.Spells["storm_earth_and_fire"];
-            //combo_breaker_bok combo_breaker_tp combo_breaker_ce storm_earth_and_fire_target
-             
+            //Logging.Write("eyo");
+
+            dbc.ClassSpells["invoke_xuen"] = DBGetClassSpell("invoke_xuen_the_white_tiger").id;//dbc.Spells["invoke_xuen_the_white_tiger"].id;
+            dbc.ClassSpells["tigereye_brew_use"] = DBGetClassSpell("tigereye_brew").id;
+            dbc.ClassSpells["combo_breaker_bok"] = DBGetClassSpell("combo_breaker_blackout_kick").id;
+            dbc.ClassSpells["combo_breaker_tp"] = DBGetClassSpell("tigereye_brew").id;
+            dbc.ClassSpells["combo_breaker_ce"] = DBGetClassSpell("combo_breaker_tiger_palm").id;
+            dbc.ClassSpells["storm_earth_and_fire_target"] = DBGetClassSpell("storm_earth_and_fire").id;
+
+            var arch = DBGetSpell("Archmage's Incandescence");
+            var garch = DBGetSpell("Archmage's Greater Incandescence");
+            dbc.Spells[arch.id, arch.token + "_agi"] = arch;
+            dbc.Spells[arch.id, arch.token + "_str"] = arch;
+            dbc.Spells[arch.id, arch.token + "_int"] = arch;
+            dbc.Spells[garch.id, garch.token + "_agi"] = garch;
+            dbc.Spells[garch.id, garch.token + "_str"] = garch;
+            dbc.Spells[garch.id, garch.token + "_int"] = garch;
+           
+
         }
 
         public override Form ConfigurationForm
@@ -304,7 +346,7 @@ namespace Simcraft
         public static void Main()
         {
 
-            var a = new MagicValueType(5);
+            /*var a = new MagicValueType(5);
             var b = new MagicValueType(true);
             var c = new MagicValueType(5.5);
             var d = new MagicValueType(false);
@@ -319,9 +361,26 @@ namespace Simcraft
             //Console.WriteLine(""+(k < 5));
             //GenerateApls();*/
             
-            a = b;
+            /*a = b;
             
-            Console.WriteLine(""+b);
+            Console.WriteLine(""+b);*/
+
+            /*dbc = Serializer.DeSerializeObject("db.dbc");
+            spell_data_t[] a = new spell_data_t[dbc.Spells.Values.Count];
+            dbc.Spells.Values.CopyTo(a,0);
+
+            foreach (var v in a)
+            {
+                dbc.Spells[v.id, v.token] = v;
+            }
+
+            Console.WriteLine(dbc.Spells["bloodbath"]);
+
+            /*foreach (var VARIABLE in COLLECTION)
+            {
+                
+            }*/
+            
 
             Console.ReadKey();
 
@@ -421,26 +480,26 @@ namespace Simcraft
                     last_judgment_target = conditionUnit;
                 }
                 var spell = DBGetClassSpell(LastSpellCast);
-                if (spell.Gcd > 0 || weird_gcd_fuckers.Contains(spell.Name))
+                if (spell.gcd > 0 || weird_gcd_fuckers.Contains(spell.name))
                 {
-                    Logging.Write(spell.Name);
-                    prev_gcd.Id = spell.Id;
+                    Logging.Write(spell.name);
+                    prev_gcd.Id = spell.id;
                     //Logging.Write(spell.Name + " using Gcd Cast");
                 }       
                 else
                 {
                     //Logging.Write(spell.Name + " without Gcd Cast");
                 }
-                prev.id = spell.Id;
+                prev.id = spell.id;
                 //Lua.DoString("_G[\"kane_spd\"] = \"" + LastSpellCast + "\";");
                 if (LastSpellCast.Equals(OverrideSpell.Spell))
                 {
                     SimcraftImpl.Write("Override Spell Cast, disabling");
                     OverrideSpell.Enabled = false;
                 }
-                if (Me.Specialization == WoWSpec.HunterSurvival && !talent[DBGetTalentSpell("Focusing Shot").Name].enabled)
+                if (Me.Specialization == WoWSpec.HunterSurvival && !talent[DBGetTalentSpell("Focusing Shot").name].enabled)
                 {
-                    if (LastSpellCast.Equals(DBGetSpell("Cobra Shot").Name) || LastSpellCast.Equals(DBGetTalentSpell("Focusing Shot").Name))
+                    if (LastSpellCast.Equals(DBGetSpell("Cobra Shot").name) || LastSpellCast.Equals(DBGetTalentSpell("Focusing Shot").name))
                     {
                         BuffProxy.cShots++;
                         if (BuffProxy.cShots == 2)

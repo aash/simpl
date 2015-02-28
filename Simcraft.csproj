@@ -49,6 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="db.dbc" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GreyMagic">
@@ -106,6 +107,7 @@
     <Compile Include="ConfigWindow.Designer.cs">
       <DependentUpon>ConfigWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Database.cs" />
     <Compile Include="MagicValueType.cs" />
     <Compile Include="ProfileSelector.cs">
       <SubType>Form</SubType>
@@ -117,7 +119,6 @@
     <Compile Include="SimcraftProxies.cs" />
     <Compile Include="SimcraftImpl.cs" />
     <Compile Include="SimcraftTop.cs" />
-    <Compile Include="dbc.cs" />
     <Compile Include="SpellState.cs" />
     <Compile Include="WoWContext.cs" />
   </ItemGroup>

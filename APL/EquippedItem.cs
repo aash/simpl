@@ -12,10 +12,10 @@ namespace Simcraft
         {
             this.slot = slot;
             this.name = name;
-            this.id = Convert.ToInt32(id);
+            this.id = Convert.ToUInt32(id);
         }
         public String slot;
         public String name;
-        public int id;
+        public uint id;
     }
 }
