@@ -956,6 +956,30 @@ namespace Simcraft
                     }
                 }
 
+                public spell_data_t ResolveName(string name)
+                {
+                    name = Tokenize(name);
+                    if (dbc.ClassSpells.ContainsKey(name))
+                    {
+                        return dbc.Spells[dbc.ClassSpells[name]];
+                    }
+                    if (dbc.Spells.RelationContainsKey(name))
+                    {
+                        return dbc.Spells[dbc.Spells[name].Min()];
+                    }
+                    throw new MissingMemberException(this.GetType().Name, name);
+                }
+
+                public virtual MagicValueType duration
+                {
+                    get
+                    {
+
+                        return new MagicValueType((int)ResolveName(_name).cooldown);
+                    }
+                }
+
+
                 public virtual MagicValueType remains
                 {
                     get
