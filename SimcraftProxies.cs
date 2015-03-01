@@ -535,7 +535,7 @@ namespace Simcraft
 
                 public override MagicValueType duration
                 {
-                    get { return 25; }
+                    get { return new MagicValueType(25); }
                 }
             }
 
