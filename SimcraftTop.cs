@@ -217,6 +217,9 @@ namespace Simcraft
             dbc.ClassSpells["combo_breaker_ce"] = DBGetClassSpell("combo_breaker_tiger_palm").id;
             dbc.ClassSpells["storm_earth_and_fire_target"] = DBGetClassSpell("storm_earth_and_fire").id;
 
+            dbc.ClassSpells["service_pet"] = DBGetSpell("grimoire_of_service").id;
+
+
             var arch = DBGetSpell("Archmage's Incandescence");
             var garch = DBGetSpell("Archmage's Greater Incandescence");
             dbc.Spells[arch.id, arch.token + "_agi"] = arch;
@@ -346,41 +349,37 @@ namespace Simcraft
         public static void Main()
         {
 
-            /*var a = new MagicValueType(5);
-            var b = new MagicValueType(true);
-            var c = new MagicValueType(5.5);
-            var d = new MagicValueType(false);
 
-            var ob = new ObliterateProxy();
-
-            /*v_t u = 5;
-
-            //Console.WriteLine(!ob.ready_in<0.5);
-            Int32 _a = 5;
-            var z = _a < 5;
-            //Console.WriteLine(""+(k < 5));
-            //GenerateApls();*/
+            //Logging.Write("go!");
+            /*try
+            {
+                dbc = Serializer.DeSerializeObject(FindDatabase());
+            }
+            catch (Exception e)
+            {
+                Logging.Write(e.ToString());
+            }*/
+            var e = Serializer.DeSerializeObject("db.dbc");
             
-            /*a = b;
-            
-            Console.WriteLine(""+b);*/
-
-            /*dbc = Serializer.DeSerializeObject("db.dbc");
-            spell_data_t[] a = new spell_data_t[dbc.Spells.Values.Count];
-            dbc.Spells.Values.CopyTo(a,0);
+            spell_data_t[] a = new spell_data_t[e.Spells.Values.Count];
+            e.Spells.Values.CopyTo(a, 0);
 
             foreach (var v in a)
             {
-                dbc.Spells[v.id, v.token] = v;
+                e.Spells[v.id, v.token] = v;
+                int count = 0;
+                foreach (var eid in v.effects)
+                {
+                    if (e.Effects[eid].sub_type.Contains("PERIODIC") && e.Effects[eid].type.Contains("E_APPLY_AURA"))
+                        count++;
+                }
+                if (count > 1) Console.WriteLine(v.name+" has multiple periodic");
+                
             }
 
-            Console.WriteLine(dbc.Spells["bloodbath"]);
 
-            /*foreach (var VARIABLE in COLLECTION)
-            {
-                
-            }*/
-            
+
+            Console.WriteLine("Count " + e.Spells.Count);
 
             Console.ReadKey();
 
@@ -451,6 +450,9 @@ namespace Simcraft
         {
             if (args.Args[0].ToString().Equals("player"))
             {
+
+                Logging.Write("Renddur: "+debuff.rupture.ticks_remain);
+
                 //Logging.Write(""+DBGetSpell("Whirlwind").Gcd);
                 //SimcraftImpl.Write(blood.frac + " " + frost.frac + " " + unholy.frac + " " + death.frac+ " " +blood.current + " " + frost.current + " " + unholy.current + " " + death.current+ " "+disease.ticking+ " "+disease.max_remains+ " "+disease.min_remains);
 

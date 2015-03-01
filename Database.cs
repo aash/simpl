@@ -15,14 +15,64 @@ using Styx.Common;
 
 namespace Simcraft
 {
+
+
+      /*{ SD_TYPE_UNSIGNED, "id"             },
+      { SD_TYPE_UNSIGNED, "flags"          },
+      { SD_TYPE_UNSIGNED, "spell_id"       },
+      { SD_TYPE_UNSIGNED, "index"          },
+      { SD_TYPE_INT,      "type"           },
+      { SD_TYPE_INT,      "sub_type"       },
+      { SD_TYPE_DOUBLE,   "m_average"      },
+      { SD_TYPE_DOUBLE,   "m_delta"        },
+      { SD_TYPE_DOUBLE,   "m_bonus"        },
+      { SD_TYPE_DOUBLE,   "coefficient"    },
+      { SD_TYPE_DOUBLE,   "ap_coefficient" },
+      { SD_TYPE_DOUBLE,   "amplitude"      },
+      { SD_TYPE_DOUBLE,   "radius"         },
+      { SD_TYPE_DOUBLE,   "max_radius"     },
+      { SD_TYPE_INT,      "base_value"     },
+      { SD_TYPE_INT,      "misc_value"     },
+      { SD_TYPE_INT,      "misc_value2"    },
+      { SD_TYPE_UNSIGNED, ""               }, // Family flags 1
+      { SD_TYPE_UNSIGNED, ""               }, // Family flags 2
+      { SD_TYPE_UNSIGNED, ""               }, // Family flags 3
+      { SD_TYPE_UNSIGNED, ""               }, // Family flags 4
+      { SD_TYPE_INT,      "trigger_spell"  },
+      { SD_TYPE_DOUBLE,   "m_chain"        },
+      { SD_TYPE_DOUBLE,   "p_combo_points" },
+      { SD_TYPE_DOUBLE,   "p_level"        },
+      { SD_TYPE_INT,      "damage_range"   },*/
+
     [Serializable]
     public class Effect
     {
-        public uint Id;
-        public uint Sid;
-        public String Type1;
-        public String Type2;
-        public uint Value;
+        public uint id;
+        public uint flags;
+        public uint spell_id;
+        public uint index;
+        public string type;
+        public string sub_type;
+        public double m_average;
+        public double m_delta;
+        public double m_bonus;
+        public double coefficient;
+        public double ap_coefficient;
+        public double amplitude;
+        public double radius;
+        public double max_radius;
+        public int base_value;
+        public int misc_value;
+        public int misc_value2;
+        public uint flags0; // Family flags 1
+        public uint flags1; // Family flags 2
+        public uint flags2; // Family flags 3
+        public uint flags3; // Family flags 4
+        public int trigger_spell;
+        public double m_chain;
+        public double p_combo_points;
+        public double p_level;
+        public int damage_range;
     }
 
     public sealed class CurrentAssemblyDeserializationBinder : SerializationBinder
@@ -30,9 +80,9 @@ namespace Simcraft
         public override Type BindToType(string assemblyName, string typeName)
         {
             //if (assemblyName.Contains("Simcraft")){
-                //Logging.Write("Exchanging: " + assemblyName + " for " + Assembly.GetExecutingAssembly().FullName);
-                assemblyName = assemblyName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
-                typeName = typeName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
+            //Logging.Write("Exchanging: " + assemblyName + " for " + Assembly.GetExecutingAssembly().FullName);
+            assemblyName = assemblyName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
+            typeName = typeName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
             //}
             //Logging.Write(String.Format("{0}, {1}", typeName, assemblyName));
             return Type.GetType(String.Format("{0}, {1}", typeName, assemblyName));

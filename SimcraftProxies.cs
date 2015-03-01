@@ -531,7 +531,12 @@ namespace Simcraft
                 public override MagicValueType up
                 {
                     get { return simc.buff[simc.PotionName].up; }
-                } 
+                }
+
+                public override MagicValueType duration
+                {
+                    get { return 25; }
+                }
             }
 
             public class AnyTrinket : BuffInternal
@@ -716,6 +721,28 @@ namespace Simcraft
                     }
                 }
 
+
+                 Effect tickingEffect = null;
+                public MagicValueType ticks_remain
+                {
+                    get
+                    {
+                        if (!up) return new MagicValueType(0);
+
+                        if (tickingEffect == null)
+
+                            foreach (var eff in DBGetSpell(_name).effects)
+                            {
+                                if (dbc.Effects[eff].sub_type.Contains("A_PERIODIC"))
+                                {
+                                    tickingEffect = dbc.Effects[eff];
+                                }
+                            }
+                        return new MagicValueType(Math.Floor((Decimal)(remains / (tickingEffect.amplitude / 1000))));
+                    }
+                }
+
+
                 public virtual MagicValueType remains
                 {
                     get
@@ -750,7 +777,8 @@ namespace Simcraft
                 {
                     get
                     {
-                        return new MagicValueType(15);
+                        if (up) return new MagicValueType((Decimal)GetAura(StyxWoW.Me.ToUnit(), _name, true).Duration / 1000);
+                        return new MagicValueType(DBGetClassSpell(_name).duration / 1000);
                     }
                 }
 
@@ -1742,8 +1770,8 @@ namespace Simcraft
                     get
                     {
                         //return new MagicValueType(0);
-                        if (up) return new MagicValueType((Decimal)GetAura(_owner.GetUnit(), _name, true).Duration);
-                        return new MagicValueType(DBGetClassSpell(_name).duration);
+                        if (up) return new MagicValueType((Decimal)GetAura(_owner.GetUnit(), _name, true).Duration/1000);
+                        return new MagicValueType(DBGetClassSpell(_name).duration / 1000);
                     }
                 }
 
@@ -1793,26 +1821,29 @@ namespace Simcraft
                     }                 
                 }
 
+                Effect tickingEffect = null;
+
                 public MagicValueType ticks_remain
                 {
                     get
                     {
                         if (!up) return new MagicValueType(0);
-                        if (spt == 0)
-                        {
 
-                            WoWSpell sp = spellid == 0
-                                    ? GetSpell(_name)
-                                    : GetSpell(spellid);
-                            var d = sp.AuraDescription;
-                            if (tick.IsMatch(d))
+                        if (tickingEffect == null)
+
+                            foreach (var eff in DBGetSpell(_name).effects)
                             {
-                                spt = Convert.ToInt32(tick.Match(d).Groups[1].ToString());
+                                if (dbc.Effects[eff].sub_type.Contains("A_PERIODIC_DAMAGE"))
+                                {
+                                    tickingEffect = dbc.Effects[eff];
+                                    break;
+                                }
+                                if (dbc.Effects[eff].sub_type.Contains("A_PERIODIC"))
+                                {
+                                    tickingEffect = dbc.Effects[eff];
+                                }
                             }
-                        }
-                        if (spt == 0) return new MagicValueType(0);
-                        return new MagicValueType(Math.Floor(remains/spt));
-
+                        return new MagicValueType(Math.Floor((Decimal)(remains / (tickingEffect.amplitude / 1000))));
                     }
                 }
 
