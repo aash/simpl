@@ -535,8 +535,8 @@ namespace Simcraft
                         //SimcraftImpl.Write("Couldnt find ClassSpell: "+action+" trying to find Spell");
                         if (!SimcraftImpl.DBHasSpell(action))
                         {
-                            SimcraftImpl.Write("Invalid Spell: " + action + ", skippings");
-                            Understood = false;
+                            SimcraftImpl.Write("Invalid Spell: " + action + ", skipping.");
+                            __code = "//" + __code;
                         }
                     }
 

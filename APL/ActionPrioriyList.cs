@@ -166,12 +166,9 @@ namespace Simcraft
                     capl = action.apl;
                     code += Environment.NewLine;
                 }
-                if (!action.Understood)
+                
                     code += action.ToCode(Items, "\t\t\t") + Environment.NewLine;
-                else
-                {
-                    SimcraftImpl.Write("Failed Action!");
-                }
+
             }
             code += "\t\t\tLogging.Write(\"Behaviors created !\");" + Environment.NewLine; ;
             code += "\t\t}" + Environment.NewLine; ;
