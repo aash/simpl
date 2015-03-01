@@ -37,7 +37,21 @@ namespace Simcraft
         public char NameCount = Convert.ToChar(65);
 
         private List<Stopwatch> apparitions = new List<Stopwatch>();
-        private const int apparition_flight_time = 5000;
+        private const int apparition_flight_time = 5000; 
+
+        public void toggle_hkvar(String name)
+        {
+            if (!hotkeyVariables.ContainsKey(name)) hotkeyVariables[name] = false;
+            hotkeyVariables[name] = !hotkeyVariables[name];
+            Lua.DoString("_G[\"sc_" + name + "\"] = " + hotkeyVariables[name] + "; print('" + name + " => " + hotkeyVariables[name] + "');");//true then _G[\""+name+"\"] = nil; print('Cds enabled') else _G[\""+name+"\"] = true; print('Cds disabled') end");
+            //Logging.Write("Toggled " + name + " to :" + hotkeyVariables[name]);
+        }
+
+        public bool hkvar(String name)
+        {
+            if (!hotkeyVariables.ContainsKey(name)) hotkeyVariables[name] = false;
+            return hotkeyVariables[name];
+        }
 
         public int incanters_flow_dir
         {
@@ -857,7 +871,7 @@ namespace Simcraft
                     //Logging.Write(item.ToString() + " " + item.CooldownTimeLeft.TotalSeconds);
                     if (item == default(WoWItem)) return RunStatus.Failure; ;
                     PotionName = item.Name;
-                    if (item.Cooldown <= 0) item.Use();
+                    if (item.Cooldown <= 0) Lua.DoString("UseItemByName(\""+item.Name+"\")");
                     return RunStatus.Failure;
                 }));
         }

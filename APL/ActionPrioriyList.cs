@@ -3,11 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Windows.Input;
 using Styx;
 using Styx.Common;
+using ModifierKeys = Styx.Common.ModifierKeys;
 
 namespace Simcraft
 {
+
+    public class APLHotkey
+    {
+        public Keys Key;
+        public ModifierKeys Mod;
+        public String Name;
+    }
+
     public class ActionPrioriyList
     {
         private List<AplAction> Actions { get; set; }
@@ -17,6 +28,7 @@ namespace Simcraft
         public WoWClass Class { get; set; }
         public String Spec { get; set; }
 
+        public List<APLHotkey> hotkeys = new List<APLHotkey>();
 
         public ActionPrioriyList()
         {
@@ -47,16 +59,36 @@ namespace Simcraft
             {
                 var expr = ParseLine(l);
                 if (expr is AplAction) apl.Actions.Add((AplAction)expr); else
-                    if (expr is EquippedItem) apl.Items.Add(((EquippedItem)expr).slot,(EquippedItem)expr);
+                if (expr is EquippedItem) apl.Items.Add(((EquippedItem)expr).slot,(EquippedItem)expr);
                 if (expr is Comment) CommentBuffer.Add(((Comment)expr).Content);
+                if (expr is APLHotkey) apl.hotkeys.Add((APLHotkey)expr);
             }
 
             return apl;
 
         }
-
-        private static AplExpr ParseLine(String l)
+        static Regex hotkeyReg = new Regex("hotkeys\\+=/(?<name>[a-zA-Z0-9_]+?),(?<mod>alt|ctrl|shift|none),(?<key>[a-zA-Z0-9_]+?)");
+        //hotkey=potion_enabled,alt,e
+        private static object ParseLine(String l)
         {
+            if (l.StartsWith("hotkeys+="))
+            {
+                var m = hotkeyReg.Match(l);
+                APLHotkey ahk = new APLHotkey();
+                Keys k;
+                Keys.TryParse(m.Groups["key"].ToString(),out  k);
+                ahk.Key = k;
+                ModifierKeys mk = ModifierKeys.NoRepeat;
+                if (m.Groups["mod"].ToString().Equals("alt")) mk = ModifierKeys.Alt;
+                if (m.Groups["mod"].ToString().Equals("ctrl")) mk = ModifierKeys.Control;
+                if (m.Groups["mod"].ToString().Equals("shift")) mk = ModifierKeys.Shift;
+                if (m.Groups["mod"].ToString().Equals("none")) mk = ModifierKeys.NoRepeat;
+                ahk.Key = k;
+                ahk.Mod = mk;
+                ahk.Name = m.Groups["name"].ToString();
+                //Logging.Write(ahk.Name+" "+ahk.Mod+" "+ahk.Key);
+                return ahk;
+            }
             if (l.StartsWith("#")) return new Comment{Content = l};
             if (l.StartsWith("action")) return ParseAction(l);
             if (items.IsMatch(l)) return ParseItem(l);
@@ -79,10 +111,27 @@ namespace Simcraft
 
         public Assembly Assembly { get; set; }
 
+        public void Unload()
+        {
+            foreach (var hk in hotkeys)
+            {
+                HotkeysManager.Unregister(hk.Name);
+            }
+        }
+
         public void CreateBehavior()
         {
 
-            
+            foreach (var hk in hotkeys)
+            {
+                HotkeysManager.Register(hk.Name,
+                  hk.Key,
+                  hk.Mod,
+                  _hk =>
+                  {
+                      SimcraftImpl.inst.toggle_hkvar(hk.Name);
+                  });
+            }
 
             if (Assembly == null) throw new Exception(Name + " has not been compiled");
             var mem = Assembly.GetTypes()[0].GetMembers()[0];
@@ -167,7 +216,7 @@ namespace Simcraft
                     code += Environment.NewLine;
                 }
                 
-                    code += action.ToCode(Items, "\t\t\t") + Environment.NewLine;
+                    code += action.ToCode(Items, "\t\t\t", hotkeys) + Environment.NewLine;
 
             }
             code += "\t\t\tLogging.Write(\"Behaviors created !\");" + Environment.NewLine; ;

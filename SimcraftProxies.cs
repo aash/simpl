@@ -31,7 +31,7 @@ using Action = Styx.TreeSharp.Action;
 namespace Simcraft
 {
 
-    public partial class SimcraftImpl
+    public partial class SimcraftImpl 
     {
 
         public class SetBonusProxy : DynamicObject
@@ -777,7 +777,12 @@ namespace Simcraft
                 {
                     get
                     {
-                        if (up) return new MagicValueType((Decimal)GetAura(StyxWoW.Me.ToUnit(), _name, true).Duration / 1000);
+                        if (up)
+                        {
+                            var ar = GetAura(StyxWoW.Me.ToUnit(), _name, true);
+                            if (ar == null) return new MagicValueType(DBGetClassSpell(_name).duration / 1000);                           
+                            return new MagicValueType((Decimal)ar.Duration / 1000);
+                        }
                         return new MagicValueType(DBGetClassSpell(_name).duration / 1000);
                     }
                 }

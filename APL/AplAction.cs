@@ -367,7 +367,7 @@ namespace Simcraft
 
         public bool Understood { get; set; }
 
-        public String ToCode(Dictionary<String, EquippedItem> items, String indent)
+        public String ToCode(Dictionary<String, EquippedItem> items, String indent, List<APLHotkey> hotkeys)
         {
            
             ActionParameter condition =
@@ -440,6 +440,13 @@ namespace Simcraft
 
             condition_string = tokenizer.Replace(condition_string, "simc.$1");
 
+            //condition_string = condition_string.Replace("simc.false", "false");
+
+            foreach (var hk in hotkeys)
+            {
+                condition_string = condition_string.Replace("simc." + hk.Name, "simc.hkvar(\"" + hk.Name+"\")");
+            }
+
             condition_string = condition_string.Replace("simc.false", "false");
             condition_string = condition_string.Replace("simc.true", "true");
             condition_string = condition_string.Replace("simc.trinket", "trinket");
@@ -473,7 +480,7 @@ namespace Simcraft
                                        (hassync ? " && simc.sync(\"" + sync.content + "\")" : "")
                                        + ")"
                                      : "") +
-                                     ",\"" + condition_string + "\"" +
+                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                                  ");";
                         break;
                     }
@@ -486,7 +493,7 @@ namespace Simcraft
                                        (hassync ? " && simc.sync(\"" + sync.content + "\")" : "")
                                        + ")"
                                      : "") +
-                                     ",\"" + condition_string + "\"" +
+                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                                  ");";
                         break;
                     }
@@ -500,7 +507,7 @@ namespace Simcraft
                                        (hasmoving ? " && simc.moving" : "")
                                        + ")"
                                      : "") +
-                                     ",\"" + condition_string + "\"" +
+                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                                  ");";
                         break;
                     }
@@ -527,7 +534,7 @@ namespace Simcraft
                                    (hastarget ? " && simc.Target" + target.content + " != null" : "") 
                                    + ")") +
                              (hastarget ? ",simc.Target" + target.content : "") +
-                             ",\""+condition_string+"\""+
+                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
                     
                     if (!SimcraftImpl.DBHasClassSpell(action))
@@ -551,7 +558,7 @@ namespace Simcraft
                                    ")"
                                  : "") +
                              (hastarget ? ",simc.Target" + target.content : "") +
-                             ",\"" + condition_string + "\"" +
+                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
                     break;
                 case ActionType.call_action_list:
@@ -564,7 +571,7 @@ namespace Simcraft
                                    ")"
                                  : "") +
                              (hastarget ? ",simc.Target" + target.content : "") +
-                             ",\"" + condition_string + "\"" +
+                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
                     break;
                 case ActionType.potion:
@@ -576,7 +583,7 @@ namespace Simcraft
                                    ")"
                                  : "") +
                              (hastarget ? ",simc.Target" + target.content : "") +
-                             ",\"" + condition_string + "\"" +
+                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
                     break;
                 case ActionType.use_item:
@@ -591,7 +598,7 @@ namespace Simcraft
                                    ")"
                                  : "") +
                              (hastarget ? ",simc.Target" + target.content : "") +
-                             ",\"" + condition_string + "\"" +
+                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
                     break;
                 default:

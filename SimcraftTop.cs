@@ -3,6 +3,7 @@
 //For the purpose of allowing RaidBot to work within Arenas
 
 using System;
+using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,7 +66,7 @@ namespace Simcraft
         public ChiProxy chi; // = new ChiProxy(() => StyxWoW.Me.ToUnit(),this);
         public dynamic seal;
         public static ActionPrioriyList current_action_list = null;
-
+        public Dictionary<string, bool> hotkeyVariables = new Dictionary<string, bool>(); 
 
         public dynamic totem
         {
@@ -311,6 +312,10 @@ namespace Simcraft
         {
             apls.Clear();
             SimcraftImpl.inst.actions.Reset();
+
+            if (current_action_list != null ) current_action_list.Unload();
+
+
             SimcraftImpl.Write("Compiling Action Lists");
 
             foreach (var filename in Directory.GetFiles(folder))
@@ -451,7 +456,7 @@ namespace Simcraft
             if (args.Args[0].ToString().Equals("player"))
             {
 
-                Logging.Write("Renddur: "+debuff.rupture.ticks_remain);
+                //Logging.Write("Renddur: "+debuff.rupture.ticks_remain);
 
                 //Logging.Write(""+DBGetSpell("Whirlwind").Gcd);
                 //SimcraftImpl.Write(blood.frac + " " + frost.frac + " " + unholy.frac + " " + death.frac+ " " +blood.current + " " + frost.current + " " + unholy.current + " " + death.current+ " "+disease.ticking+ " "+disease.max_remains+ " "+disease.min_remains);
@@ -802,9 +807,21 @@ namespace Simcraft
             HarvestTarget.Add(me.Guid);
         }
 
-    
+        public static string ToLiteral(this string input)
+        {
+            using (var writer = new StringWriter())
+            {
+                using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+                {
+                    provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+                    return writer.ToString();
+                }
+            }
+        }
   
     }
+
+
 
     #region enums
 

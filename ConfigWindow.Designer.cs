@@ -43,11 +43,13 @@
             this.bMod = new System.Windows.Forms.ComboBox();
             this.aoeMod = new System.Windows.Forms.ComboBox();
             this.button3 = new System.Windows.Forms.Button();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 137);
+            this.button1.Location = new System.Drawing.Point(12, 338);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -57,7 +59,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(93, 137);
+            this.button2.Location = new System.Drawing.Point(93, 338);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(57, 23);
             this.button2.TabIndex = 1;
@@ -139,7 +141,7 @@
             this.cdMod.FormattingEnabled = true;
             this.cdMod.Location = new System.Drawing.Point(126, 12);
             this.cdMod.Name = "cdMod";
-            this.cdMod.Size = new System.Drawing.Size(92, 21);
+            this.cdMod.Size = new System.Drawing.Size(291, 21);
             this.cdMod.TabIndex = 26;
             // 
             // exMod
@@ -147,7 +149,7 @@
             this.exMod.FormattingEnabled = true;
             this.exMod.Location = new System.Drawing.Point(126, 41);
             this.exMod.Name = "exMod";
-            this.exMod.Size = new System.Drawing.Size(92, 21);
+            this.exMod.Size = new System.Drawing.Size(291, 21);
             this.exMod.TabIndex = 27;
             // 
             // bMod
@@ -156,7 +158,7 @@
             this.bMod.FormattingEnabled = true;
             this.bMod.Location = new System.Drawing.Point(126, 68);
             this.bMod.Name = "bMod";
-            this.bMod.Size = new System.Drawing.Size(92, 21);
+            this.bMod.Size = new System.Drawing.Size(291, 21);
             this.bMod.TabIndex = 28;
             // 
             // aoeMod
@@ -164,12 +166,12 @@
             this.aoeMod.FormattingEnabled = true;
             this.aoeMod.Location = new System.Drawing.Point(126, 97);
             this.aoeMod.Name = "aoeMod";
-            this.aoeMod.Size = new System.Drawing.Size(92, 21);
+            this.aoeMod.Size = new System.Drawing.Size(291, 21);
             this.aoeMod.TabIndex = 29;
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(161, 137);
+            this.button3.Location = new System.Drawing.Point(156, 338);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(57, 23);
             this.button3.TabIndex = 30;
@@ -177,11 +179,20 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // dataGridView1
+            // 
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Location = new System.Drawing.Point(13, 165);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.Size = new System.Drawing.Size(404, 167);
+            this.dataGridView1.TabIndex = 31;
+            // 
             // ConfigWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(230, 166);
+            this.ClientSize = new System.Drawing.Size(432, 373);
+            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.aoeMod);
             this.Controls.Add(this.bMod);
@@ -199,6 +210,7 @@
             this.Controls.Add(this.button1);
             this.Name = "ConfigWindow";
             this.Text = "ConfigWindow";
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -221,5 +233,6 @@
         private System.Windows.Forms.ComboBox bMod;
         private System.Windows.Forms.ComboBox aoeMod;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.DataGridView dataGridView1;
     }
 }

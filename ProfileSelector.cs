@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Styx;
+using Styx.Common;
+using Styx.CommonBot;
+using Styx.WoWInternals;
 
 namespace Simcraft
 {
@@ -61,6 +64,7 @@ namespace Simcraft
         {
            var a = (ActionPrioriyList) listBox1.SelectedItem;
            a.CreateBehavior();
+
            SimcraftImpl.current_action_list = a;
            Close();
         }
