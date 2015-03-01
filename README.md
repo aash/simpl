@@ -47,3 +47,8 @@ And then simply use that hotkeys name inside your expression conditions like thi
 actions+=/vanish,if=potion_enabled
 
 The Variables start at false and toggle with each press of the hotkey
+
+its name, modifier key:
+
+modifier can be: alt ctrl shift none
+key can be can of the ones liste here: https://msdn.microsoft.com/en-us/library/system.windows.forms.keys%28v=vs.110%29.aspx
