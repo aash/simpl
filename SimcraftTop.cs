@@ -136,9 +136,11 @@ namespace Simcraft
 
         public String FindDatabase()
         {
+            Logging.Write("Looking for db.dbc in " + Directory.GetCurrentDirectory()+ " and all its Subdirectories");
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(),
                 "db.dbc",
                 SearchOption.AllDirectories);
+            if (files.Length == 0) throw new FileNotFoundException("Couldnt find Database", "db.dbc");
             return files.First();
         }
 
