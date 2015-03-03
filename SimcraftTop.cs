@@ -545,7 +545,7 @@ namespace Simcraft
             spell.Reset();
             spell.Reset();
             line_cds.Clear();
-            actions.Reset();
+            //actions.Reset();
             _class = StyxWoW.Me.Class;
 
             var oldctx = Context;

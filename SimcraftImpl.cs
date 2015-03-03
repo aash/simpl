@@ -674,7 +674,7 @@ namespace Simcraft
 
             //if (spell.Equals("wait")) return new Decorator(del, new ActionAlwaysSucceed());
 
-            spell = this.spell.ResolveName(spell).Name;
+            spell = this.spell.ResolveName(spell).name;
             //Logging.Write(this.spell.ResolveName(spell));
             return new NamedComposite("" + NameCount, spell,
                 new Action(delegate
