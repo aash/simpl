@@ -619,12 +619,12 @@ namespace Simcraft
             return new Action(delegate
             {
                 if (iterationCounter%7 == 0)
-                console.BeginInvoke((System.Action)(() =>
+                /*if (console != null %% console.Va)console.BeginInvoke((System.Action)(() =>
                 {
 
                         console.reset();
 
-                }));
+                }));*/
                 
                 //console.BeginInvoke(new Delegate(console,"reset"));
                 //console.reset();
@@ -684,7 +684,7 @@ namespace Simcraft
 
                 uint spellid = uint.Parse(args.Args[4].ToString());
 
-                Logging.Write(""+buff.incanters_flow.stack);
+                //Logging.Write(""+buff.incanters_flow.stack);
 
                 if (!dbc.Spells.ContainsKey(spellid)) return;
 

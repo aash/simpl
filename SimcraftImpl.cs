@@ -60,9 +60,9 @@ namespace Simcraft
 
        
 
-        public int incanters_flow_dir
+        public MagicValueType incanters_flow_dir
         {
-            get { return buff.incanters_flow.dir; }
+            get { return new MagicValueType(buff.incanters_flow.dir); }
         }
 
         public WoWUnit prismatic_crystal
@@ -84,26 +84,26 @@ namespace Simcraft
             }
         }
 
-        public int desired_targets
+        public MagicValueType desired_targets
         {
-            get { return 1; }
+            get { return new MagicValueType(1); }
         }
 
-        public int mind_harvest
+        public MagicValueType mind_harvest
         {
-            get { return conditionUnit.MindHarvest() ? 1 : 0; }
+            get { return new MagicValueType(conditionUnit.MindHarvest() ? 1 : 0); }
         }
-        public bool moving
+        public MagicValueType moving
         {
-            get { return Me.IsMoving; }
+            get { return new MagicValueType(Me.IsMoving); }
         }
-        public int shadowy_apparitions_in_flight
+        public MagicValueType shadowy_apparitions_in_flight
         {
             get
             {
                 var naps = apparitions.Where(ret => ret.ElapsedMilliseconds >= apparition_flight_time);
                 apparitions.RemoveAll(ret => naps.Contains(ret));
-                return apparitions.Count();
+                return new MagicValueType(apparitions.Count());
             }
         }
 
@@ -116,13 +116,13 @@ namespace Simcraft
             }
         }
 
-        public bool miss_react
+        public MagicValueType miss_react
         {
 
-            get { return true; }
+            get { return new MagicValueType(true); }
         }
 
-        public bool cooldown_react
+        public MagicValueType cooldown_react
         {
             get
             {
@@ -130,40 +130,40 @@ namespace Simcraft
                 {
                     return buff.shadowy_insight.up;
                 }
-                return false;
+                return new MagicValueType(false);
             }
         }
 
-        public bool natural_shadow_word_death_range
+        public MagicValueType natural_shadow_word_death_range
         {
             get { return target.health.pct < 20; }
         }
 
-        public int active_enemies
+        public MagicValueType active_enemies
         {
-            get { return actives.Count(); }
+            get { return new MagicValueType(actives.Count()); }
         }
-        public int demonic_fury
+        public MagicValueType demonic_fury
         {
             get
             {
                 var be = LuaGet<int>("UnitPower(\"player\", SPELL_POWER_DEMONIC_FURY)", 0);
-                return be;
+                return new MagicValueType(be);
             }
         }
 
-        public int shadow_orb
+        public MagicValueType shadow_orb
         {
             get
             {
                 var be = LuaGet<int>("ret,_,_ = UnitPower(\"player\", SPELL_POWER_SHADOW_ORBS); return ret;", 0);
-                return be;
+                return new MagicValueType(be);
             }
         }
 
-        public double distance
+        public MagicValueType distance
         {
-            get { return conditionUnit.Distance; }
+            get { return new MagicValueType(conditionUnit.Distance); }
         }
         private int o_soul_shard = 0;
         private Stopwatch SoulShardTimer = new Stopwatch();
@@ -181,7 +181,7 @@ namespace Simcraft
             get { return pet.children[Tokenize(_conditionSpell)].active; }
         }*/
 
-        public int soul_shard
+        public MagicValueType soul_shard
         {
             get
             {
@@ -191,7 +191,7 @@ namespace Simcraft
                     SoulShardTimer.Restart();
                 }
                 o_soul_shard = ss;
-                return ss;
+                return new MagicValueType(ss);
             }
         }
 
@@ -248,7 +248,7 @@ namespace Simcraft
         public bool in_flight_to_target = false;
         public bool in_flight = false;
 
-        public double charges_fractional
+        public MagicValueType charges_fractional
         {
             get
             {
@@ -257,43 +257,43 @@ namespace Simcraft
             }
         }
 
-        public double travel_time
+        public MagicValueType travel_time
         {
             get
             {
-                return (conditionUnit.Distance - conditionUnit.CombatReach) / _conditionSpell.speed;
+                return new MagicValueType(conditionUnit.Distance - conditionUnit.CombatReach / _conditionSpell.speed);
             }
         }
 
-        public double spell_haste
+        public MagicValueType spell_haste
         {
             get { return stat.spell_haste; }
         }
 
-        public double mastery_value
+        public MagicValueType mastery_value
         {
             get { return stat.mastery_value; }
         }
 
-        public bool shard_react
+        public MagicValueType shard_react
         {
             get
             {
                 int ss = soul_shard;
-                return (SoulShardTimer.IsRunning && SoulShardTimer.ElapsedMilliseconds < 2000);
+                return new MagicValueType(SoulShardTimer.IsRunning && SoulShardTimer.ElapsedMilliseconds < 2000);
             }
         }
 
-        public double burning_ember
+        public MagicValueType burning_ember
         {
             get
             {
                 var be = LuaGet<int>("UnitPower(\"player\", SPELL_POWER_BURNING_EMBERS, true)", 0);
-                return ((double)be) / 10;
+                return new MagicValueType((double)be / 10);
             }
         }
 
-        public double tick_time
+        public MagicValueType tick_time
         {
             get
             {
@@ -315,7 +315,7 @@ namespace Simcraft
             }
         }
 
-        public double eclipse_change
+        public MagicValueType eclipse_change
         {
             get
             {
@@ -358,11 +358,11 @@ namespace Simcraft
 
                 //Logging.Write("energy {3} change: {0} next_solar: {1} next_lunar: {2} phi: {4}",eclipse_ch,time_to_next_solar,time_to_next_lunar,eclipse_energy.current,phi);
 
-                return eclipse_ch;
+                return new MagicValueType(eclipse_ch);
             }
         }
 
-        public double lunar_max
+        public MagicValueType lunar_max
         {
             get
             {
@@ -403,10 +403,10 @@ namespace Simcraft
 
                 eclipse_ch = (M_PI - (phi % M_PI)) / omega / 1000;
 
-                return time_to_next_lunar;
+                return new MagicValueType(time_to_next_lunar);
             }
         }
-        public double solar_max
+        public MagicValueType solar_max
         {
             get
             {
@@ -447,26 +447,26 @@ namespace Simcraft
 
                 eclipse_ch = (M_PI - (phi % M_PI)) / omega / 1000;
 
-                return time_to_next_solar;
+                return new MagicValueType(time_to_next_solar);
             }
         }
 
 
-        public double time_to_die
+        public MagicValueType time_to_die
         {
             get { return target.time_to_die; }
         }
 
-        public bool position_front
+        public MagicValueType position_front
         {
-            get { return !Me.IsBehind(conditionUnit); }
+            get { return new MagicValueType(!Me.IsBehind(conditionUnit)); }
         }
 
         public WoWUnit clickUnit { get; set; }
 
-        public int anticipation_charges
+        public MagicValueType anticipation_charges
         {
-            get { return buff["Anticipation"].stack; }
+            get { return new MagicValueType(buff.anticipation.stack); }
         }
 
         public MagicValueType primary_target
@@ -484,24 +484,24 @@ namespace Simcraft
             get { return debuff[_conditionSpell].remains; }
         }
 
-        public double duration
+        public MagicValueType duration
         {
             get { return spell[_conditionSpell].duration; }
         }
 
-        public int level { get { return Me.Level; } }
+        public MagicValueType level { get { return new MagicValueType(Me.Level); } }
 
-        public bool melee_range
+        public MagicValueType melee_range
         {
-            get { return Me.IsWithinMeleeRangeOf(conditionUnit); }
+            get { return new MagicValueType(Me.IsWithinMeleeRangeOf(conditionUnit)); }
         }
 
-        public bool facing
+        public MagicValueType facing
         {
             get { return target.facing; }
         }
 
-        public double execute_time
+        public MagicValueType execute_time
         {
 
             get
@@ -512,9 +512,9 @@ namespace Simcraft
             }
         }
 
-        public double enemies
+        public MagicValueType enemies
         {
-            get { return 1000; }
+            get { return new MagicValueType(1000); }
         }
 
         public double cast_time
@@ -522,46 +522,46 @@ namespace Simcraft
             get { return execute_time; }
         }
 
-        public static bool SpellIsTargeting
+        public static MagicValueType SpellIsTargeting
         {
             get
             {
-                return LuaGet<Boolean>(
-                    "return SpellIsTargeting()", 0);
+                return new MagicValueType(LuaGet<Boolean>(
+                    "return SpellIsTargeting()", 0));
             }
         }
 
-        public bool damage_enabled
+        public MagicValueType damage_enabled
         {
-            get { return !_damageEnabled; }
+            get { return new MagicValueType(!_damageEnabled); }
         }
 
-        public bool aoe_enabled
+        public MagicValueType aoe_enabled
         {
-            get { return !_aoeEnabled; }
+            get { return new MagicValueType(!_aoeEnabled); }
         }
 
-        public bool cooldowns_enabled
+        public MagicValueType cooldowns_enabled
         {
-            get { return !_cdsEnabled; }
+            get { return new MagicValueType(!_cdsEnabled); }
         }
 
-        public bool ticking
+        public MagicValueType ticking
         {
             get { return debuff[_conditionSpell].ticking; }
         }
 
-        public double channel_time
+        public MagicValueType channel_time
         {
             get { return spell[_conditionSpell].channel_time; }
         }
 
-        public double recharge_time
+        public MagicValueType recharge_time
         {
             get { return spell[_conditionSpell].recharge_time; }
         }
 
-        public int charges
+        public MagicValueType charges
         {
             get
             {
@@ -569,7 +569,7 @@ namespace Simcraft
             }
         }
 
-        public double cast_regen
+        public MagicValueType cast_regen
         {
             get
             {
@@ -578,9 +578,9 @@ namespace Simcraft
             }
         }
 
-        public bool sync(String spell)
+        public MagicValueType sync(String spell)
         {
-            return true;
+            return new MagicValueType(true);
         }
 
         public Composite CallActionList(String name, CanRunDecoratorDelegate del, String Reason)

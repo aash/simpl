@@ -64,6 +64,11 @@ namespace Simcraft
             boxee = (Decimal)v;
         }
 
+        public MagicValueType(MagicValueType v)
+        {
+            boxee = v.boxee;
+        }
+
 
         private Decimal boxee;
 
