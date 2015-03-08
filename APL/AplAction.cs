@@ -15,35 +15,37 @@ using JetBrains.Annotations;
 using Styx;
 using Styx.Common;
 
-namespace Simcraft
+namespace Simcraft.APL
 {
     public class AplAction : AplExpr
     {
-        public String code;
-
-        public enum ActionType
-        {
-            cast,
-            flask,
-            food,
-            stance,
-            call_action_list,
-            use_item,
-            potion,
-            snapshot_stats,
-            run_action_list
-        }
 
         List<String> Comments = new List<string>();
+        private String _condition_string;
+        private String _fullExpression;
+        private String csCode;
+        public bool Understood { get; set; }
 
-        public AplAction(String code, List<String> comments)
+        Regex action_reg = new Regex(@"actions(\.*[a-z_ ]*=|\.*[a-z_ ]*\+=)(.+)");
+        Regex filter_equals = new Regex("([^><!])=([^><!])");
+        Regex filter_in = new Regex("\\.in([><=])");
+        Regex filter_trinket = new Regex("(trinket\\.[a-z_.12]+)");
+        Regex swing = new Regex("(swing\\.[a-z_.12]+)");
+        Regex tokenizer = new Regex("([a-z][\\._a-z0-9]+)");
+
+        public ActionType type = ActionType.none;
+        public String apl;
+        public ActionPrioriyList myList;
+        public String action;
+        List<ActionOption> _params = new List<ActionOption>();
+        String Name { get; set; }
+
+
+        private bool ParseExpression()
         {
-            Comments.AddRange(comments);
-            comments.Clear();
-            this.code = code;
-            if (action_reg.IsMatch(code))
+           if (action_reg.IsMatch(_fullExpression))
             {
-                var m = action_reg.Match(code);
+                var m = action_reg.Match(_fullExpression);
                 apl = m.Groups[1].ToString().Replace("+=", "").Replace("=", "");
                 var text = m.Groups[2].ToString().Replace("/", "");
 
@@ -53,8 +55,8 @@ namespace Simcraft
                 {
                     var splits = text.Split(',');
                     action = splits[0];
-                    Enum.TryParse(action, out type);
-                    //Console.WriteLine(type);
+                    if (!Enum.TryParse(action, out type)) type = ActionType.none;
+                    
                     int i = 1;
                     for (i = 1; i < splits.Count(); i++)
                     {
@@ -65,11 +67,243 @@ namespace Simcraft
                 else
                 {
                     action = text;
-                    Enum.TryParse(action, out type);
+                    if (!Enum.TryParse(action, out type)) type = ActionType.none;
                 }
-
-                //Console.WriteLine(apl + " - " + action);
             }
+            return true;
+        }
+
+        public String as_start_pyro_chain_t()
+        {
+            return  "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
+                             "\"] += simc.StartPyroChain(" +
+                             (has(ActionOptionType.If)
+                                 ? "_if => (" + _condition_string +
+                                   (has(ActionOptionType.LineCd)
+                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
+                                       : "") +
+                                   (has(ActionOptionType.Sync)
+                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
+                                       : "")
+                                   + ")"
+                                 : "") +
+                             ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                             ");";
+        }
+
+        public String as_stop_pyro_chain_t()
+        {
+            return "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
+                             "\"] += simc.StopPyroChain(" +
+                             (has(ActionOptionType.If)
+                                 ? "_if => (" + _condition_string +
+                                   (has(ActionOptionType.LineCd)
+                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
+                                       : "") +
+                                   (has(ActionOptionType.Sync)
+                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
+                                       : "")
+                                   + ")"
+                                 : "") +
+                             ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                             ");";
+        }
+
+        public String as_wait_t()
+        {
+            return "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
+                                         "\"] += simc.Wait(" +
+                                         (has(ActionOptionType.If)
+                                             ? "_if => (" + _condition_string +
+                                               (has(ActionOptionType.LineCd)
+                                                   ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
+                                                   : "") +
+                                               (has(ActionOptionType.Sync)
+                                                   ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
+                                                   : "") +
+                                               (has(ActionOptionType.Moving) ? " && simc.moving" : "")
+                                               + ")"
+                                             : "") +
+                                         ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                                         ");";            
+        }
+
+        public bool ParseAction()
+        {
+            String indent = "";
+
+            ParseExpression();
+            FixTokens();
+
+            var __code = "";
+
+            String prefix = indent;
+
+            if (swing.IsMatch(_condition_string))
+            {
+                Comments.Add("Dont use swing timers man ...");
+                prefix += "//";
+            }
+
+            if (_condition_string.Contains("aura."))
+            {
+                Comments.Add("Aura Conditions nono!");
+                prefix += "//";
+            }
+
+            Understood = true;
+
+            switch (this.type)
+            {
+
+                case ActionType.start_pyro_chain:
+                    __code = comments(indent) + "" + prefix + as_start_pyro_chain_t();
+                    break;
+                case ActionType.stop_pyro_chain:
+                    __code = comments(indent) + "" + prefix + as_stop_pyro_chain_t();
+                    break;
+
+                case ActionType.wait:
+                    __code = comments(indent) + "" + prefix + as_wait_t();
+                    break;
+
+                case ActionType.run_action_list:
+                case ActionType.call_action_list:
+                    __code = comments(indent) + "" + prefix + run_action_list_t(this);
+                    break;
+                case ActionType.potion:
+                    __code = comments(indent) + "" + prefix + as_potion_t();
+                    break;
+                case ActionType.use_item:
+                    __code = comments(indent) + "" + prefix + as_use_item_t();
+                    break;
+                    
+                case ActionType.none:
+                    __code = comments(indent) + "" + prefix + as_action_t();
+
+                    if (!SimcNames.spells.ContainsKey(action))
+                    {
+                        SimcraftImpl.Write("Invalid Spell: " + action + ", skipping.");
+                        __code = "//" + _fullExpression;
+                    }
+                    /*if (!SimcraftImpl.DBHasClassSpell(action))
+                    {
+                        if (!SimcraftImpl.DBHasSpell(action))
+                        {
+                            SimcraftImpl.Write("Invalid Spell: " + action + ", skipping.");
+                            __code = "//" + _fullExpression;
+                        }
+                    }*/
+                    break;
+                case ActionType.mana_potion:
+                case ActionType.apply_poison:
+                case ActionType.cancel_buff:
+                case ActionType.cancel_metamorphosis:
+                case ActionType.choose_target:
+                case ActionType.flask:
+                case ActionType.food:
+                case ActionType.pool_resource:
+                case ActionType.snapshot_stats:
+                case ActionType.stance:
+                case ActionType.summon_pet:
+                case ActionType.wait_until_ready:
+                    break;
+            }
+
+
+            foreach (Match m in filter_trinket.Matches(_condition_string))
+            {
+                __code = __code.Replace(m.Groups[1].ToString(), ResolveTrinketExpression(m.Groups[1].ToString(), myList.Items)[0]) + Environment.NewLine;
+            }
+
+            csCode = __code;
+
+            return Understood;
+        }
+
+        private string as_action_t()
+        {
+            return "simc.actions" +
+                             (apl == "default" ? "" : "[\"" + apl + "\"]") +
+                             (has(ActionOptionType.CycleTargets)
+                                 ? " += simc.CycleTargets(\""
+                                 : (false ? " += simc.MovingCast(\"" : " += simc.Cast(\"")) +
+                             action + "\"" + ", _if => (" +
+                             (has(ActionOptionType.If)
+                                 ? _condition_string +
+                                   (has(ActionOptionType.LineCd)
+                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
+                                       : "") +
+                                   (has(ActionOptionType.Sync)
+                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
+                                       : "") +
+                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
+                                   (has(ActionOptionType.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
+                                   (has(ActionOptionType.Target)
+                                       ? " && simc.Target" + get(ActionOptionType.Target) + " != null"
+                                       : "")
+                                   + ")"
+                                 : "true" +
+                                   (has(ActionOptionType.LineCd)
+                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
+                                       : "") +
+                                   (has(ActionOptionType.Sync)
+                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
+                                       : "") +
+                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
+                                   (has(ActionOptionType.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
+                                   (has(ActionOptionType.Target)
+                                       ? " && simc.Target" + get(ActionOptionType.Target) + " != null"
+                                       : "")
+                                   + ")") +
+                             (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
+                             ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                             ");";
+        }
+
+        private string as_use_item_t()
+        {
+            return "simc.actions" +
+                             (apl == "default" ? "" : "[\"" + apl + "\"]") + " += " +
+                             (has(ActionOptionType.Slot)
+                                 ? "simc.UseItem(" + myList.Items[get(ActionOptionType.Slot)].id
+                                 : "") +
+                             (has(ActionOptionType.Name)
+                                 ? "simc.UseItem(" +
+                                   myList.Items.First(ret => ret.Value.name.Equals(get(ActionOptionType.Name))).Value.id +
+                                   ""
+                                 : "")
+                             + (has(ActionOptionType.If)
+                                 ? ", _if => (" + _condition_string +
+                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
+                                   ")"
+                                 : "") +
+                             (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
+                             ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                             ");";
+        }
+
+        private string as_potion_t()
+        {
+            return  "simc.actions" +
+                                         (apl == "default" ? "" : "[\"" + apl + "\"]") +
+                                         " += simc.UsePotion(\"" + get(ActionOptionType.Name) + "\"" +
+                                         (has(ActionOptionType.If)
+                                             ? ", _if => (" + _condition_string +
+                                               (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
+                                               ")"
+                                             : "") +
+                                         (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
+                                         ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
+                                         ");";
+        }
+
+        public AplAction(String fullExpression, List<String> comments, ActionPrioriyList aList)
+        {
+            myList = aList;
+            Comments.AddRange(comments);
+            comments.Clear();
+            _fullExpression = fullExpression;
         }
 
         private String params_to_string()
@@ -86,112 +320,16 @@ namespace Simcraft
             String ac = "";
             foreach (var par in Comments)
             {
-                ac += indent+"//" + par.ToString() + Environment.NewLine;
+                ac += indent + "//" + par.ToString() + Environment.NewLine;
             }
             return ac;
         }
 
-       
+
 
         public override string ToString()
         {
-            return /*code+Environment.NewLine+*/comments("") + apl + " -> " + type + " / " + action + " - " + params_to_string();
-        }
-
-        Regex action_reg = new Regex(@"actions(\.*[a-z_ ]*=|\.*[a-z_ ]*\+=)(.+)");
-        public ActionType type;
-        public String apl;
-        public String action;
-
-
-
-        public class ActionOption
-        {
-
-            public static ActionOption new_option(String text)
-            {
-
-                text = text.Trim();
-                if (text.StartsWith("if="))             return option(aot.If, text.Substring(text.IndexOf("=")+1));
-                if (text.StartsWith("interrupt_if=")) return option(aot.InterruptIf, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("early_chain_if=")) return option(aot.EarlyChainIf, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("interrupt=")) return option(aot.Interrupt, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("chain=")) return option(aot.Chain, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("cycle_targets=")) return option(aot.CycleTargets, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("cycle_players=")) return option(aot.CyclePlayers, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("max_cycle_targets=")) return option(aot.MaxCycleTargets, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("moving=")) return option(aot.Moving, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("sync=")) return option(aot.Sync, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("wait_on_ready=")) return option(aot.WaitOnReady, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("target=")) return option(aot.Target, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("label=")) return option(aot.Label, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("precombat=")) return option(aot.Precombat, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("line_cd=")) return option(aot.LineCd, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("action_skill=")) return option(aot.ActionSkill, text.Substring(text.IndexOf("=") + 1));
-
-                if (text.StartsWith("slot=")) return option(aot.Slot, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("five_stacks=")) return option(aot.FiveStacks, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("damage=")) return option(aot.Damage, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("type=")) return option(aot.Type, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("name=")) return option(aot.Name, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("choose=")) return option(aot.Choose, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("sec=")) return option(aot.Seconds, text.Substring(text.IndexOf("=") + 1));
-                if (text.StartsWith("ammo_type=")) return option(aot.AmmoType, text.Substring(text.IndexOf("=") + 1));
-                
-                Logging.Write("I dont recognize the option "+text);
-                return new ActionOption();
-            } 
-
-            private static ActionOption option(aot type, String content)
-            {
-                var a = new ActionOption();
-
-                a.content = content;
-                a.type = type;
-                return a;
-            }
-
-            public aot type = aot.Unknown;
-            public String content;
-
-            public override string ToString()
-            {
-                return type + ": " + content;
-            }
-
-            public String get_content<T>()
-            {
-                return content.ToString();
-            }
-        }
-
-        public enum aot
-        {
-            If,
-            InterruptIf,
-            EarlyChainIf,
-            Interrupt,
-            Chain,
-            CycleTargets,
-            CyclePlayers,
-            MaxCycleTargets,
-            Moving,
-            Sync,
-            WaitOnReady,
-            Precombat,
-            LineCd,
-            ActionSkill,
-            Target,
-            Name,
-            Type,
-            Slot,
-            Damage,
-            FiveStacks,
-            Unknown,
-            Label,
-            Choose,
-            Seconds,
-            AmmoType
+            return /*_fullExpression+Environment.NewLine+*/comments("") + apl + " -> " + type + " / " + action + " - " + params_to_string();
         }
 
         public List<String> ResolveTrinketExpression(String expr, Dictionary<String, EquippedItem> items)
@@ -249,7 +387,7 @@ namespace Simcraft
                 //stat = stat_e.STAT_ALL;
             }
 
-            string[] bools = new[] {"up","down","react"};
+            string[] bools = new[] { "up", "down", "react" };
 
             //Proc Expression
             if (pexprtype == trinket_proc_expr_e.PROC_ENABLED && ptype != trinket_proc_type_e.PROC_COOLDOWN)
@@ -284,7 +422,7 @@ namespace Simcraft
                     if (!SimcraftImpl.dbc.ItemProcs.ContainsKey(_items.id))
                         throw new MissingProcException("trinket" + outval + " has no proc / on use effect");
 
-                    Results.Add("simc.trinket"+outval+".cooldown." + splits[splits.Count() - 1]);
+                    Results.Add("simc.trinket" + outval + ".cooldown." + splits[splits.Count() - 1]);
                 }
                 else
                 {
@@ -323,21 +461,19 @@ namespace Simcraft
                             Results.Add("false");
                         else
                             Results.Add("new SimcraftImpl.MagicValueType(0)");
-                    }                 
+                    }
                 }
             }
             return Results;
-            
+
         }
 
-        public bool Understood { get; set; }
-
-        public bool has(aot type)
+        public bool has(ActionOptionType type)
         {
             return _params.Any(ret => ret.type == type);
         }
 
-        public String get(aot type)
+        public String get(ActionOptionType type)
         {
             return _params.First(ret => ret.type == type).content;
         }
@@ -346,39 +482,36 @@ namespace Simcraft
         {
 
             var s = "simc.actions" + (action.apl == "default" ? "" : "[\"" + action.apl + "\"]") +
-                                      " += simc.CallActionList(\"" + action.get(aot.Name) +
+                                      " += simc.CallActionList(\"" + action.get(ActionOptionType.Name) +
                                       "\"" +
-                                      (action.has(aot.If)
-                                          ? ", _if => (" + action.condition_string +
-                                          (action.has(aot.Moving) ? " && simc.moving" : "") +
+                                      (action.has(ActionOptionType.If)
+                                          ? ", _if => (" + action._condition_string +
+                                          (action.has(ActionOptionType.Moving) ? " && simc.moving" : "") +
                                             ")"
                                           : "") +
-                                      (action.has(aot.Target) ? ",simc.Target" + action.get(aot.Target) : "") +
-                                      ",\"" + action.condition_string.Replace("\"", "\\\"") + "\"" +
+                                      (action.has(ActionOptionType.Target) ? ",simc.Target" + action.get(ActionOptionType.Target) : "") +
+                                      ",\"" + action._condition_string.Replace("\"", "\\\"") + "\"" +
                                       ");";
             return s;
         }
 
-        public String condition_string;
 
-        Regex filter_equals = new Regex("([^><!])=([^><!])");
-        Regex filter_in = new Regex("\\.in([><=])");
-        Regex filter_trinket = new Regex("(trinket\\.[a-z_.12]+)");
-        Regex swing = new Regex("(swing\\.[a-z_.12]+)");
 
-        Regex tokenizer = new Regex("([a-z][\\._a-z0-9]+)");
 
-        public String fix_condition_string(String condition, List<APLHotkey> hotkeys)
+
+        public void FixTokens()
         {
-            condition = has(aot.If) ? get(aot.If).Replace("|", "||").Replace("&", "&&") : "";
+            List<APLHotkey> hotkeys = myList.hotkeys;
+            var condition = "";
+
+            condition = has(ActionOptionType.If) ? get(ActionOptionType.If).Replace("|", "||").Replace("&", "&&") : "";
             condition = condition.ToLower();
 
             condition = filter_in.Replace(condition, "._in$1");
             condition = filter_equals.Replace(condition, "$1==$2");
-            
+
             condition = tokenizer.Replace(condition, "simc.$1");
 
-            //condition_string = condition_string.Replace("simc.false", "false");
 
             foreach (var hk in hotkeys)
             {
@@ -389,167 +522,15 @@ namespace Simcraft
             condition = condition.Replace("simc.true", "true");
             condition = condition.Replace("simc.trinket", "trinket");
             condition = condition.Replace("react==", "stack==");
-            //condition_string = condition_string.Replace("moving", "simc.moving");  
-            return condition;
+ 
+            _condition_string =  condition;
         }
 
-        public String ToCode(Dictionary<String, EquippedItem> items, String indent, List<APLHotkey> hotkeys)
+        public String ToCode(String indent)
         {
-            condition_string = fix_condition_string(condition_string, hotkeys);       
-
-            var __code = "";
-
-            String prefix = indent;
-
-            if (swing.IsMatch(condition_string))
-            {
-                Comments.Add("Dont use swing timers man ...");
-                prefix += "//";
-            }
-
-            Understood = true;
-
-            switch (this.type)
-            {
-                case ActionType.cast:
-
-                    if (action.Equals("start_pyro_chain"))
-                    {
-                        __code = comments(indent) + "" + prefix + "simc.actions[\"" + (apl == "default" ? "" : "" + apl) + "\"] += simc.StartPyroChain(" +
-                                 (has(aot.If)
-                                     ? "_if => (" + condition_string +
-                                       (has(aot.LineCd) ? " && simc.line_cd(" + get(aot.LineCd) + ")" : "") +
-                                       (has(aot.Sync) ? " && simc.sync(\"" + get(aot.Sync) + "\")" : "")
-                                       + ")"
-                                     : "") +
-                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                                 ");";
-                        break;
-                    }
-                    if (action.Equals("stop_pyro_chain"))
-                    {
-                        __code = comments(indent) + "" + prefix + "simc.actions[\"" + (apl == "default" ? "" : "" + apl) + "\"] += simc.StopPyroChain(" +
-                                 (has(aot.If)
-                                     ? "_if => (" + condition_string +
-                                       (has(aot.LineCd) ? " && simc.line_cd(" + get(aot.LineCd) + ")" : "") +
-                                       (has(aot.Sync) ? " && simc.sync(\"" + get(aot.Sync) + "\")" : "")
-                                       + ")"
-                                     : "") +
-                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                                 ");";
-                        break;
-                    }
-                    if (action.Equals("wait"))
-                    {
-                        __code = comments(indent) + "" + prefix + "simc.actions[\"" + (apl == "default" ? "" : "" + apl) + "\"] += simc.Wait(" +
-                                 (has(aot.If)
-                                     ? "_if => (" + condition_string +
-                                       (has(aot.LineCd) ? " && simc.line_cd(" + get(aot.LineCd) + ")" : "") +
-                                       (has(aot.Sync) ? " && simc.sync(\"" + get(aot.Sync) + "\")" : "")+
-                                       (has(aot.Moving) ? " && simc.moving" : "")
-                                       + ")"
-                                     : "") +
-                                     ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                                 ");";
-                        break;
-                    }
-                    if (action.Equals("auto_attack") || action.Equals("auto_shot") || action.Equals("summon_pet") || condition_string.Contains("aura."))
-                    {
-                        Comments.Add("Nonsupported spells and apis");
-                        prefix += "//";
-                    }
-                    __code = comments(indent) + "" + prefix + "simc.actions" + (apl == "default" ? "" : "[\"" + apl + "\"]") +
-                        (has(aot.CycleTargets) ? " += simc.CycleTargets(\"" : (has(aot.Moving) ? " += simc.MovingCast(\"" : " += simc.Cast(\"")) + action + "\"" + ", _if => (" +
-                             (has(aot.If) 
-                                 ? condition_string +
-                                   (has(aot.LineCd) ? " && simc.line_cd(" + get(aot.LineCd) + ")" : "") +
-                                   (has(aot.Sync) ? " && simc.sync(\"" + get(aot.Sync) + "\")" : "")+
-                                   (has(aot.Moving) ? " && simc.moving" : "")+
-                                   (has(aot.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "")+
-                                   (has(aot.Target) ? " && simc.Target" + get(aot.Target) + " != null" : "") 
-                                   + ")"
-                                 : "true"+
-                                   (has(aot.LineCd) ? " && simc.line_cd(" + get(aot.LineCd) + ")" : "") +
-                                   (has(aot.Sync) ? " && simc.sync(\"" + get(aot.Sync) + "\")" : "") +
-                                   (has(aot.Moving) ? " && simc.moving" : "") +
-                                   (has(aot.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
-                                   (has(aot.Target) ? " && simc.Target" + get(aot.Target) + " != null" : "") 
-                                   + ")") +
-                             (has(aot.Target) ? ",simc.Target" + get(aot.Target) : "") +
-                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                             ");";
-                    
-                    if (!SimcraftImpl.DBHasClassSpell(action))
-                    {
-                        //SimcraftImpl.Write("Couldnt find ClassSpell: "+action+" trying to find Spell");
-                        if (!SimcraftImpl.DBHasSpell(action))
-                        {
-                            SimcraftImpl.Write("Invalid Spell: " + action + ", skipping.");
-                            __code = "//" + __code;
-                        }
-                    }
-
-                    break;
-                case ActionType.run_action_list:
-                case ActionType.call_action_list:
-                    __code = comments(indent) + "" + prefix + run_action_list_t(this);
-                    break;
-                case ActionType.potion:
-                    __code = comments(indent) + "" + prefix + "simc.actions" + (apl == "default" ? "" : "[\"" + apl + "\"]") +
-                             " += simc.UsePotion(\"" + get(aot.Name) + "\"" +
-                             (has(aot.If)
-                                 ? ", _if => (" + condition_string +
-                                 (has(aot.Moving) ? " && simc.moving" : "") +
-                                   ")"
-                                 : "") +
-                             (has(aot.Target) ? ",simc.Target" + get(aot.Target) : "") +
-                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                             ");";
-                    break;
-                case ActionType.use_item:
-                    __code = comments(indent) + "" + prefix + "simc.actions" + (apl == "default" ? "" : "[\"" + apl +"\"]") + " += " +
-                             (has(aot.Slot) ? "simc.UseItem(" + items[get(aot.Slot)].id : "") +
-                             (has(aot.Name)
-                                 ? "simc.UseItem(" + items.First(ret => ret.Value.name.Equals(get(aot.Name))).Value.id + ""
-                                 : "")
-                             + (has(aot.If)
-                                 ? ", _if => (" + condition_string +
-                                 (has(aot.Moving) ? " && simc.moving" : "") +
-                                   ")"
-                                 : "") +
-                             (has(aot.Target) ? ",simc.Target" + get(aot.Target) : "") +
-                             ",\"" + condition_string.Replace("\"", "\\\"") + "\"" +
-                             ");";
-                    break;
-                default:
-                    __code = prefix + "//" + code;
-                    break;
-            }
-
-
-            var retcode = "";
-
-
-            //Logging.Write("code: "+__code);
-
-            foreach (Match m in filter_trinket.Matches(condition_string))
-            {
-                //foreach (var s in  ResolveTrinketExpression(m.Groups[1].ToString(), items))
-                //{
-                __code = __code.Replace(m.Groups[1].ToString(), ResolveTrinketExpression(m.Groups[1].ToString(), items)[0]) + Environment.NewLine;
-                //}
-                //retcode += __code;
-            }
-
-            if (retcode.Length == 0)
-                retcode = __code;
-
-            //Logging.Write("code2: " + retcode);
-
-            return retcode;        
+            return indent + csCode;
         }
 
-        List<ActionOption> _params = new List<ActionOption>();
-        String Name { get; set; }
+
     }
 }

@@ -1,4 +1,4 @@
-﻿//This BotBase was created by Apoc, I take no credit for anything within this code
+﻿//This BotBase was created by Apoc, I take no credit for anything within this fullExpression
 //I just changed "!StyxWoW.Me.CurrentTarget.IsFriendly" to "!StyxWoW.Me.CurrentTarget.IsHostile"
 //For the purpose of allowing RaidBot to work within Arenas
 
@@ -27,6 +27,8 @@ using System.Windows.Threading;
 using Simcraft.APL;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Honorbuddy;
+using Styx.CommonBot.Profiles.Quest.Order;
 
 
 namespace Simcraft
@@ -74,9 +76,12 @@ namespace Simcraft
         }
 
 
-        public String CobraReset = "[A Murder of Crows]" + "[Explosive Trap]" + "[Multi-Shot]" + "[Arcane Shot]" +
+        public uint[] CobraReset = new uint[] { 131894, 13813, 3044, 2643, 19434, 37506, 80012, 53351, 109259, 117050, 120360, 3674 };
+            
+            
+            /*"[A Murder of Crows]" + "[Explosive Trap]" + "[Multi-Shot]" + "[Arcane Shot]" +
                                    "[Aimed Shot]" + "[Scatter Shot]" + "[Chimera Shot]" + "[Kill Shot]" + "[Powershot]" +
-                                   "[Glaive Toss]" + "[Barrage]" + "[Black Arrow]";
+                                   "[Glaive Toss]" + "[Barrage]" + "[Black Arrow]";*/
 
         public ComboPointProxy combo_points;
         public WoWContext Context = WoWContext.PvE;
@@ -87,8 +92,8 @@ namespace Simcraft
         public HealthProxy health; // = new HealthProxy(() => StyxWoW.Me.ToUnit(), this);
         public Stopwatch IterationTimer = new Stopwatch();
         public double iterationTotal;
-        public String LastSpellCast = "";
-        public SpellOverride OverrideSpell = new SpellOverride();
+        public spell_data_t LastSpellCast;
+        //public SpellOverride OverrideSpell = new SpellOverride();
         public RageProxy rage; // = new RageProxy(() => StyxWoW.Me.ToUnit(), this);
         public dynamic spell; // = new SpellProxy();
         public dynamic talent; // = new TalentProxy();
@@ -115,7 +120,9 @@ namespace Simcraft
         public HolyPowerProxy holy_power;
         public WoWUnit last_judgment_target = null;
         public dynamic active_dot;
-        public StatProxy stat;
+        public dynamic stat;
+        public SpellbookProxy spellbook;
+
 
         public WoWUnit Target1
         {
@@ -176,63 +183,80 @@ namespace Simcraft
 
             Directory.CreateDirectory(SimcraftProfilePath);
             Directory.CreateDirectory(SimcraftLogPath);
-            inst = this;
-            active_dot = new ActiveDot();
-            //trinket = new TrinketProxy(() => StyxWoW.Me.ToUnit(), this);
-            health = new HealthProxy(() => StyxWoW.Me.ToUnit(), this);
-            energy = new EnergyProxy(() => StyxWoW.Me.ToUnit(), this);
-            focus = new FocusProxy(() => StyxWoW.Me.ToUnit(), this);
-            chi = new ChiProxy(() => StyxWoW.Me.ToUnit(), this);
-            rage = new RageProxy(() => StyxWoW.Me.ToUnit(), this);
-            buff = new BuffProxy(() => StyxWoW.Me.ToUnit(), this);
-            debuff = new DebuffProxy(() => conditionUnit, this);
-            talent = new TalentProxy(() => StyxWoW.Me.ToUnit(), this);
-            cooldown = new CooldownProxy(() => StyxWoW.Me.ToUnit(), this);
-            spell = new SpellProxy(() => StyxWoW.Me.ToUnit(), this);
-            combo_points = new ComboPointProxy(() => StyxWoW.Me.ToUnit(), this);
-            
-            target = new TargetProxy(() => conditionUnit, this);
-            runic_power = new RunicPowerProxy(() => StyxWoW.Me.ToUnit(), this);
-            disease = new DiseaseProxy(this);
-            blood = new RuneProxy(() => StyxWoW.Me.ToUnit(), this, RuneType.Blood);
-            unholy = new RuneProxy(() => StyxWoW.Me.ToUnit(), this, RuneType.Unholy);
-            frost = new RuneProxy(() => StyxWoW.Me.ToUnit(), this, RuneType.Frost);
-            death = new RuneProxy(() => StyxWoW.Me.ToUnit(), this, RuneType.Death);
-            glyph = new GlyphProxy(() => StyxWoW.Me.ToUnit(), this);
-            set_bonus = new SetBonusProxy();
-            prev_gcd = new PrevGcdProxy();
-            prev = new PrevGcdProxy();
-            pet = new PetProxy("def");
-            eclipse_energy = new EclipseProxy(() => StyxWoW.Me.ToUnit(), this);
-            mana = new ManaProxy(() => StyxWoW.Me.ToUnit(), this);
-            holy_power = new HolyPowerProxy(() => StyxWoW.Me.ToUnit(), this);
-            seal = new SealProxy();
-            actions = new ActionProxy();
-            stat = new StatProxy();
-            obliterate = new ObliterateProxy();
 
-            //Logging.Write("eyo");
-
-            dbc.ClassSpells["invoke_xuen"] = DBGetClassSpell("invoke_xuen_the_white_tiger").id;//dbc.Spells["invoke_xuen_the_white_tiger"].id;
-            dbc.ClassSpells["tigereye_brew_use"] = DBGetClassSpell("tigereye_brew").id;
-            dbc.ClassSpells["combo_breaker_bok"] = DBGetClassSpell("combo_breaker_blackout_kick").id;
-            dbc.ClassSpells["combo_breaker_tp"] = DBGetClassSpell("tigereye_brew").id;
-            dbc.ClassSpells["combo_breaker_ce"] = DBGetClassSpell("combo_breaker_tiger_palm").id;
-            dbc.ClassSpells["storm_earth_and_fire_target"] = DBGetClassSpell("storm_earth_and_fire").id;
-
-            dbc.ClassSpells["service_pet"] = DBGetSpell("grimoire_of_service").id;
+            try
+            {
 
 
-            var arch = DBGetSpell("Archmage's Incandescence");
-            var garch = DBGetSpell("Archmage's Greater Incandescence");
-            dbc.Spells[arch.id, arch.token + "_agi"] = arch;
-            dbc.Spells[arch.id, arch.token + "_str"] = arch;
-            dbc.Spells[arch.id, arch.token + "_int"] = arch;
-            dbc.Spells[garch.id, garch.token + "_agi"] = garch;
-            dbc.Spells[garch.id, garch.token + "_str"] = garch;
-            dbc.Spells[garch.id, garch.token + "_int"] = garch;
-           
 
+                spellbook = new SpellbookProxy();
+                inst = this;
+                active_dot = new ActiveDot();
+                //trinket = new TrinketProxy(() => StyxWoW.Me.ToUnit(), this);
+                health = new HealthProxy(() => StyxWoW.Me.ToUnit());
+                energy = new EnergyProxy(() => StyxWoW.Me.ToUnit());
+                focus = new FocusProxy(() => StyxWoW.Me.ToUnit());
+                chi = new ChiProxy(() => StyxWoW.Me.ToUnit());
+                rage = new RageProxy(() => StyxWoW.Me.ToUnit());
+                buff = new BuffProxy(() => StyxWoW.Me.ToUnit());
+                debuff = new DebuffProxy(() => conditionUnit);
+                talent = new TalentProxy(() => StyxWoW.Me.ToUnit());
+                cooldown = new CooldownProxy(() => StyxWoW.Me.ToUnit());
+                spell = new SpellProxy(() => StyxWoW.Me.ToUnit());
+                combo_points = new ComboPointProxy(() => StyxWoW.Me.ToUnit());
+
+                target = new TargetProxy(() => conditionUnit);
+                runic_power = new RunicPowerProxy(() => StyxWoW.Me.ToUnit());
+                disease = new DiseaseProxy(this);
+                blood = new RuneProxy(() => StyxWoW.Me.ToUnit(), RuneType.Blood);
+                unholy = new RuneProxy(() => StyxWoW.Me.ToUnit(), RuneType.Unholy);
+                frost = new RuneProxy(() => StyxWoW.Me.ToUnit(), RuneType.Frost);
+                death = new RuneProxy(() => StyxWoW.Me.ToUnit(), RuneType.Death);
+                glyph = new GlyphProxy(() => StyxWoW.Me.ToUnit());
+                set_bonus = new SetBonusProxy();
+                prev_gcd = new PrevGcdProxy();
+                prev = new PrevGcdProxy();
+                pet = new PetProxy("def");
+                eclipse_energy = new EclipseProxy(() => StyxWoW.Me.ToUnit());
+                mana = new ManaProxy(() => StyxWoW.Me.ToUnit());
+                holy_power = new HolyPowerProxy(() => StyxWoW.Me.ToUnit());
+                seal = new SealProxy();
+                actions = new ActionProxy();
+                stat = new StatProxy();
+                obliterate = new ObliterateProxy();
+
+                //Logging.Write("eyo");
+
+                /*dbc.ClassSpells["invoke_xuen"] = DBGetClassSpell("invoke_xuen_the_white_tiger").id;
+                    //dbc.Spells["invoke_xuen_the_white_tiger"].id;
+                dbc.ClassSpells["tigereye_brew_use"] = DBGetClassSpell("tigereye_brew").id;
+                dbc.ClassSpells["combo_breaker_bok"] = DBGetClassSpell("combo_breaker_blackout_kick").id;
+                dbc.ClassSpells["combo_breaker_tp"] = DBGetClassSpell("tigereye_brew").id;
+                dbc.ClassSpells["combo_breaker_ce"] = DBGetClassSpell("combo_breaker_tiger_palm").id;
+                dbc.ClassSpells["storm_earth_and_fire_target"] = DBGetClassSpell("storm_earth_and_fire").id;
+
+                dbc.ClassSpells["service_pet"] = DBGetSpell("grimoire_of_service").id;
+
+
+                var arch = DBGetSpell("Archmage's Incandescence");
+                var garch = DBGetSpell("Archmage's Greater Incandescence");
+                dbc.Spells[arch.id, arch.token + "_agi"] = arch;
+                dbc.Spells[arch.id, arch.token + "_str"] = arch;
+                dbc.Spells[arch.id, arch.token + "_int"] = arch;
+                dbc.Spells[garch.id, garch.token + "_agi"] = garch;
+                dbc.Spells[garch.id, garch.token + "_str"] = garch;
+                dbc.Spells[garch.id, garch.token + "_int"] = garch;*/
+
+                SimcNames.Populate();
+
+
+
+
+            }
+            catch (Exception e)
+            {
+                Logging.Write(e.ToString());
+            }
         }
 
         public override Form ConfigurationForm
@@ -335,7 +359,7 @@ namespace Simcraft
                 var old = Superlog;
                 Superlog = true;
                 SimcraftImpl.Write(code, Colors.White, LogLevel.Diagnostic);
-                //Console.WriteLine(code);
+                //Console.WriteLine(fullExpression);
                 Superlog = old;
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
@@ -350,53 +374,260 @@ namespace Simcraft
             }
         }
 
-        
+
 
 
         public static void Main()
         {
 
-
-            //Logging.Write("go!");
-            /*try
-            {
-                dbc = Serializer.DeSerializeObject(FindDatabase());
-            }
-            catch (Exception e)
-            {
-                Logging.Write(e.ToString());
-            }*/
-            var e = Serializer.DeSerializeObject("db.dbc");
+            dbc = Serializer.DeSerializeObject("db.dbc");
             
-            spell_data_t[] a = new spell_data_t[e.Spells.Values.Count];
-            e.Spells.Values.CopyTo(a, 0);
+
+            spell_data_t[] a = new spell_data_t[dbc.Spells.Values.Count];
+            dbc.Spells.Values.CopyTo(a, 0);
 
             foreach (var v in a)
             {
-                e.Spells[v.id, v.token] = v;
-                int count = 0;
-                foreach (var eid in v.effects)
-                {
-                    if (e.Effects[eid].sub_type.Contains("PERIODIC") && e.Effects[eid].type.Contains("E_APPLY_AURA"))
-                        count++;
-                }
-                if (count > 1) Console.WriteLine(v.name+" has multiple periodic");
-                
+                dbc.Spells[v.id, v.token] = v;
             }
 
 
+            int c = 0;
+            String akk = "";
 
-            Console.WriteLine("Count " + e.Spells.Count);
+            SimcNames.Populate();
+
+
+            //var u = new SimcNames.SpecList { new SimcNames.SpecPair(WoWSpec.None, 1), };
+            
+            /*foreach (var s in SimcNames.spells.Keys)
+            {
+              if (SimcNames.spells[s].Count == 0)  Console.WriteLine("spell::"+s);
+            }
+
+            foreach (var s in SimcNames.debuffs.Keys)
+            {
+                if (SimcNames.debuffs[s].Count == 0) Console.WriteLine("debuff::" + s);
+            }
+
+            foreach (var s in SimcNames.buffs.Keys)
+            {
+                if (SimcNames.buffs[s].Count == 0) Console.WriteLine("buff::" + s);
+            }*/
+
+
+            //var attr = dbc.Spells[SimcNames.spells["sinister_strike"].First().V2].attr1;
+
+
+            foreach (var s in dbc.Spells.Values)
+            {
+                if (s.IsChanneled() && SimcNames.spells.ContainsKey(s.token)) Console.WriteLine(s.name);
+            }
 
             Console.ReadKey();
 
+            /*String content = "";
+            foreach (var s in SimcNames.spells.Keys)
+            {
+                if (!dbc.Spells.RelationContainsKey(s))
+                {
+                    content += "spells[\"" + s + "\"]=new SpecList();" + Environment.NewLine;
+                    continue;
+                }
+                string arr = "";
+                
+                foreach (var e in GetAllSpells(s))
+                {
+                    arr += "new SpecPair(WoWSpec.None, "+e.id+"),";
+
+                }
+                content += "spells[\"" + s + "\"]=new SpecList{" +arr+ "};" + Environment.NewLine;
+            }
+
+            foreach (var s in SimcNames.buffs.Keys)
+            {
+                if (!dbc.Spells.RelationContainsKey(s))
+                {
+                    content += "buffs[\"" + s + "\"]=new SpecList();" + Environment.NewLine;
+                    continue;
+                }
+                string arr = "";
+
+                foreach (var e in GetAllSpells(s))
+                {
+                    arr += "new SpecPair(WoWSpec.None, " + e.id + "),";
+
+                }
+                content += "buffs[\"" + s + "\"]=new SpecList{" + arr + "};" + Environment.NewLine;
+            }
+
+            foreach (var s in SimcNames.debuffs.Keys)
+            {
+                if (!dbc.Spells.RelationContainsKey(s))
+                {
+                    content += "debuffs[\"" + s + "\"]=new SpecList();" + Environment.NewLine;
+                    continue;
+                }
+                string arr = "";
+
+                foreach (var e in GetAllSpells(s))
+                {
+                    arr += "new SpecPair(WoWSpec.None, " + e.id + "),";
+
+                }
+                content += "debuffs[\"" + s + "\"]=new SpecList{" + arr + "};" + Environment.NewLine;
+            }
+
+            File.WriteAllText("a.txt",content);
+
+            Console.WriteLine(c);
+
+            //Console.WriteLine(FindBuff("steady_focus").tooltip);
+
+            //Console.WriteLine(e.Spells[lid].name + " " + e.Spells[lid].desc);*/
+
+        }
+
+
+        public static List<spell_data_t> GetAllSpells(String token)
+        {
+            var ret = new List<spell_data_t>();
+            foreach (var s in dbc.Spells[token])
+            {
+                ret.Add(dbc.Spells[s]);
+            }
+            return ret;
+        }
+
+        public static List<Effect> GetAllSpellEffects(spell_data_t t)
+        {
+            var ret = new List<Effect>();
+            foreach (var ef in t.effects)
+            {
+                ret.Add(dbc.Effects[ef]);
+            }
+            return ret;
+        }  
+
+
+        public static spell_data_t FindDebuff(String token)
+        {
+            if (SimcNames.debuffs.ContainsKey(token))
+            {
+                var simcSpell = SimcNames.debuffs[token];
+
+                if (simcSpell.Count == 1)
+                {
+                    return dbc.Spells[simcSpell[0].V2];
+                }
+
+                foreach (var s in simcSpell)
+                {
+                    if (s.V1 == WoWSpec.None || s.V1 == Me.Specialization)
+                    {
+                        return dbc.Spells[s.V2];
+                    }
+                }
+            }
+           
+            var spells = GetAllSpells(token);
+            uint lid = uint.MaxValue;
+            bool casdam = false;
+            if (spells.Count == 1) return dbc.Spells[spells.First().id];
+            foreach (var spell in spells)
+            {
+                if (spell.tooltip.Length < 2) continue;
+
+                bool hasAura = false;
+                bool hasDamage = false;
+
+                foreach (var ef in GetAllSpellEffects(spell))
+                {
+                    if (ef.type.Equals("E_APPLY_AURA"))
+                    {
+                        hasAura = true;
+                        if (ef.sub_type.Contains("DAMAGE"))
+                            hasDamage = true;
+                    }
+                }
+                if (!hasAura) continue;
+                if (!casdam && hasDamage)
+                {
+                    lid = spell.id;
+                    casdam = true;
+                }
+                if ((casdam && hasDamage) || (!casdam && !hasDamage) && spell.id < lid)
+                {
+                    lid = spell.id;
+                }
+            }
+
+            if (lid < uint.MaxValue)
+                return dbc.Spells[lid];
+
+            throw new Exception("No Debuff named " + token + " found");
+        }
+
+        public static spell_data_t FindBuff(String token)
+        {
+
+            if (SimcNames.buffs.ContainsKey(token))
+            {
+                var simcSpell = SimcNames.buffs[token];
+
+                if (simcSpell.Count == 1)
+                {
+                    return dbc.Spells[simcSpell[0].V2];
+                }
+
+                foreach (var s in simcSpell)
+                {
+                    if (s.V1 == WoWSpec.None || s.V1 == Me.Specialization)
+                    {
+                        return dbc.Spells[s.V2];
+                    }
+                }
+            }
+
+            var spells = GetAllSpells(token);
+            uint lid = uint.MaxValue;
+            if (spells.Count == 1) return dbc.Spells[spells.First().id];
+            foreach (var spell in spells)
+            {
+                if (spell.tooltip.Length < 2) continue;
+
+                bool hasAura = false;
+                foreach (var ef in GetAllSpellEffects(spell))
+                {
+                    if (ef.type.Equals("E_APPLY_AURA") && !ef.sub_type.Contains("DAMAGE"))
+                    {
+                        hasAura = true;
+                    }
+                }
+                if (!hasAura) continue;
+                if (spell.id < lid) lid = spell.id;
+            }
+
+            if (lid < uint.MaxValue)
+                return dbc.Spells[lid];
+
+            throw new Exception("No Buff named "+token+" found");
         }
 
         public Composite CombatIteration()
         {
             return new Action(delegate
             {
+                if (iterationCounter%7 == 0)
+                console.BeginInvoke((System.Action)(() =>
+                {
 
+                        console.reset();
+
+                }));
+                
+                //console.BeginInvoke(new Delegate(console,"reset"));
+                //console.reset();
                 //Logging.Write(Me.Pet.);
 
                 IterationTimer.Restart();
@@ -411,10 +642,7 @@ namespace Simcraft
 
                 //Logging.Write("u:{0} b:{1} f:{2}", unholy.current, death.current, frost.current);
                 iterationCounter++;
-                UpdateLimiters();
-                energy.Pulse();
-                focus.Pulse();
-                OverrideSpell.Pulse();
+                //OverrideSpell.Pulse();
                 return RunStatus.Failure;
             });
         }
@@ -436,9 +664,7 @@ namespace Simcraft
         {
             get
             {
-                //if (!dbc.ClassSpells.ContainsKey(Tokenize(_conditionSpell))) return new MagicValueType(1.5);
-                //return new MagicValueType(dbc.ClassSpells[Tokenize(_conditionSpell)].Gcd);
-                return spell[_conditionSpell].gcd;
+                return new MagicValueType((Decimal)_conditionSpell.gcd);
             }
         }
         static Regex token = new Regex("[^a-z_ 0-9]");
@@ -451,28 +677,67 @@ namespace Simcraft
             return s;
         }
 
-        private String[] weird_gcd_fuckers = new[] {"Ravager"};
-
         private void UNIT_SPELLCAST_SUCCEEDED(object sender, LuaEventArgs args)
         {
             if (args.Args[0].ToString().Equals("player"))
             {
 
-                //Logging.Write("Renddur: "+debuff.rupture.ticks_remain);
+                uint spellid = uint.Parse(args.Args[4].ToString());
 
-                //Logging.Write(""+DBGetSpell("Whirlwind").Gcd);
-                //SimcraftImpl.Write(blood.frac + " " + frost.frac + " " + unholy.frac + " " + death.frac+ " " +blood.current + " " + frost.current + " " + unholy.current + " " + death.current+ " "+disease.ticking+ " "+disease.max_remains+ " "+disease.min_remains);
+                Logging.Write(""+buff.incanters_flow.stack);
 
-                LastSpellCast = args.Args[1].ToString();
+                if (!dbc.Spells.ContainsKey(spellid)) return;
 
-                if (LastSpellCast.Equals("Shadowy Apparition"))
+                    LastSpellCast = dbc.Spells[spellid];
+
+                prev.spell = LastSpellCast;
+
+                if (LastSpellCast.gcd > 0) Logging.Write("GCD used for: " +LastSpellCast.name);
+
+                if (LastSpellCast.id == 78203)
                 {
                     var s = new Stopwatch();
                     s.Start();
-                    apparitions.Add(s);
+                    apparitions.Add(s);            
                 }
 
-                if (LastSpellCast.Equals("Mind Blast"))
+                if (LastSpellCast.id == 8092)
+                {
+                    if (conditionUnit != null)
+                        conditionUnit.ApplyMindHarvest();
+                }
+
+                if (LastSpellCast.id == 20271)
+                {
+                    last_judgment_target = conditionUnit;
+                }
+
+                if (LastSpellCast.gcd > 0)
+                    prev_gcd.spell = LastSpellCast;
+
+                if (talent.steady_focus.enabled)
+                {
+                    if (LastSpellCast.id == 77767)
+                    {
+                        BuffProxy.cShots++;
+                        if (BuffProxy.cShots == 2)
+                        {
+                            BuffProxy.cShots = 0;
+                            SimcraftImpl.Write(DateTime.Now + ": Steady Shots!");
+                        }
+                    }
+                    if (CobraReset.Contains(LastSpellCast.id) && BuffProxy.cShots > 0)
+                    {
+                        BuffProxy.cShots = 0;
+                    }
+                }
+
+                /*if (LastSpellCast == DBGetClassSpell("Shadowy Apparition"))
+                {
+
+                }
+
+                if (LastSpellCast == DBGetClassSpell("Mind Blast"))
                 {
                     if (conditionUnit != null)
                         conditionUnit.ApplyMindHarvest();
@@ -488,8 +753,8 @@ namespace Simcraft
                 {
                     last_judgment_target = conditionUnit;
                 }
-                var spell = DBGetClassSpell(LastSpellCast);
-                if (spell.gcd > 0 || weird_gcd_fuckers.Contains(spell.name))
+
+                if (spell.gcd > 0)
                 {
                     Logging.Write(spell.name);
                     prev_gcd.Id = spell.id;
@@ -500,15 +765,10 @@ namespace Simcraft
                     //Logging.Write(spell.Name + " without Gcd Cast");
                 }
                 prev.id = spell.id;
-                //Lua.DoString("_G[\"kane_spd\"] = \"" + LastSpellCast + "\";");
-                if (LastSpellCast.Equals(OverrideSpell.Spell))
+
+                if (Me.Specialization == WoWSpec.HunterSurvival && !talent.focusing_shot.enabled)
                 {
-                    SimcraftImpl.Write("Override Spell Cast, disabling");
-                    OverrideSpell.Enabled = false;
-                }
-                if (Me.Specialization == WoWSpec.HunterSurvival && !talent[DBGetTalentSpell("Focusing Shot").name].enabled)
-                {
-                    if (LastSpellCast.Equals(DBGetSpell("Cobra Shot").name) || LastSpellCast.Equals(DBGetTalentSpell("Focusing Shot").name))
+                    if (LastSpellCast.Equals(DBGetSpell("Cobra Shot")) || LastSpellCast.Equals(DBGetTalentSpell("Focusing Shot")))
                     {
                         BuffProxy.cShots++;
                         if (BuffProxy.cShots == 2)
@@ -517,15 +777,15 @@ namespace Simcraft
                             SimcraftImpl.Write(DateTime.Now + ": Steady Shots!");
                         }
                     }
-                    if (CobraReset.Contains(LastSpellCast) && BuffProxy.cShots > 0)
+                    if (CobraReset.Contains(LastSpellCast.name) && BuffProxy.cShots > 0)
                     {
                         BuffProxy.cShots = 0;
                     }                   
-                }
-            }
+                }*/
+        }
         }
 
-        public void LogDebug(String stuff)
+        public static void LogDebug(String stuff)
         {
             Write(stuff,Colors.Violet,LogLevel.Diagnostic);
         }
@@ -561,9 +821,16 @@ namespace Simcraft
         }
 
         public static ProfileSelector SelectorWindow = new ProfileSelector();
+        public static DevConsole console = new DevConsole();
+
 
         public override void Start()
         {
+
+            /*foreach (var s in SpellManager.Spells.Values)
+            {
+                Logging.Write(s.Name + " " + s.Id);
+            }*/
             try
             {
                 Specialisation = WoWSpec.None;
@@ -579,6 +846,11 @@ namespace Simcraft
                 Lua.Events.AttachEvent("PLAYER_TALENT_UPDATE", ContextChange);
 
                 ContextChange(null, null);
+
+                /*new Thread(() =>
+                {
+                    Application.Run(console);
+                }).Start();*/
 
                 RegisterHotkeys();
             }
@@ -598,13 +870,13 @@ namespace Simcraft
                     IsPaused = !IsPaused;
                     if (IsPaused)
                     {
-                        Lua.DoString("print('Execution Paused!')");
+                        LuaDoString("print('Execution Paused!')");
                         // Make the bot use less resources while paused.
                         TreeRoot.TicksPerSecond = 5;
                     }
                     else
                     {
-                        Lua.DoString("print('Execution Resumed!')");
+                        LuaDoString("print('Execution Resumed!')");
                         // Kick it back into overdrive!
                         TreeRoot.TicksPerSecond = 8;
                     }
@@ -614,15 +886,16 @@ namespace Simcraft
                 SimCSettings.currentSettings.Aoe.mod,
                 hk =>
                 {
-                    
-                    Lua.DoString("if _G[\"kane_aoe\"] == true then _G[\"kane_aoe\"] = nil; print('AOE enabled'); else _G[\"kane_aoe\"] = true; print('AOE disabled') end");
+                    _aoeEnabled = !_aoeEnabled; 
+                    LuaDoString("if _G[\"kane_aoe\"] == true then _G[\"kane_aoe\"] = nil; print('AOE enabled'); else _G[\"kane_aoe\"] = true; print('AOE disabled') end");
                 });
             HotkeysManager.Register("Simcraft Cooldowns",
                 SimCSettings.currentSettings.Cooldowns.key,
                 SimCSettings.currentSettings.Cooldowns.mod,
                 hk =>
                 {
-                    Lua.DoString("if _G[\"kane_cds\"] == true then _G[\"kane_cds\"] = nil; print('Cds enabled') else _G[\"kane_cds\"] = true; print('Cds disabled') end");
+                    _cdsEnabled = !_cdsEnabled; 
+                    LuaDoString("if _G[\"kane_cds\"] == true then _G[\"kane_cds\"] = nil; print('Cds enabled') else _G[\"kane_cds\"] = true; print('Cds disabled') end");
 
 
                 });
@@ -663,7 +936,7 @@ namespace Simcraft
                     new LockSelector(
                         new Decorator(
                             ret => StyxWoW.Me.CurrentTarget != null && StyxWoW.Me.Combat,
-                            new PrioritySelector(CombatIteration(), CastOverride(), actions.Selector, IterationEnd())))));
+                            new PrioritySelector(CombatIteration(), actions.Selector, IterationEnd())))));
 
             TreeHooks.Instance.ReplaceHook(SimcraftHookName, simcRoot);
 
@@ -678,7 +951,7 @@ namespace Simcraft
 
         }
 
-        public Composite CastOverride()
+        /*public Composite CastOverride()
         {
             return new PrioritySelector(
                 new Action(delegate
@@ -727,7 +1000,7 @@ namespace Simcraft
 
             public void Pulse()
             {
-                _overrideString = Lua.GetReturnVal<String>(set_spelloverride_lua, 0);
+                _overrideString = LuaGet<String>(set_spelloverride_lua, 0);
                 if (_overrideString == null) return;
                 //if (_overrideString.Length < 8) return;
                 Spell = _overrideString.Split(':')[1];
@@ -741,9 +1014,9 @@ namespace Simcraft
 
                 Enabled = true;
                 SimcraftImpl.Write("Spell Override: {0} via {1} on {2}", default(Color), LogLevel.Normal, Spell, TargetType, TargetId);
-                Lua.DoString(reset_spelloverride_lua);
+                LuaDoString(reset_spelloverride_lua);
             }
-        }
+        }*/
 
 
         public static bool Superlog = false;
@@ -793,8 +1066,23 @@ namespace Simcraft
 
     public static class exts
     {
+        public static bool IsChanneled(this spell_data_t t)
+        {
+            return test_flag(t.attr1, 2);
+        }
 
-        
+        private static bool test_flag(uint attr, uint num)
+        {
+            uint s = 0x0000000F;
+
+            attr = attr >> (int)(num / 4) * 4;
+            attr = attr & s;
+            num = num % 4;
+            num = (uint)1 << (int)num;
+
+            return attr > 0;
+        }
+
 
         private static List<WoWGuid> HarvestTarget = new List<WoWGuid>();
 

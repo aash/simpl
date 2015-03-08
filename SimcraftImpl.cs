@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Markup;
 using Bots.DungeonBuddy.Helpers;
 using CommonBehaviors.Actions;
 using Styx;
@@ -22,6 +24,8 @@ using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
 using Action = Styx.TreeSharp.Action;
 using System.Windows.Media;
+using Simcraft.APL;
+
 #endregion
 
 namespace Simcraft
@@ -31,7 +35,7 @@ namespace Simcraft
         public delegate String RetrieveSpellDelegate();
 
         //<summary>_conditonSpell is the true name of the spell, non tokenized</summary>
-        private String _conditionSpell;
+        private spell_data_t _conditionSpell;
 
         public WoWUnit CycleTarget;
         public char NameCount = Convert.ToChar(65);
@@ -43,7 +47,7 @@ namespace Simcraft
         {
             if (!hotkeyVariables.ContainsKey(name)) hotkeyVariables[name] = false;
             hotkeyVariables[name] = !hotkeyVariables[name];
-            Lua.DoString("_G[\"sc_" + name + "\"] = " + hotkeyVariables[name] + "; print('" + name + " => " + hotkeyVariables[name] + "');");//true then _G[\""+name+"\"] = nil; print('Cds enabled') else _G[\""+name+"\"] = true; print('Cds disabled') end");
+            LuaDoString("_G[\"sc_" + name + "\"] = " + hotkeyVariables[name] + "; print('" + name + " => " + hotkeyVariables[name] + "');");//true then _G[\""+name+"\"] = nil; print('Cds enabled') else _G[\""+name+"\"] = true; print('Cds disabled') end");
             //Logging.Write("Toggled " + name + " to :" + hotkeyVariables[name]);
         }
 
@@ -52,6 +56,9 @@ namespace Simcraft
             if (!hotkeyVariables.ContainsKey(name)) hotkeyVariables[name] = false;
             return hotkeyVariables[name];
         }
+
+
+       
 
         public int incanters_flow_dir
         {
@@ -119,7 +126,7 @@ namespace Simcraft
         {
             get
             {
-                if (_conditionSpell == "Mind Blast")
+                if (_conditionSpell.name == "Mind Blast")
                 {
                     return buff.shadowy_insight.up;
                 }
@@ -140,7 +147,7 @@ namespace Simcraft
         {
             get
             {
-                var be = Lua.GetReturnVal<int>("UnitPower(\"player\", SPELL_POWER_DEMONIC_FURY)", 0);
+                var be = LuaGet<int>("UnitPower(\"player\", SPELL_POWER_DEMONIC_FURY)", 0);
                 return be;
             }
         }
@@ -149,7 +156,7 @@ namespace Simcraft
         {
             get
             {
-                var be = Lua.GetReturnVal<int>("UnitPower(\"player\", SPELL_POWER_SHADOW_ORBS)", 0);
+                var be = LuaGet<int>("ret,_,_ = UnitPower(\"player\", SPELL_POWER_SHADOW_ORBS); return ret;", 0);
                 return be;
             }
         }
@@ -169,10 +176,10 @@ namespace Simcraft
             }
         }
 
-        public bool active
+        /*public bool active
         {
             get { return pet.children[Tokenize(_conditionSpell)].active; }
-        }
+        }*/
 
         public int soul_shard
         {
@@ -191,6 +198,8 @@ namespace Simcraft
         public static spell_data_t DBGetSpell(String name)
         {
             name = Tokenize(name);
+
+            //Logging.Write("tttt: "+name);
 
             if (dbc.Spells.RelationContainsKey(name))
             {
@@ -243,7 +252,7 @@ namespace Simcraft
         {
             get
             {
-                var sp = spell[DBGetSpell(_conditionSpell)].charges_fractional;
+                var sp = spell[_conditionSpell].charges_fractional;
                 return sp;
             }
         }
@@ -252,7 +261,7 @@ namespace Simcraft
         {
             get
             {
-                return (conditionUnit.Distance - conditionUnit.CombatReach) / DBGetSpell(_conditionSpell).speed;
+                return (conditionUnit.Distance - conditionUnit.CombatReach) / _conditionSpell.speed;
             }
         }
 
@@ -279,7 +288,7 @@ namespace Simcraft
         {
             get
             {
-                var be = Lua.GetReturnVal<int>("UnitPower(\"player\", SPELL_POWER_BURNING_EMBERS, true)", 0);
+                var be = LuaGet<int>("UnitPower(\"player\", SPELL_POWER_BURNING_EMBERS, true)", 0);
                 return ((double)be) / 10;
             }
         }
@@ -322,7 +331,7 @@ namespace Simcraft
 
                 //double balance_time = (20000 * (2 * M_PI - Math.Asin(eclipse_amount / 105))) / M_PI;
 
-                var dir = Lua.GetReturnVal<String>("direction = GetEclipseDirection(); return direction;", 0);
+                var dir = LuaGet<String>("direction = GetEclipseDirection(); return direction;", 0);
                 double phi;
 
                 if (dir.Equals("moon"))
@@ -369,7 +378,7 @@ namespace Simcraft
 
                 //double balance_time = (20000 * (2 * M_PI - Math.Asin(eclipse_amount / 105))) / M_PI;
 
-                var dir = Lua.GetReturnVal<String>("direction = GetEclipseDirection(); return direction;", 0);
+                var dir = LuaGet<String>("direction = GetEclipseDirection(); return direction;", 0);
                 double phi;
 
                 if (dir.Equals("moon"))
@@ -413,7 +422,7 @@ namespace Simcraft
 
                 //double balance_time = (20000 * (2 * M_PI - Math.Asin(eclipse_amount / 105))) / M_PI;
 
-                var dir = Lua.GetReturnVal<String>("direction = GetEclipseDirection(); return direction;", 0);
+                var dir = LuaGet<String>("direction = GetEclipseDirection(); return direction;", 0);
                 double phi;
 
                 if (dir.Equals("moon"))
@@ -460,6 +469,16 @@ namespace Simcraft
             get { return buff["Anticipation"].stack; }
         }
 
+        public MagicValueType primary_target
+        {
+            get { return new MagicValueType(Target1 == conditionUnit); }
+        }
+
+        public MagicValueType persistent_multiplier
+        {
+            get { return new MagicValueType(0); }
+        }
+
         public MagicValueType remains
         {
             get { return debuff[_conditionSpell].remains; }
@@ -484,7 +503,18 @@ namespace Simcraft
 
         public double execute_time
         {
-            get { return spell[_conditionSpell].execute_time; }
+
+            get
+            {
+                var ex = spell[_conditionSpell].execute_time;
+                LogDebug("Execute Time: "+ex);
+                return ex;
+            }
+        }
+
+        public double enemies
+        {
+            get { return 1000; }
         }
 
         public double cast_time
@@ -496,7 +526,7 @@ namespace Simcraft
         {
             get
             {
-                return Lua.GetReturnVal<Boolean>(
+                return LuaGet<Boolean>(
                     "return SpellIsTargeting()", 0);
             }
         }
@@ -634,13 +664,14 @@ namespace Simcraft
         {
             NameCount++;
             if (_spell.Contains(":")) _spell = _spell.Split(':')[1];
-            _spell = this.spell.ResolveName(_spell).name;
+
+            spell_data_t actualSpell = DBGetClassSpell(_spell);
 
             return new NamedComposite("" + NameCount, _spell,
                 new Action(delegate
                 {
                     conditionName = NameCount;
-                    _conditionSpell = _spell;
+                    _conditionSpell = actualSpell;
                     foreach (var w in actives)
                     {
                         conditionUnit = w;
@@ -657,7 +688,7 @@ namespace Simcraft
                 new Decorator(ret => CycleTarget != null,
                     new Action(delegate
                     {
-                        if (CastSpell(_spell, CycleTarget, 3, Reason))
+                        if (CastSpell(actualSpell, CycleTarget, 3, Reason))
                         {
                             LogDebug(_spell + " " + Reason + " => SUCCESS!");
                             return RunStatus.Success;
@@ -666,73 +697,25 @@ namespace Simcraft
                     })));
         }
 
-        public Composite MovingCast(String spell, CanRunDecoratorDelegate del = null, WoWUnit _target = null,
-            String Reason = "")
-        {
-            NameCount++;
-            if (spell.Contains(":")) spell = spell.Split(':')[1];
-
-            //if (spell.Equals("wait")) return new Decorator(del, new ActionAlwaysSucceed());
-
-            spell = this.spell.ResolveName(spell).name;
-            //Logging.Write(this.spell.ResolveName(spell));
-            return new NamedComposite("" + NameCount, spell,
-                new Action(delegate
-                {
-                    //Logging.Write(spell + " on " +NameCount);
-                    conditionName = NameCount;
-                    _conditionSpell = spell;
-                    if (_target == null || _target == default(WoWUnit)) conditionUnit = Me.CurrentTarget;
-                    else conditionUnit = _target;
-                    return RunStatus.Failure;
-                }),
-                new Decorator((_ret) =>
-                {
-                    var d = del ?? (ret => true);
-                    try
-                    {
-                        var r = d(_ret) && moving;
-                        LogDebug(spell + " " + Reason + " => " + r);
-                        return r;
-                    }
-                    catch (Exception e)
-                    {
-                        SimcraftImpl.Write(e.ToString());
-                        return false;
-                    }
-                },
-                    new Action(delegate
-                    {
-
-                        clickUnit = conditionUnit;
-                        if (CastSpell(spell, conditionUnit is ClusterUnit ? Me.CurrentTarget : conditionUnit, 3, Reason))
-                        {
-                            LogDebug(spell + " " + Reason + " => SUCCESS!");
-                            start_line_cd();
-                            return RunStatus.Success;
-                        }
-                        return RunStatus.Failure;
-                    })));
-        }
-
-
-
         public Composite Cast(String spell, CanRunDecoratorDelegate del = null, WoWUnit _target = null,
             String Reason = "")
         {
             NameCount++;
             if (spell.Contains(":")) spell = spell.Split(':')[1];
 
-            //if (spell.Equals("wait")) return new Decorator(del, new ActionAlwaysSucceed());
+            spell_data_t actualSpell = LearnedSpellFromToken(spell);
 
-            spell = this.spell.ResolveName(spell).name;
-            //Logging.Write(this.spell.ResolveName(spell));
-            return new NamedComposite("" + NameCount, spell,
+            if (actualSpell == null)
+            {
+                Logging.Write("Couldnt find "+spell+" in our spellbook or in the Simcraft table");
+                return new ActionAlwaysFail();
+            }
+
+            return new NamedComposite("" + NameCount, actualSpell.name,
                 new Action(delegate
                 {
-                    //Logging.Write(spell + " on " +NameCount);
                     conditionName = NameCount;
-                    _conditionSpell = spell;
+                    _conditionSpell = actualSpell;
                     if (_target == null || _target == default(WoWUnit)) conditionUnit = Me.CurrentTarget;
                     else conditionUnit = _target;
                     return RunStatus.Failure;
@@ -742,8 +725,9 @@ namespace Simcraft
                     var d = del ?? (ret => true);
                     try
                     {
+                        if (SimcraftImpl.Superlog) LogDebug(actualSpell.token + " if=" + Reason);
                         var r = d(_ret);
-                        LogDebug(spell + " " + Reason + " => " + r);
+                        if (SimcraftImpl.Superlog) LogDebug(actualSpell.token + " => " +r);
                         return r;
                     }
                     catch (Exception e)
@@ -756,7 +740,7 @@ namespace Simcraft
                     {
 
                         clickUnit = conditionUnit;
-                        if (CastSpell(spell, conditionUnit is ClusterUnit ? Me.CurrentTarget : conditionUnit, 3, Reason))
+                        if (CastSpell(actualSpell, conditionUnit, 3, Reason))
                         {
                             LogDebug(spell + " " + Reason + " => SUCCESS!");
                             start_line_cd();
@@ -764,27 +748,6 @@ namespace Simcraft
                         }
                         return RunStatus.Failure;
                     })));
-        }
-
-
-        public Composite MovingCast(String spell, String r)
-        {
-            return MovingCast(spell, null, null, r);
-        }
-
-        public Composite MovingCast(String spell, CanRunDecoratorDelegate del, String r)
-        {
-            return MovingCast(spell, del, null, r);
-        }
-
-        public Composite MovingCast(String spell, WoWUnit _target)
-        {
-            return MovingCast(spell, null, _target);
-        }
-
-        public Composite MovingCast(String spell)
-        {
-            return MovingCast(spell, null, null);
         }
 
         public Composite Cast(String spell, String r)
@@ -802,6 +765,64 @@ namespace Simcraft
             return Cast(spell, null, _target, Reason);
         }
 
+        public bool IsPlayerSpell(uint spell)
+        {
+            return Lua.GetReturnVal<bool>("return IsPlayerSpell("+spell+");",0)
+            ;
+        }
+
+        public spell_data_t LearnedSpellFromToken(String token)
+        {
+
+            if (SimcNames.spells.ContainsKey(token))
+            {
+                var s = SimcNames.spells[token];
+
+                if (s.Count == 0) return null;
+                if (s.Count == 1) return dbc.Spells[s[0].V2];
+                foreach (var kv in s)
+                {
+                    if (kv.V1 == WoWSpec.None || kv.V1 == Me.Specialization)
+                    {
+                        return dbc.Spells[kv.V2];
+                    }
+                }             
+            }
+
+
+            return null;
+            /*var spellids = dbc.Spells[token];
+
+            uint sp;
+
+            if (spellids.Count == 1)
+                sp = spellids.First();
+            else
+                sp = spellids.FirstOrDefault(IsPlayerSpell);
+
+            if (!dbc.Spells.ContainsKey(sp))
+            {
+                //Logging.Write("Couldnt find " + token + " in " + spellids.Count+" trying SimcraftTable");
+
+                if (!SimcNames.spells.ContainsKey(token)) return null;
+
+                var s = SimcNames.spells[token];
+               
+                if (s.Count == 0) return null;
+                if (s.Count == 1) return dbc.Spells[s[0].V2];
+                foreach (var kv in s)
+                {
+                    if (kv.V1 == WoWSpec.None || kv.V1 == Me.Specialization)
+                    {
+                        if (s.Count == 1) return dbc.Spells[kv.V2];
+                    }
+                }
+
+                return null;
+            }
+            //Logging.Write("Found "+token+" at "+sp);
+            return  dbc.Spells[(uint)sp];*/
+        }
 
 
         public Composite Cast(String spell)
@@ -847,49 +868,38 @@ namespace Simcraft
                 }));
         }
 
-        public String PotionName = "";
+        public WoWItem Potion = null;
 
         public MagicValueType PotionCooldown
         {
             get
             {
-                var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Equals(PotionName));
-                //Logging.Write(item.ToString() + " " + item.CooldownTimeLeft.TotalSeconds);
-                if (item == default(WoWItem)) return new MagicValueType(Decimal.MaxValue);
-                return new MagicValueType(item.Cooldown);
+                return new MagicValueType(Potion.Cooldown);
             }
-
         }
 
         public Composite UsePotion(String name, CanRunDecoratorDelegate del = null, String Reason = "")
         {
-            return new Decorator(del ?? (ret => true),
+            var n = UppercaseFirst(name.Split('_')[0]) + " " + UppercaseFirst(name.Split('_')[1]);
+            var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Contains(n) && ret.Name.Contains("Potion"));
+            if (item == default(WoWItem)) return new ActionAlwaysFail();
+            
+            return new PrioritySelector(new Action(context => {
+                Potion = item;
+                                                                  return RunStatus.Failure;
+
+            }),new Decorator(del ?? (ret => true),
                 new Action(delegate
-                {
-                    var n = UppercaseFirst(name.Split('_')[0]) + " " + UppercaseFirst(name.Split('_')[1]);
-                    var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Contains(n) && ret.Name.Contains("Potion"));
-                    //Logging.Write(item.ToString() + " " + item.CooldownTimeLeft.TotalSeconds);
-                    if (item == default(WoWItem)) return RunStatus.Failure; ;
-                    PotionName = item.Name;
-                    if (item.Cooldown <= 0) Lua.DoString("UseItemByName(\""+item.Name+"\")");
+                {                   
+                    if (item.Cooldown <= 0) LuaDoString("UseItemByName(\""+item.Name+"\")");
                     return RunStatus.Failure;
-                }));
+                })));
         }
 
         public Composite UsePotion(String name, String Reason = "")
         {
             CanRunDecoratorDelegate del = null;
-            return new Decorator(del ?? (ret => true),
-                new Action(delegate
-                {
-                    var n = UppercaseFirst(name.Split('_')[0]) + " " + UppercaseFirst(name.Split('_')[1]);
-                    var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Contains(n) && ret.Name.Contains("Potion"));
-                    //Logging.Write(item.ToString() + " " + item.CooldownTimeLeft.TotalSeconds);
-                    if (item == default(WoWItem)) return RunStatus.Failure; ;
-                    PotionName = item.Name;
-                    if (item.Cooldown <= 0) item.Use();
-                    return RunStatus.Failure;
-                }));
+            return UsePotion(name, null, Reason);
         }
 
 
@@ -906,7 +916,7 @@ namespace Simcraft
                     new Decorator(ret => pool(null),
                         new Action(delegate
                         {
-                            Lua.DoString("_G[\"kane_spd\"] = \"" + "Pooling: " + spell + "\";");
+                            LuaDoString("_G[\"kane_spd\"] = \"" + "Pooling: " + spell + "\";");
                             //Logging.Write(DateTime.Now+": Pooling Energy for " + spell + " " + Energy.current + "/" + energy);
                             return RunStatus.Success;
                         })),
@@ -918,7 +928,7 @@ namespace Simcraft
         public SpellState IsUseableSpell(String name)
         {
             var i =
-                Lua.GetReturnVal<int>(
+                LuaGet<int>(
                     "usable, nomana = IsUsableSpell(\"" + name +
                     "\");  if (not usable) then if (not nomana) then return 1; else return 2; end else return 0;end", 0);
             if (i == 1) return SpellState.CanNotCast;
@@ -926,17 +936,12 @@ namespace Simcraft
             return SpellState.CanCast;
         }
 
-        public static void UpdateLimiters()
-        {
-            _damageEnabled = Lua.GetReturnVal<Boolean>(
-                "return _G[\"kane_damage\"] == true", 0);
-            _aoeEnabled = Lua.GetReturnVal<Boolean>(
-                "return _G[\"kane_aoe\"] == true", 0);
-            _cdsEnabled = Lua.GetReturnVal<Boolean>(
-                "return _G[\"kane_cds\"] == true", 0);
-        }
 
         public static String logf = null;
+
+        Mutex a = new Mutex();
+
+        private static Mutex mut = new Mutex();
 
         public static void Write(String format = "", Color c = default(Color), LogLevel l = LogLevel.Normal, params object[] pars)
         {
@@ -948,12 +953,13 @@ namespace Simcraft
                 if (logf == null) logf = RandomString(10);
                 if (Superlog)
                 {
-                    File.AppendAllText(SimcraftLogfile, "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
-                    /*if (Directory.Exists(@"Bots\Simcraft\Trunk\"))
-                        File.AppendAllText(@"Bots\Simcraft\Trunk\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
-                    else
-                        File.AppendAllText(@"Bots\Simcraft\Logs\" + logf + ".log", "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);*/
-
+                    if (mut.WaitOne(1000))
+                    {
+                        File.AppendAllText(SimcraftLogfile,
+                            "<" + DateTime.Now.ToShortTimeString() + ">:" + format + Environment.NewLine);
+                        mut.ReleaseMutex();
+                    }
+                    //sem.Release();
                 }
                 if (l != LogLevel.Diagnostic) Logging.Write("<" + DateTime.Now.ToShortTimeString() + ">:" + format);
             }
@@ -965,47 +971,37 @@ namespace Simcraft
 
         #region [Spell / Logging]
 
-        public bool SpecialRequirementsCheck(String spell)
+        public bool SpecialRequirementsCheck(spell_data_t spell)
         {
-            if (spell.Equals("Plague Leech"))
+            if (spell.name.Equals("Plague Leech"))
             {
                 return debuff.frost_fever.up && debuff.blood_plague.up;
             }
-            if (spell.Equals("Blood Tap"))
+            if (spell.name.Equals("Blood Tap"))
             {
                 return buff.blood_charge.stack >= 5;
             }
             return true;
         }
 
-        public bool CastSpell(string spellName, WoWUnit u, int LC, String Reason)
+        public bool CastSpell(spell_data_t spell, WoWUnit u, int LC, String Reason)
         {
             if (!ValidUnit(u) || u == null)
                 return false;
 
-            if (!SpecialRequirementsCheck(spellName)) return false;
+            if (!SpecialRequirementsCheck(spell)) return false;
 
-            //Logging.Write("{7}: CR: {0} / {1} - BR {2} / {3} - MR {4} - Combat {5} {6} - CanCast: {8} / {9}", Me.CombatReach, Me.CurrentTarget.CombatReach, Me.BoundingRadius, Me.CurrentTarget.BoundingRadius, Me.CurrentTarget.IsWithinMeleeRange, Me.IsActuallyInCombat, Me.Combat, DateTime.Now, SpellManager.CanCast(spellName, u), spellName);
-
-
-            if (SpellManager.CanCast(spellName, u) && GetSpell(spellName).ActualMinRange(u) < u.Distance)
-
-                if (SpellManager.Cast(spellName, u))
+            if (SpellManager.CanCast((int)spell.id, u))
+              
+                if (SpellManager.Cast((int)spell.id, u))
                 {
-                    //if (Reason.Length > 1) SimcraftImpl.Write("Casting " + spellName + " to " + Reason);
                     return true;
                 }
                 else
                 {
                     return false;
                 }
-
             return false;
-        }
-
-        public bool CanCast(string spellname)
-        {
-            return Lua.GetReturnVal<bool>("usable, nomana = IsUsableSpell(\"" + spellname + "\"); return usable;", 0);
         }
 
         #endregion [Spell / Logging]
@@ -1032,58 +1028,8 @@ namespace Simcraft
             }
         }
 
-        public class ClusterUnit : WoWUnit
-        {
-            private readonly double radius;
-            private readonly double range;
 
-            public ClusterUnit(double range, double radius)
-                : base(IntPtr.Zero)
-            {
-                this.range = range;
-                this.radius = radius;
-            }
-
-            public override WoWPoint Location
-            {
-                get { return ideal_location(); }
-            }
-
-            // Find the points where the two circles intersect.
-            private bool DoCirclesIntersect(
-                double cx0, double cy0, double radius0,
-                double cx1, double cy1, double radius1
-                )
-            {
-                var dx = cx0 - cx1;
-                var dy = cy0 - cy1;
-                var dist = Math.Sqrt(dx * dx + dy * dy);
-
-                return (dist <= radius0 + radius1);
-            }
-
-            public WoWPoint ideal_location()
-            {
-                var unfs = UnfriendlyUnitsNearMe((float)(range));
-
-                return StyxWoW.Me.CurrentTarget.Location;
-            }
-
-            public class Circle
-            {
-                public WoWPoint Location;
-                public double Radius;
-                public bool MT;
-                public Circle(double rd, WoWPoint loc, bool mt)
-                {
-                    MT = mt;
-                    Radius = rd;
-                    Location = loc;
-                }
-            }
-        }
-
-        #region [TargetU Checks]
+        #region [Surrounding Unit Helpers]
 
         private static int _unfriendlyCache;
         private static List<WoWUnit> unfriendlyCache = new List<WoWUnit>();
@@ -1174,210 +1120,143 @@ namespace Simcraft
 
         #region Spell CD Helpers
 
-        public static TimeSpan GetSpellCooldown(string spell)
+        public static TimeSpan GetSpellCooldown(spell_data_t spell)
         {
-            SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
-            {
-                if (results.Override != null)
-                {
-                    return results.Override.CooldownTimeLeft;
-                }
-                return results.Original.CooldownTimeLeft;
-            }
-
-
-            return TimeSpan.MaxValue;
+            var s = GetSpell(spell);
+            if (s == default(WoWSpell)) return TimeSpan.MaxValue;
+            return s.CooldownTimeLeft;
         }
 
-        public static WoWSpell GetSpell(int spell)
+        public static WoWSpell GetSpell(spell_data_t spell)
         {
             SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
+            if (SpellManager.FindSpell((int)spell.id, out results))
             {
                 if (results.Override != null)
                     return results.Override;
                 return results.Original;
             }
 
-
             return default(WoWSpell);
         }
 
-        public static WoWSpell GetSpell(string spell)
+        public static WoWSpell GetSpellByName(String Name)
         {
             SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
+            if (SpellManager.FindSpell(Name, out results))
             {
                 if (results.Override != null)
                     return results.Override;
                 return results.Original;
             }
 
-
             return default(WoWSpell);
         }
 
-        public static bool GetSpellOnCooldown(String spell)
+        public static bool GetSpellOnCooldown(spell_data_t spell)
         {
-            SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
-            {
-                if (results.Override != null)
-                {
-                    return results.Override.Cooldown;
-                }
-                return results.Original.Cooldown;
-            }
-            return false;
-
-            //return !Lua.GetReturnVal<bool>("start, duration, enabled = GetSpellCooldown(\"" + spell + "\"); return duration == 0", 0);
+            var s = GetSpell(spell);
+            if (s == default(WoWSpell)) return false;
+            return s.Cooldown;
         }
 
-        public static bool GetSpellOnCooldownId(int spell)
+        private static int luaCount = 1;
+
+        public static T LuaGet<T>(String lua, uint a)
         {
-            SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
-            {
-                if (results.Override != null)
-                    return results.Override.Cooldown;
-                return results.Original.Cooldown;
-            }
-            return false;
-            //return !Lua.GetReturnVal<bool>("start, duration, enabled = GetSpellCooldown(\"" + spell + "\"); return duration == 0", 0);
+             luaCount++;
+            if (luaCount % 1000 == 0)
+                Logging.Write("luaavg:"+ luaCount/SimcraftImpl.inst.time);
+            //Logging.Write(lua);
+            return Lua.GetReturnVal<T>(lua, a);
+            
         }
 
-        public static TimeSpan GetSpellCooldownId(int spell)
+        public static void LuaDoString(String lua)
         {
-            SpellFindResults results;
-            if (SpellManager.FindSpell(spell, out results))
-            {
-                if (results.Override != null)
-                    return results.Override.CooldownTimeLeft;
-                return results.Original.CooldownTimeLeft;
-            }
-            return TimeSpan.MaxValue;
+            luaCount++;
+            if (luaCount % 1000 == 0)
+                Logging.Write("luaavg:" + luaCount / SimcraftImpl.inst.time);
+            Lua.DoString(lua);
         }
 
         #endregion Spell CD
 
         #region BuffProxy Helpers
 
-        public static int GetAuraStacks(WoWUnit unit, string auraName, bool fromMyAura = false)
+        public static int GetAuraStacks(WoWUnit unit, spell_data_t aura, bool fromMyAura = false)
         {
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.Name == auraName && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? (int)wantedAura.StackCount : 0;
-            }
-            return 0;
+            var wantedAura = GetAura(unit, aura, fromMyAura);
+            if (wantedAura == null || !wantedAura.IsActive) return 0;
+            return (int) wantedAura.StackCount;
         }
 
-
-        public static WoWAura GetAura(WoWUnit unit, string auraName, bool fromMyAura = false)
+        public static WoWAura GetAura(WoWUnit unit, spell_data_t aura, bool fromMyAura = false)
         {
+            //if (aura == null) return null;
             if (unit != null)
             {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.Name == auraName && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? wantedAura : null;
+                WoWAura wantedAura = null;
+                int mismatch = 0;
+                foreach (var a in unit.GetAllAuras())
+                {
+                    if (a.SpellId == aura.id && (!fromMyAura || a.CreatorGuid == Me.Guid)) return a;
+                    if (a.Name.Equals(aura.name) && a.IsActive)
+                    {
+                        mismatch = a.SpellId;                       
+                    }
+                }
+                if (mismatch > 0) Logging.Write("We couldnt find " + aura.name + " by Id but there is an Aura with its name: " + aura.id + " / " + mismatch);
             }
             return null;
         }
 
-        public static TimeSpan GetAuraTimeLeft(WoWUnit unit, string auraName, bool fromMyAura = false)
+        public static TimeSpan GetAuraTimeLeft(WoWUnit unit, spell_data_t aura, bool fromMyAura = false)
         {
-            if (unit != null)
+            var wantedAura = GetAura(unit, aura, fromMyAura);
+            if (wantedAura == null || !wantedAura.IsActive) return TimeSpan.Zero;
+            return wantedAura.TimeLeft;
+        }
+
+
+        public static bool CancelAura(spell_data_t aura, bool fromMyAura = false)
+        {
+            var wantedAura = GetAura(Me, aura, fromMyAura);
+            if (wantedAura == null || !wantedAura.IsActive) return false;
+            wantedAura.TryCancelAura();
+            return true;
+        }
+
+
+        public static bool GetAuraUp(WoWUnit unit, spell_data_t aura, bool fromMyAura = false)
+        {
+            var wantedAura = GetAura(unit, aura, fromMyAura);
+            if (wantedAura == null || !wantedAura.IsActive) return false;
+            return true;
+        }
+
+        public static bool GetAuraUp(WoWUnit unit, spell_data_t[] auras, bool fromMyAura = false)
+        {
+            foreach (var aura in auras)
             {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.Name == auraName && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? wantedAura.TimeLeft : TimeSpan.Zero;
+                var wantedAura = GetAura(unit, aura, fromMyAura);
+                if (wantedAura != null && wantedAura.IsActive) return true;
+                             
+            }
+            return true;  
+        }
+
+        public static TimeSpan GetAuraTimeLeft(WoWUnit unit, spell_data_t[] auras, bool fromMyAura = false)
+        {
+            foreach (var aura in auras)
+            {
+                var wantedAura = GetAura(unit, aura, fromMyAura);
+                if (wantedAura != null && wantedAura.IsActive) return wantedAura.TimeLeft;
+
             }
             return TimeSpan.Zero;
         }
 
-        public static bool CancelAura(string auraName, bool fromMyAura = false)
-        {
-            var unit = Me;
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.Name == auraName && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                if (wantedAura != null) wantedAura.TryCancelAura();
-                return true;
-            }
-            return false;
-        }
-
-        public Composite CancelAura(String auraName, CanRunDecoratorDelegate del)
-        {
-            return new Decorator(del, new Action(delegate { CancelAura(auraName); }));
-        }
-
-        public static int GetAuraStacks(WoWUnit unit, int spellid, bool fromMyAura = false)
-        {
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.SpellId == spellid && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? (int)wantedAura.StackCount : 0;
-            }
-            return 0;
-        }
-
-        public static TimeSpan GetAuraTimeLeft(WoWUnit unit, int spellid, bool fromMyAura = false)
-        {
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.SpellId == spellid && a.Duration > 0 && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                return wantedAura != null ? wantedAura.TimeLeft : TimeSpan.Zero;
-            }
-            return TimeSpan.Zero;
-        }
-
-
-        public static bool GetAuraUp(WoWUnit unit, int spellid, bool fromMyAura = false)
-        {
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a => a.SpellId == spellid && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                if (wantedAura == null) return false;
-                return wantedAura.IsActive;
-            }
-            return false;
-        }
-
-        public static bool GetAuraUp(WoWUnit unit, string auraName, bool fromMyAura = false)
-        {
-            if (unit != null)
-            {
-                var wantedAura =
-                    unit.GetAllAuras()
-                        .FirstOrDefault(
-                            a =>
-                                a.Name.ToLower().Equals(auraName.ToLower()) && (!fromMyAura || a.CreatorGuid == Me.Guid));
-                if (wantedAura == null) return false;
-                return wantedAura.IsActive;
-            }
-            return false;
-        }
 
         #endregion
     }

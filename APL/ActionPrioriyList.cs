@@ -9,7 +9,7 @@ using Styx;
 using Styx.Common;
 using ModifierKeys = Styx.Common.ModifierKeys;
 
-namespace Simcraft
+namespace Simcraft.APL
 {
 
     public class APLHotkey
@@ -22,7 +22,7 @@ namespace Simcraft
     public class ActionPrioriyList
     {
         private List<AplAction> Actions { get; set; }
-        private Dictionary<string, EquippedItem> Items { get; set; } 
+        public Dictionary<string, EquippedItem> Items { get; set; } 
 
         public String Name { get; set; }
         public WoWClass Class { get; set; }
@@ -51,17 +51,25 @@ namespace Simcraft
         public static ActionPrioriyList FromString(String s)
         {
 
-            var lines = s.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = s.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            //if (lines.Length < 2)
+            //    lines = s.Split(new string[] { "\r" }, StringSplitOptions.None);
 
             var apl = new ActionPrioriyList();
             apl.SetAplHeader(s);
             foreach (var l in lines)
             {
-                var expr = ParseLine(l);
+                var expr = ParseLine(l,apl);
                 if (expr is AplAction) apl.Actions.Add((AplAction)expr); else
                 if (expr is EquippedItem) apl.Items.Add(((EquippedItem)expr).slot,(EquippedItem)expr);
                 if (expr is Comment) CommentBuffer.Add(((Comment)expr).Content);
                 if (expr is APLHotkey) apl.hotkeys.Add((APLHotkey)expr);
+            }
+
+            foreach (var a in apl.Actions)
+            {
+                a.ParseAction();
             }
 
             return apl;
@@ -69,7 +77,7 @@ namespace Simcraft
         }
         static Regex hotkeyReg = new Regex("hotkeys\\+=/(?<name>[a-zA-Z0-9_]+?),(?<mod>alt|ctrl|shift|none),(?<key>[a-zA-Z0-9_]+?)");
         //hotkey=potion_enabled,alt,e
-        private static object ParseLine(String l)
+        private static object ParseLine(String l, ActionPrioriyList a)
         {
             if (l.StartsWith("hotkeys+="))
             {
@@ -89,15 +97,16 @@ namespace Simcraft
                 //Logging.Write(ahk.Name+" "+ahk.Mod+" "+ahk.Key);
                 return ahk;
             }
+            if (l.StartsWith("talent_")) return new Comment { Content = l };
             if (l.StartsWith("#")) return new Comment{Content = l};
-            if (l.StartsWith("action")) return ParseAction(l);
+            if (l.StartsWith("action")) return ParseAction(l,a);
             if (items.IsMatch(l)) return ParseItem(l);
             return default(AplExpr);
         }
 
-        private static AplAction ParseAction(String l)
+        private static AplAction ParseAction(String l, ActionPrioriyList apl)
         {
-            return new AplAction(l, CommentBuffer);
+            return new AplAction(l, CommentBuffer, apl);
         }
 
         private static EquippedItem ParseItem(String l)
@@ -107,7 +116,7 @@ namespace Simcraft
         }
 
       
-        private static List<String> CommentBuffer = new List<string>();
+        public static List<String> CommentBuffer = new List<string>();
 
         public Assembly Assembly { get; set; }
 
@@ -205,7 +214,7 @@ namespace Simcraft
 
             foreach (var action in subapls)
             {
-                code += "\t\tsimc.actions.add(\""+action+"\");" + Environment.NewLine;
+                fullExpression += "\t\tsimc.actions.add(\""+action+"\");" + Environment.NewLine;
             }*/
 
             foreach (var action in Actions)
@@ -216,7 +225,7 @@ namespace Simcraft
                     code += Environment.NewLine;
                 }
                 
-                    code += action.ToCode(Items, "\t\t\t", hotkeys) + Environment.NewLine;
+                    code += action.ToCode("\t\t\t") + Environment.NewLine;
 
             }
             code += "\t\t\tLogging.Write(\"Behaviors created !\");" + Environment.NewLine; ;
@@ -225,7 +234,7 @@ namespace Simcraft
             code += "\t}" + Environment.NewLine; ;
             code += "}" + Environment.NewLine; ;
 
-            //SimcraftImpl.Write(code);
+            //SimcraftImpl.Write(fullExpression);
 
             return code;
         }

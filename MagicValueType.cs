@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Styx.Common;
 
 namespace Simcraft
 {
@@ -70,11 +71,13 @@ namespace Simcraft
         //MagicValueType Operators - Both Magic Double
         public static MagicValueType operator <(MagicValueType op1, MagicValueType op2)
         {
+            //SimcraftImpl.LogDebug(op1 + " < " + op2);
             return new MagicValueType(op1.boxee < op2.boxee);
         }
 
         public static MagicValueType operator >(MagicValueType op1, MagicValueType op2)
         {
+            //SimcraftImpl.LogDebug(op1+" > "+op2);
             return new MagicValueType(op1.boxee > op2.boxee);
         }
 
@@ -116,6 +119,11 @@ namespace Simcraft
         public static MagicValueType operator /(MagicValueType op1, MagicValueType op2)
         {
             return new MagicValueType(op1.boxee / op2.boxee);
+        }
+
+        public static MagicValueType operator %(MagicValueType op1, MagicValueType op2)
+        {
+            return new MagicValueType(op1.boxee % op2.boxee);
         }
 
         //MagicValueType Operators - Magic , normal
@@ -422,6 +430,8 @@ namespace Simcraft
         {
             return new MagicValueType((op1 ? 1 : 0) * op2.boxee);
         }
+
+
 
         //Implicit Conversions
         public static implicit operator bool(MagicValueType d)

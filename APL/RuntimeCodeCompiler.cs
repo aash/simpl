@@ -71,9 +71,9 @@ namespace Simcraft.APL
                 foreach (CompilerError error in results.Errors)
                 {
                     SimcraftImpl.Write(String.Format("Line {0},{1}\t: {2} - line {3}\n",error.Line, error.Column, error.ErrorText, error), default(Color), LogLevel.Normal);
-                    //Console.WriteLine(code.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)[error.Line-1]);
+                    //Console.WriteLine(fullExpression.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)[error.Line-1]);
                     //errors.AppendFormat("Line {0},{1}\t: {2} - line {3}\n",
-                           //error.Line, error.Column, error.ErrorText, error, code.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)[error.Line]);
+                           //error.Line, error.Column, error.ErrorText, error, fullExpression.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)[error.Line]);
                 }
                 throw new Exception(errors.ToString());
             }
