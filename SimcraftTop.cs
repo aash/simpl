@@ -618,7 +618,7 @@ namespace Simcraft
         {
             return new Action(delegate
             {
-                if (iterationCounter%7 == 0)
+                //if (iterationCounter%7 == 0)
                 /*if (console != null %% console.Va)console.BeginInvoke((System.Action)(() =>
                 {
 
@@ -655,6 +655,7 @@ namespace Simcraft
             {
                 IterationTimer.Stop();
                 iterationTotal += IterationTimer.ElapsedMilliseconds;
+                //if (IterationTimer.ElapsedMilliseconds > 1) Logging.Write(DateTime.Now.Millisecond+": "+IterationTimer.ElapsedMilliseconds+"");
                 if (iterationCounter % 150 == 0) SimcraftImpl.Write("avgIte: " + (iterationTotal / iterationCounter));
                 //Logging.Write(""+IterationTimer.ElapsedMilliseconds);
             });

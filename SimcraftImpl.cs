@@ -41,7 +41,7 @@ namespace Simcraft
         public char NameCount = Convert.ToChar(65);
 
         private List<Stopwatch> apparitions = new List<Stopwatch>();
-        private const int apparition_flight_time = 5000; 
+        private const int apparition_flight_time = 5000;
 
         public void toggle_hkvar(String name)
         {
@@ -58,7 +58,7 @@ namespace Simcraft
         }
 
 
-       
+
 
         public MagicValueType incanters_flow_dir
         {
@@ -507,7 +507,7 @@ namespace Simcraft
             get
             {
                 var ex = spell[_conditionSpell].execute_time;
-                LogDebug("Execute Time: "+ex);
+                LogDebug("Execute Time: " + ex);
                 return ex;
             }
         }
@@ -707,7 +707,7 @@ namespace Simcraft
 
             if (actualSpell == null)
             {
-                Logging.Write("Couldnt find "+spell+" in our spellbook or in the Simcraft table");
+                Logging.Write("Couldnt find " + spell + " in our spellbook or in the Simcraft table");
                 return new ActionAlwaysFail();
             }
 
@@ -727,7 +727,7 @@ namespace Simcraft
                     {
                         if (SimcraftImpl.Superlog) LogDebug(actualSpell.token + " if=" + Reason);
                         var r = d(_ret);
-                        if (SimcraftImpl.Superlog) LogDebug(actualSpell.token + " => " +r);
+                        if (SimcraftImpl.Superlog) LogDebug(actualSpell.token + " => " + r);
                         return r;
                     }
                     catch (Exception e)
@@ -767,7 +767,7 @@ namespace Simcraft
 
         public bool IsPlayerSpell(uint spell)
         {
-            return Lua.GetReturnVal<bool>("return IsPlayerSpell("+spell+");",0)
+            return Lua.GetReturnVal<bool>("return IsPlayerSpell(" + spell + ");", 0)
             ;
         }
 
@@ -786,7 +786,7 @@ namespace Simcraft
                     {
                         return dbc.Spells[kv.V2];
                     }
-                }             
+                }
             }
 
 
@@ -883,15 +883,16 @@ namespace Simcraft
             var n = UppercaseFirst(name.Split('_')[0]) + " " + UppercaseFirst(name.Split('_')[1]);
             var item = Me.BagItems.FirstOrDefault(ret => ret.Name.Contains(n) && ret.Name.Contains("Potion"));
             if (item == default(WoWItem)) return new ActionAlwaysFail();
-            
-            return new PrioritySelector(new Action(context => {
-                Potion = item;
-                                                                  return RunStatus.Failure;
 
-            }),new Decorator(del ?? (ret => true),
+            return new PrioritySelector(new Action(context =>
+            {
+                Potion = item;
+                return RunStatus.Failure;
+
+            }), new Decorator(del ?? (ret => true),
                 new Action(delegate
-                {                   
-                    if (item.Cooldown <= 0) LuaDoString("UseItemByName(\""+item.Name+"\")");
+                {
+                    if (item.Cooldown <= 0) LuaDoString("UseItemByName(\"" + item.Name + "\")");
                     return RunStatus.Failure;
                 })));
         }
@@ -992,7 +993,7 @@ namespace Simcraft
             if (!SpecialRequirementsCheck(spell)) return false;
 
             if (SpellManager.CanCast((int)spell.id, u))
-              
+
                 if (SpellManager.Cast((int)spell.id, u))
                 {
                     return true;
@@ -1164,12 +1165,12 @@ namespace Simcraft
 
         public static T LuaGet<T>(String lua, uint a)
         {
-             luaCount++;
+            luaCount++;
             if (luaCount % 1000 == 0)
-                Logging.Write("luaavg:"+ luaCount/SimcraftImpl.inst.time);
+                Logging.Write("luaavg:" + luaCount / SimcraftImpl.inst.time);
             //Logging.Write(lua);
             return Lua.GetReturnVal<T>(lua, a);
-            
+
         }
 
         public static void LuaDoString(String lua)
@@ -1188,7 +1189,7 @@ namespace Simcraft
         {
             var wantedAura = GetAura(unit, aura, fromMyAura);
             if (wantedAura == null || !wantedAura.IsActive) return 0;
-            return (int) wantedAura.StackCount;
+            return (int)wantedAura.StackCount;
         }
 
         public static WoWAura GetAura(WoWUnit unit, spell_data_t aura, bool fromMyAura = false)
@@ -1203,7 +1204,7 @@ namespace Simcraft
                     if (a.SpellId == aura.id && (!fromMyAura || a.CreatorGuid == Me.Guid)) return a;
                     if (a.Name.Equals(aura.name) && a.IsActive)
                     {
-                        mismatch = a.SpellId;                       
+                        mismatch = a.SpellId;
                     }
                 }
                 if (mismatch > 0) Logging.Write("We couldnt find " + aura.name + " by Id but there is an Aura with its name: " + aura.id + " / " + mismatch);
@@ -1241,9 +1242,9 @@ namespace Simcraft
             {
                 var wantedAura = GetAura(unit, aura, fromMyAura);
                 if (wantedAura != null && wantedAura.IsActive) return true;
-                             
+
             }
-            return true;  
+            return true;
         }
 
         public static TimeSpan GetAuraTimeLeft(WoWUnit unit, spell_data_t[] auras, bool fromMyAura = false)
