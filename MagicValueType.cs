@@ -18,7 +18,7 @@ namespace Simcraft
             this.remains = new MagicValueType(remains);
         }
 
-        public MagicValueType max { get; set; }
+        public new MagicValueType max { get; set; }
         public MagicValueType remains{ get; set; }
 
 

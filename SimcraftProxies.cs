@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using Bots.DungeonBuddy.Helpers;
 using JetBrains.Annotations;
+using Simcraft.APL;
 using Styx;
 using Styx.Common;
 using Styx.CommonBot;
@@ -405,6 +406,8 @@ namespace Simcraft
 
             public BuffInternal raging_blow;// = new BuffInternal(dbc.Spells[131116]);
 
+            public DebuffProxy.DebuffInternal colossus_smash;
+            public DebuffProxy.DebuffInternal colossus_smash_up;
 
             public static int cShots;
 
@@ -416,7 +419,9 @@ namespace Simcraft
                 potion = new Potion(this);
                 anytrinket = new AnyTrinket(this);
                 incanters_flow = new IncantersFlow(this);
-                raging_blow = new BuffInternal(dbc.Spells[131116],this,"raging_blow_special");
+                raging_blow = new BuffInternal(dbc.Spells[131116], this, "raging_blow_special");
+                colossus_smash = new DebuffProxy.DebuffInternal(dbc.Spells[SimcNames.debuffs["colossus_smash"].First().V2], this, "colossus_smash");
+                colossus_smash_up = new DebuffProxy.DebuffInternal(dbc.Spells[SimcNames.debuffs["colossus_smash"].First().V2], this, "colossus_smash_up");
             }
 
             public IncantersFlow incanters_flow;// = new IncantersFlow("incanters_flow");
@@ -460,6 +465,7 @@ namespace Simcraft
                         (cShots == 1);
                 }
             }
+
 
             public class Potion : BuffInternal
             {
@@ -1150,6 +1156,8 @@ namespace Simcraft
             {
                 public DebuffInternal(spell_data_t spell, SpellBasedProxy owner, String sn) : base(spell, owner, sn)
                 {
+                    Properties["up"] = () => GetAuraUp(Owner.GetUnit(), Spell, true);
+                    Properties["remains"] = () => GetAuraTimeLeft(Owner.GetUnit(), Spell, true).TotalSeconds;
                 }
 
                 protected override void GetTickingEffect()
@@ -1190,12 +1198,12 @@ namespace Simcraft
 
                 Properties["Spell"] = () => 1;
 
-                Properties["up"] = () => GetAuraUp(Owner.GetUnit(), Spell, true);
+                
                 Properties["duration"] = () => this["up"]
                     ? (Decimal)GetAura(Owner.GetUnit(), Spell, true).Duration / 1000
                     : (Decimal)Spell.duration / 1000;
-
-                Properties["remains"] = () => GetAuraTimeLeft(Owner.GetUnit(), Spell, true).TotalSeconds;
+                Properties["up"] = () => GetAuraUp(Owner.GetUnit(), Spell);
+                Properties["remains"] = () => GetAuraTimeLeft(Owner.GetUnit(), Spell).TotalSeconds;
                 Properties["stack"] = () =>
                 {
                     //Logging.Write("AI: " + safeName);

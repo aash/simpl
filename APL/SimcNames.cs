@@ -59,13 +59,13 @@ namespace Simcraft.APL
 
 
             buffs["damage_taken"] = new SpecList();
-            buffs["casting"] = new SpecList();
+            //buffs["casting"] = new SpecList();
             buffs["flying"] = new SpecList();
             buffs["colossus_smash_up"] = new SpecList();
             buffs["ravager_protection"] = new SpecList();
             buffs["beast_within"] = new SpecList();
-            buffs["potion"] = new SpecList();
-            buffs["pre_steady_focus"] = new SpecList();
+            //buffs["potion"] = new SpecList();
+            //buffs["pre_steady_focus"] = new SpecList();
             buffs["stampede"] = new SpecList();
             buffs["rising_sun_kick"] = new SpecList { }; //http://www.wowhead.com/search?q=rising_sun_kick#specialization
             buffs["vendetta"] = new SpecList { }; //http://www.wowhead.com/search?q=vendetta#specialization

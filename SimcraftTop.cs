@@ -189,7 +189,7 @@ namespace Simcraft
             try
             {
 
-
+                SimcNames.Populate();
                 MainCache = new ProxyCacheEntry();
                 spellbook = new SpellbookProxy();
                 inst = this;
@@ -235,7 +235,7 @@ namespace Simcraft
                     return new Gcd((Decimal)_conditionSpell.gcd, Math.Max(g, 1), rem);
                 });
 
-                SimcNames.Populate();
+               
 
 
 
@@ -681,6 +681,9 @@ namespace Simcraft
         {
             //Logging.Write("bc: "+pet.buff.beast_cleave.up);
             //Logging.Write("ff: " + buff.frenzy.stack);
+
+            //Logging.Write("rav"+talent.ravager.enabled);
+            //Logging.Write("ava:"+talent.avatar.enabled);
 
             if (args.Args[0].ToString().Equals("player"))
             {
