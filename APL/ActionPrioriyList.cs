@@ -203,7 +203,8 @@ namespace Simcraft.APL
         public HashSet<String> spells = new HashSet<string>();
         public HashSet<String> debuffs = new HashSet<string>();
 
-        Regex names = new Regex("(talent|buff|debuff|dot|cooldown)\\.(.+?)\\.");
+        Regex names = new Regex("(debuff|talent|buff|dot|cooldown)\\.([a-z_0-9]+?)\\.");
+        Regex debuff = new Regex("(debuff)\\.([a-z_0-9]+?)\\.");
         Regex _string = new Regex("Cast\\(\"([a-z0-9_]+?)\"");
 
 
@@ -242,57 +243,39 @@ namespace Simcraft.APL
             Logging.Write("-------------------------------------------------------------------------");
             foreach (var t in buffs)
             {
-
-                try
-                {
                     var _t =
                         SimcNames.buffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find buff: " + t);
+                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find buff: " + t);
                     else
-                        c.Add("Buff: " + t + " id: " + _t.V2);
-                }
-                catch (Exception e)
-                {
-                    c.Add("Couldnt find buff: " + t);
-                }
+                        Logging.Write("Buff: " + t + " id: " + _t.V2);
+
             }
-            table_print(format, c, 3);
+            Logging.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in debuffs)
             {
 
-                try
-                {
                     var _t =
                         SimcNames.debuffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find debuff: " + t);
+                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find debuff: " + t);
                     else
-                        c.Add("Debuff: " + t + " id: " + _t.V2);
-                }
-                catch (Exception e)
-                {
-                    c.Add("Couldnt find debuff: " + t);
-                }
+                        Logging.Write("Debuff: " + t + " id: " + _t.V2);
+
             }
-            table_print(format, c, 3);
+            Logging.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in talents)
             {
 
-                try
-                {
+
                     var _t = SimcraftImpl.DBGetClassSpell(t);
                     Logging.Write("Talent: " + t +
                           (StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _t.name) > 0
                               ? " - Enabled"
                               : " - Disabled") + " id: " + _t.id);
-                }
-                catch (Exception e)
-                {
 
-                }
 
             }
             Logging.Write("-------------------------------------------------------------------------");
@@ -306,18 +289,18 @@ namespace Simcraft.APL
                     var _t =
                         SimcNames.spells[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find spell: " + t);
+                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find spell: " + t);
                     else
-                        c.Add("Spell: " + t + " id: " + _t.V2);
+                        Logging.Write("Spell: " + t + " id: " + _t.V2);
                 }
                 catch (Exception e)
                 {
-                    c.Add("Couldnt find spell: " + t);
+                    Logging.Write("Couldnt find spell: " + t);
                 }
 
 
             }
-            table_print(format, c, 3);
+            Logging.Write("-------------------------------------------------------------------------");
             c.Clear();
 
         }
@@ -380,8 +363,12 @@ namespace Simcraft.APL
 
             foreach (Match m in names.Matches(myCode))
             {
+                
                 var list = m.Groups[1].ToString();
                 var val = m.Groups[2].ToString();
+
+                //SLogging.Write(list+" "+val);
+
                 if (list.Equals("talent")) talents.Add(val);
                 if (list.Equals("cooldown")) spells.Add(val);
                 if (list.Equals("buff")) buffs.Add(val);
@@ -395,6 +382,13 @@ namespace Simcraft.APL
 
                 spells.Add(list);
                 //if (list.Equals("talent")) talents.Add(val);
+            }
+
+            foreach (Match m in debuff.Matches(myCode))
+            {
+                var list = m.Groups[1].ToString();
+                var val = m.Groups[2].ToString();
+                debuffs.Add(val);
             }
 
 
