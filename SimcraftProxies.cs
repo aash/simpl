@@ -961,6 +961,7 @@ namespace Simcraft
                     : base(spell, owner,"spell::"+safename)
                 {
                     _hasMe = SpellManager.HasSpell((int) spell.id);
+                    AddProperty("execute_time", () => new MagicValueType(Math.Max(this.gcd, this["cast_time"])));
                     AddProperty("range", () =>
                     {
 
@@ -973,7 +974,14 @@ namespace Simcraft
                             "currentCharges,_,_,_,_ = GetSpellCharges(" + Spell.id + "); return currentCharges", 0));
                     Properties["range"] = () => true; 
                     //AddProperty("range", () => true);
-                    AddProperty("cast_time", () => !_hasMe ? 0 : (Spell.IsChanneled() ? (int)Spell.duration/1000 : (int)(GetSpell(Spell).CastTime / 1000)));
+                    AddProperty("cast_time", () =>
+                    {
+                        if (!_hasMe) return 0;
+                        if (Spell.IsChanneled())
+                            return Math.Max((Decimal) Spell.duration/1000, simc.gcd);
+                        return
+                            Math.Max(((Decimal)GetSpell(Spell).CastTime / 1000), simc.gcd);
+                    });
                     AddProperty("in_flight", () => false);
                     AddProperty("channel_time", () => !_hasMe ? 0 : (int)(Spell.IsChanneled()? Spell.duration/1000 : 0));
                     AddProperty("duration", () => !_hasMe ? 0 : (int)Spell.duration/1000);

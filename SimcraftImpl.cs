@@ -176,10 +176,6 @@ namespace Simcraft
             }
         }
 
-        /*public bool active
-        {
-            get { return pet.children[Tokenize(_conditionSpell)].active; }
-        }*/
 
         public MagicValueType soul_shard
         {
@@ -507,7 +503,6 @@ namespace Simcraft
             get
             {
                 var ex = spell[_conditionSpell].execute_time;
-                LogDebug("Execute Time: " + ex);
                 return ex;
             }
         }
@@ -519,7 +514,12 @@ namespace Simcraft
 
         public double cast_time
         {
-            get { return execute_time; }
+            get { return spell[_conditionSpell].cast_time; }
+        }
+
+        public MagicValueType gcd
+        {
+            get { return MainCache["gcd"].GetValue(); }
         }
 
         public static MagicValueType SpellIsTargeting
@@ -1201,7 +1201,8 @@ namespace Simcraft
                 int mismatch = 0;
                 foreach (var a in unit.GetAllAuras())
                 {
-                    if (a.SpellId == aura.id && (!fromMyAura || a.CreatorGuid == Me.Guid)) return a;
+                    //Logging.Write(a.CreatorGuid.GetFriendlyString()+" ");
+                    if (a.SpellId == aura.id && (!fromMyAura || a.CreatorGuid == Me.Guid || (Me.Pet != null && a.CreatorGuid == Me.Pet.Guid))) return a;
                     if (a.Name.Equals(aura.name) && a.IsActive)
                     {
                         mismatch = a.SpellId;

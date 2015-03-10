@@ -3,11 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Styx;
 using Styx.Common;
+using Styx.CommonBot;
 
 namespace Simcraft
 {
-    public struct MagicValueType
+
+    public class Gcd : MagicValueType
+    {
+        public Gcd(decimal v, decimal max, decimal remains) : base(v)
+        {
+            this.max = new MagicValueType(max);
+            this.remains = new MagicValueType(remains);
+        }
+
+        public MagicValueType max { get; set; }
+        public MagicValueType remains{ get; set; }
+
+
+    }
+
+    public class MagicValueType
     {
         public override string ToString()
         {
@@ -69,6 +86,7 @@ namespace Simcraft
             boxee = v.boxee;
         }
 
+     
 
         private Decimal boxee;
 
@@ -442,6 +460,12 @@ namespace Simcraft
         public static implicit operator bool(MagicValueType d)
         {
             return d.boxee > 0;
+        }
+
+        //Implicit Conversions
+        public static implicit operator Decimal(MagicValueType d)
+        {
+            return d.boxee;
         }
 
         /*public static implicit operator MagicValueType(bool d)

@@ -57,6 +57,7 @@ namespace Simcraft.APL
             spells["cancel_metamorphosis"] = new SpecList();
             spells["chi_sphere"] = new SpecList(); //http://www.wowhead.com/search?q=chi_sphere#specialization
 
+
             buffs["damage_taken"] = new SpecList();
             buffs["casting"] = new SpecList();
             buffs["flying"] = new SpecList();
@@ -544,6 +545,8 @@ namespace Simcraft.APL
 
             buffs["ice_floes"] = new SpecList { new SpecPair(WoWSpec.None, 108839), }; //http://www.wowhead.com/search?q=ice_floes#specialization
 
+
+            buffs["frenzy"] = new SpecList { new SpecPair(WoWSpec.None, 19615) };
             buffs["presence_of_mind"] = new SpecList { new SpecPair(WoWSpec.None, 12043), }; //http://www.wowhead.com/search?q=presence_of_mind#specialization
             buffs["arcane_power"] = new SpecList { new SpecPair(WoWSpec.None, 12042) }; //http://www.wowhead.com/search?q=arcane_power#specialization
             buffs["arcane_charge"] = new SpecList { new SpecPair(WoWSpec.None, 36032), }; //http://www.wowhead.com/search?q=arcane_charge#specialization

@@ -122,6 +122,8 @@ namespace Simcraft
         public dynamic active_dot;
         public dynamic stat;
         public SpellbookProxy spellbook;
+        public ProxyCacheEntry MainCache;
+       
 
 
         public WoWUnit Target1
@@ -188,7 +190,7 @@ namespace Simcraft
             {
 
 
-
+                MainCache = new ProxyCacheEntry();
                 spellbook = new SpellbookProxy();
                 inst = this;
                 active_dot = new ActiveDot();
@@ -225,27 +227,13 @@ namespace Simcraft
                 stat = new StatProxy();
                 obliterate = new ObliterateProxy();
 
-                //Logging.Write("eyo");
-
-                /*dbc.ClassSpells["invoke_xuen"] = DBGetClassSpell("invoke_xuen_the_white_tiger").id;
-                    //dbc.Spells["invoke_xuen_the_white_tiger"].id;
-                dbc.ClassSpells["tigereye_brew_use"] = DBGetClassSpell("tigereye_brew").id;
-                dbc.ClassSpells["combo_breaker_bok"] = DBGetClassSpell("combo_breaker_blackout_kick").id;
-                dbc.ClassSpells["combo_breaker_tp"] = DBGetClassSpell("tigereye_brew").id;
-                dbc.ClassSpells["combo_breaker_ce"] = DBGetClassSpell("combo_breaker_tiger_palm").id;
-                dbc.ClassSpells["storm_earth_and_fire_target"] = DBGetClassSpell("storm_earth_and_fire").id;
-
-                dbc.ClassSpells["service_pet"] = DBGetSpell("grimoire_of_service").id;
-
-
-                var arch = DBGetSpell("Archmage's Incandescence");
-                var garch = DBGetSpell("Archmage's Greater Incandescence");
-                dbc.Spells[arch.id, arch.token + "_agi"] = arch;
-                dbc.Spells[arch.id, arch.token + "_str"] = arch;
-                dbc.Spells[arch.id, arch.token + "_int"] = arch;
-                dbc.Spells[garch.id, garch.token + "_agi"] = garch;
-                dbc.Spells[garch.id, garch.token + "_str"] = garch;
-                dbc.Spells[garch.id, garch.token + "_int"] = garch;*/
+                MainCache["gcd"].SetRetrievalDelegate(() =>
+                {
+                    var rem = (Decimal)SpellManager.GlobalCooldownLeft.TotalSeconds;
+                    var g = BaseGcd();
+                    g = g * ((100+spell_haste)/ 100);
+                    return new Gcd((Decimal)_conditionSpell.gcd, Math.Max(g, 1), rem);
+                });
 
                 SimcNames.Populate();
 
@@ -257,6 +245,23 @@ namespace Simcraft
             {
                 Logging.Write(e.ToString());
             }
+        }
+
+        public Decimal BaseGcd()
+        {
+            switch (_class)
+            {
+               //hunters, rogues,  [Cat Form] druids, monks and death knights,
+                case WoWClass.Hunter:
+                case WoWClass.Rogue:
+                case WoWClass.Druid:
+                case WoWClass.Monk:
+                case WoWClass.DeathKnight:
+                    if (_spec != WoWSpec.DruidBalance && _spec != WoWSpec.DruidGuardian && _spec != WoWSpec.DruidRestoration)
+                        return 1;
+                    break;
+            }
+            return (Decimal)1.5;
         }
 
         public override Form ConfigurationForm
@@ -661,13 +666,7 @@ namespace Simcraft
             });
         }
 
-        public MagicValueType gcd
-        {
-            get
-            {
-                return new MagicValueType((Decimal)_conditionSpell.gcd);
-            }
-        }
+
         static Regex token = new Regex("[^a-z_ 0-9]");
 
         private static String Tokenize(String s)
@@ -680,6 +679,9 @@ namespace Simcraft
 
         private void UNIT_SPELLCAST_SUCCEEDED(object sender, LuaEventArgs args)
         {
+            //Logging.Write("bc: "+pet.buff.beast_cleave.up);
+            //Logging.Write("ff: " + buff.frenzy.stack);
+
             if (args.Args[0].ToString().Equals("player"))
             {
 
@@ -810,6 +812,7 @@ namespace Simcraft
             line_cds.Clear();
             //actions.Reset();
             _class = StyxWoW.Me.Class;
+            _spec = Me.Specialization;
 
             var oldctx = Context;
             Context = (StyxWoW.Me.CurrentMap.IsArena || StyxWoW.Me.CurrentMap.IsBattleground)
@@ -824,6 +827,13 @@ namespace Simcraft
         public static ProfileSelector SelectorWindow = new ProfileSelector();
         public static DevConsole console = new DevConsole();
 
+        public WoWSpec _spec = WoWSpec.None;
+
+
+        private void UNIT_SPELLCAST_SENT(object sender, LuaEventArgs args)
+        {
+            Logging.Write(args.EventName);
+        }
 
         public override void Start()
         {
@@ -841,6 +851,7 @@ namespace Simcraft
                 _oldRoutine = RoutineManager.Current; //Save it so we can restore it later
                 RoutineManager.Current = new ProxyRoutine();
 
+                //Lua.Events.AttachEvent("UNIT_SPELLCAST_SENT", UNIT_SPELLCAST_SENT);
                 Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);
                 Lua.Events.AttachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_LOGOUT", ContextChange);
