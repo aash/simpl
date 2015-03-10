@@ -682,7 +682,7 @@ namespace Simcraft
             //Logging.Write("bc: "+pet.buff.beast_cleave.up);
             //Logging.Write("ff: " + buff.frenzy.stack);
 
-            //Logging.Write("rav"+talent.ravager.enabled);
+            //(Logging.Write("rav"+talent.ravager.enabled);
             //Logging.Write("ava:"+talent.avatar.enabled);
 
             if (args.Args[0].ToString().Equals("player"))

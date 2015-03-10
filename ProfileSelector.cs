@@ -18,6 +18,8 @@ namespace Simcraft
 {
     public partial class ProfileSelector : Form
     {
+
+        private int toggle = 0;
         public ProfileSelector()
         {
             InitializeComponent();
@@ -63,11 +65,7 @@ namespace Simcraft
 
         private void button2_Click(object sender, EventArgs e)
         {
-           var a = (ActionPrioriyList) listBox1.SelectedItem;
-           a.CreateBehavior();
 
-           SimcraftImpl.current_action_list = a;
-           Close();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -95,6 +93,18 @@ namespace Simcraft
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             SimcraftImpl.Superlog = checkBox1.Checked;
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            if (toggle != 0) return;
+            toggle = 1;
+            var a = (ActionPrioriyList)listBox1.SelectedItem;
+            a.PrintResolutionTable();
+            a.CreateBehavior();
+
+            SimcraftImpl.current_action_list = a;
+            Close();
         }
     }
 }

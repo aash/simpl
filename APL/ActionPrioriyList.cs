@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using Styx;
 using Styx.Common;
+using Styx.WoWInternals;
 using ModifierKeys = Styx.Common.ModifierKeys;
 
 namespace Simcraft.APL
@@ -27,6 +28,8 @@ namespace Simcraft.APL
         public String Name { get; set; }
         public WoWClass Class { get; set; }
         public String Spec { get; set; }
+
+        public String myCode = "";
 
         public List<APLHotkey> hotkeys = new List<APLHotkey>();
 
@@ -131,6 +134,9 @@ namespace Simcraft.APL
         public void CreateBehavior()
         {
 
+
+
+
             foreach (var hk in hotkeys)
             {
                 HotkeysManager.Register(hk.Name,
@@ -150,6 +156,9 @@ namespace Simcraft.APL
             typ.InvokeMember(mem.Name,
                 BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
                 null, null, new object[0]);
+
+            //PrintResolutionTable();
+
 
             //Logging.Write(SimcraftImpl.inst.actions.ToString());
         }
@@ -187,6 +196,132 @@ namespace Simcraft.APL
 
             return WoWSpec.None;
         }
+
+
+        public HashSet<String> talents = new HashSet<string>();
+        public HashSet<String> buffs = new HashSet<string>();
+        public HashSet<String> spells = new HashSet<string>();
+        public HashSet<String> debuffs = new HashSet<string>();
+
+        Regex names = new Regex("(talent|buff|debuff|dot|cooldown)\\.(.+?)\\.");
+        Regex _string = new Regex("Cast\\(\"([a-z0-9_]+?)\"");
+
+
+        public void table_print(string format, List<String> list, int columns)
+        {
+
+            //string format = "{2,-37} - {1,-37} - {0,-37}";
+            //string format2 = "{1,-37} - {0,-37} - {0,-37}";
+            //string format2 = "{2,-40} - {1,-40} - {0,-40}";
+
+            int lasti = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (i % columns == 0 && i > 0)
+                {
+                    lasti = i;
+                    Logging.Write(format, list[i - 2], list[i - 1], list[i]);
+                }
+                if (i == list.Count - 1 && i != lasti)
+                {
+                    Logging.Write(format+" nvm duplicates", list.Count > 2 ? list[i - 2] : "", list.Count > 2 ? list[i - 1] : "", list[i]);
+                    //Logging.Write(format, lasti < i - 2 ? list[i - 2] : "",
+                    //    lasti < i - 1 ? list[i - 1] : "", lasti < i ? list[i] : "");
+                }
+            }      
+            Logging.Write("-------------------------------------------------------------------------");
+        }
+
+        public void PrintResolutionTable()
+        {
+            List<String> c = new List<string>();
+            int lasti = 0;
+
+            string format = "{2,-37} - {1,-37} - {0,-37}";
+            string format2 = "{2,-40} - {1,-40} - {0,-40}";
+            Logging.Write("-------------------------------------------------------------------------");
+            foreach (var t in buffs)
+            {
+
+                try
+                {
+                    var _t =
+                        SimcNames.buffs[t].FirstOrDefault(
+                            ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
+                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find buff: " + t);
+                    else
+                        c.Add("Buff: " + t + " id: " + _t.V2);
+                }
+                catch (Exception e)
+                {
+                    c.Add("Couldnt find buff: " + t);
+                }
+            }
+            table_print(format, c, 3);
+            c.Clear();
+            foreach (var t in debuffs)
+            {
+
+                try
+                {
+                    var _t =
+                        SimcNames.debuffs[t].FirstOrDefault(
+                            ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
+                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find debuff: " + t);
+                    else
+                        c.Add("Debuff: " + t + " id: " + _t.V2);
+                }
+                catch (Exception e)
+                {
+                    c.Add("Couldnt find debuff: " + t);
+                }
+            }
+            table_print(format, c, 3);
+            c.Clear();
+            foreach (var t in talents)
+            {
+
+                try
+                {
+                    var _t = SimcraftImpl.DBGetClassSpell(t);
+                    Logging.Write("Talent: " + t +
+                          (StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _t.name) > 0
+                              ? " - Enabled"
+                              : " - Disabled") + " id: " + _t.id);
+                }
+                catch (Exception e)
+                {
+
+                }
+
+            }
+            Logging.Write("-------------------------------------------------------------------------");
+            //table_print(format2, c, 3);
+            c.Clear();
+            foreach (var t in spells)
+            {
+
+                try
+                {
+                    var _t =
+                        SimcNames.spells[t].FirstOrDefault(
+                            ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
+                    if (_t == default(SimcNames.SpecPair)) c.Add("Couldnt find spell: " + t);
+                    else
+                        c.Add("Spell: " + t + " id: " + _t.V2);
+                }
+                catch (Exception e)
+                {
+                    c.Add("Couldnt find spell: " + t);
+                }
+
+
+            }
+            table_print(format, c, 3);
+            c.Clear();
+
+        }
+
 
         public String ToCode()
         {
@@ -235,6 +370,33 @@ namespace Simcraft.APL
             code += "}" + Environment.NewLine; ;
 
             //SimcraftImpl.Write(fullExpression);
+
+            myCode = code;
+
+            talents.Clear();
+            buffs.Clear();
+            spells.Clear();
+            debuffs.Clear();
+
+            foreach (Match m in names.Matches(myCode))
+            {
+                var list = m.Groups[1].ToString();
+                var val = m.Groups[2].ToString();
+                if (list.Equals("talent")) talents.Add(val);
+                if (list.Equals("cooldown")) spells.Add(val);
+                if (list.Equals("buff")) buffs.Add(val);
+                if (list.Equals("debuff")) debuffs.Add(val);
+                if (list.Equals("dot")) debuffs.Add(val);
+            }
+
+            foreach (Match m in _string.Matches(myCode))
+            {
+                var list = m.Groups[1].ToString();
+
+                spells.Add(list);
+                //if (list.Equals("talent")) talents.Add(val);
+            }
+
 
             return code;
         }

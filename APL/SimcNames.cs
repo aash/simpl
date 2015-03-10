@@ -252,7 +252,7 @@ namespace Simcraft.APL
             spells["demonbolt"] = new SpecList { new SpecPair(WoWSpec.None, 157695), }; //http://www.wowhead.com/search?q=demonbolt#specialization
             spells["immolate"] = new SpecList { new SpecPair(WoWSpec.None, 348), }; //http://www.wowhead.com/search?q=immolate#specialization
             spells["bladestorm"] = new SpecList { new SpecPair(WoWSpec.None, 46924), }; //http://www.wowhead.com/search?q=bladestorm#specialization
-            spells["colossus_smash"] = new SpecList { new SpecPair(WoWSpec.None, 86346), }; //http://www.wowhead.com/search?q=colossus_smash#specialization
+            spells["colossus_smash"] = new SpecList { new SpecPair(WoWSpec.None, 167105), }; //http://www.wowhead.com/search?q=colossus_smash#specialization
             spells["recklessness"] = new SpecList { new SpecPair(WoWSpec.None, 1719), }; //http://www.wowhead.com/search?q=recklessness#specialization
             spells["bloodthirst"] = new SpecList { new SpecPair(WoWSpec.None, 23881), }; //http://www.wowhead.com/search?q=bloodthirst#specialization
             spells["shield_slam"] = new SpecList { new SpecPair(WoWSpec.None, 23922), }; //http://www.wowhead.com/search?q=shield_slam#specialization
@@ -729,7 +729,7 @@ namespace Simcraft.APL
             debuffs["shadowflame"] = new SpecList { new SpecPair(WoWSpec.None, 159878), }; //http://www.wowhead.com/search?q=shadowflame#specialization
             debuffs["doom"] = new SpecList { new SpecPair(WoWSpec.None, 603), }; //http://www.wowhead.com/search?q=doom#specialization
             debuffs["immolate"] = new SpecList { new SpecPair(WoWSpec.None, 108686), }; //http://www.wowhead.com/search?q=immolate#specialization
-            debuffs["colossus_smash"] = new SpecList { new SpecPair(WoWSpec.None, 86346), }; //http://www.wowhead.com/search?q=colossus_smash#specialization
+            debuffs["colossus_smash"] = new SpecList { new SpecPair(WoWSpec.None, 167105), }; //http://www.wowhead.com/search?q=colossus_smash#specialization
             debuffs["rend"] = new SpecList { new SpecPair(WoWSpec.None, 772), }; //http://www.wowhead.com/search?q=rend#specialization
             debuffs["charge"] = new SpecList { new SpecPair(WoWSpec.None, 105771), }; //http://www.wowhead.com/search?q=charge#specialization
             debuffs["deep_wounds"] = new SpecList { new SpecPair(WoWSpec.None, 115767), }; //http://www.wowhead.com/search?q=deep_wounds#specialization

@@ -76,6 +76,7 @@ namespace Simcraft
         {
             get
             {
+                if (Retrieve() == null) return new MagicValueType(0);
                 var guid = Retrieve().Guid;
 
                 if (!Cache.ContainsKey(guid)) Cache[guid] = NewProxyCacheEntry();

@@ -218,6 +218,8 @@ namespace Simcraft.APL
 
             csCode = __code;
 
+
+
             return Understood;
         }
 
@@ -526,8 +528,11 @@ namespace Simcraft.APL
             _condition_string =  condition;
         }
 
+
         public String ToCode(String indent)
         {
+
+
             return indent + csCode;
         }
 
