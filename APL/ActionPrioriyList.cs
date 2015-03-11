@@ -243,38 +243,57 @@ namespace Simcraft.APL
             Logging.Write("-------------------------------------------------------------------------");
             foreach (var t in buffs)
             {
+                try
+                {
                     var _t =
                         SimcNames.buffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
                     if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find buff: " + t);
                     else
                         Logging.Write("Buff: " + t + " id: " + _t.V2);
+                }
+                catch (Exception e)
+                {
+                    Logging.Write("Couldnt find Buff: " + t);
+                }
 
             }
             Logging.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in debuffs)
             {
-
+                try
+                {
                     var _t =
                         SimcNames.debuffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
                     if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find debuff: " + t);
                     else
                         Logging.Write("Debuff: " + t + " id: " + _t.V2);
+                }
+                catch (Exception e)
+                {
+                    Logging.Write("Couldnt find Debuff: " + t);
+                }
 
             }
             Logging.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in talents)
             {
-
+                try
+                {
 
                     var _t = SimcraftImpl.DBGetClassSpell(t);
                     Logging.Write("Talent: " + t +
-                          (StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _t.name) > 0
-                              ? " - Enabled"
-                              : " - Disabled") + " id: " + _t.id);
+                                  (StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _t.name) > 0
+                                      ? " - Enabled"
+                                      : " - Disabled") + " id: " + _t.id);
+                }
+                catch (Exception e)
+                {
+                    Logging.Write("Couldnt find Talent: " + t);
+                }
 
 
             }
@@ -295,7 +314,7 @@ namespace Simcraft.APL
                 }
                 catch (Exception e)
                 {
-                    Logging.Write("Couldnt find spell: " + t);
+                    Logging.Write("Couldnt find Spell: " + t);
                 }
 
 
