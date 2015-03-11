@@ -809,7 +809,7 @@ namespace Simcraft
                                 return new MagicValueType(diff >= 0 ? diff : 0);
                             }
                         }
-                        return new MagicValueType(0);
+                        return MagicValueType.Zero;
                     }
                 }
 
@@ -829,7 +829,7 @@ namespace Simcraft
                         }
                     }
                     if (Me.Pet != null) return new MagicValueType(1);
-                    return new MagicValueType(0);
+                    return MagicValueType.Zero;
                 }
             }
 
@@ -883,7 +883,7 @@ namespace Simcraft
                         {
                             if (Me.Totems.FirstOrDefault() != default(WoWTotemInfo))
                                 return new MagicValueType((Me.Totems.First().Expires - DateTime.Now).TotalSeconds);
-                            return new MagicValueType(0);
+                            return MagicValueType.Zero;
                         }
 
                     }
@@ -928,69 +928,63 @@ namespace Simcraft
             public class SpellInternal : SpellCacheInternal
             {
 
-                public MagicValueType travel_time
-                {
-                    get { return new MagicValueType(1); }
-                }
-
                 private readonly bool _hasMe;
-
-                /*public MagicValueType execute_time
-                {
-                    get { return new MagicValueType(Math.Max((Decimal)Spell.gcd/1000, cast_time)); }
-                }*/
-
-                public MagicValueType gcd
-                {
-                    get { return new MagicValueType((Decimal) Spell.gcd); }
-                }
-
-
-                public MagicValueType range
-                {
-                    get { return this["range"]; }
-
-                }
-
-                public MagicValueType charges
-                {
-                    get { return this["charges"]; }
-                }
-
-                public MagicValueType cast_time
-                {
-                    get { return this["cast_time"]; }
-                }
 
 
                 public SpellInternal(spell_data_t spell, SpellBasedProxy owner, String safename)
                     : base(spell, owner,"spell::"+safename)
                 {
+                    
+                    //Logging.Write(spell == null ? "nullspell "+safename : "");
                     _hasMe = SpellManager.HasSpell((int) spell.id);
-                    AddProperty("execute_time", () => new MagicValueType(Math.Max(this.gcd/1000, this["cast_time"])));
+
+                    AddProperty("gcd", () =>
+                    {
+                        var sgcd = ((Decimal)Spell.gcd)/1000;
+                        //new MagicValueType(((Decimal) Spell.gcd) / 1000)
+                        return 0;
+                    });
+
+                    AddProperty("execute_time", () =>
+                    {
+                        if (this["cast_time"] > this["gcd"]) return this["cast_time"];
+                        return this["gcd"];
+                        //new MagicValueType(/*Math.Max(this["gcd"]/1000, */this["cast_time"])
+                    });
+
                     AddProperty("range", () =>
                     {
-
+                        if (!_hasMe) return Spell.max_range;
                         var _spell = GetSpell(Spell);
                         return new MagicValueType(_spell.HasRange ? _spell.MaxRange : Me.CombatReach + 5);
                     });
+
                     AddProperty("charges", () => !_hasMe
                         ? 0
                         : LuaGet<int>(
                             "currentCharges,_,_,_,_ = GetSpellCharges(" + Spell.id + "); return currentCharges", 0));
-                    Properties["range"] = () => true; 
-                    //AddProperty("range", () => true);
+                                     
                     AddProperty("cast_time", () =>
                     {
-                        if (!_hasMe) return 0;
-                        if (Spell.IsChanneled())
-                            return Math.Max((Decimal) Spell.duration/1000, (Decimal)1.5);
+                        if (Spell.IsChanneled()) return this["channel_time"];
+                        if (!_hasMe)
+                            return Math.Max(((Decimal)Spell.cast_max / 1000), (Decimal)1.5);
                         return
                             Math.Max(((Decimal)GetSpell(Spell).CastTime / 1000), (Decimal)1.5);
                     });
+           
+                    AddProperty("channel_time", () =>
+                    {
+                        if (!Spell.IsChanneled()) return MagicValueType.Zero;
+                        if (!_hasMe)
+                            return Math.Max((Decimal)Spell.duration / 1000, (Decimal)1.5);            
+                            return Math.Max((Decimal)GetSpell(Spell).MaxDuration / 1000, (Decimal)1.5);
+                    });
+
+                    AddProperty("duration", () => !_hasMe ? Spell.duration/1000 : GetSpell(Spell).BaseDuration/1000);
+
                     AddProperty("in_flight", () => false);
-                    AddProperty("channel_time", () => !_hasMe ? 0 : (int)(Spell.IsChanneled()? Spell.duration/1000 : 0));
-                    AddProperty("duration", () => !_hasMe ? 0 : (int)Spell.duration/1000);
+
                     AddProperty("recharge_time", () => !_hasMe
                         ? 0
                         : LuaGet<double>(
@@ -1004,34 +998,11 @@ namespace Simcraft
                             "currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(\"" +
                             Spell.id +
                             "\"); cd = (cooldownDuration-(GetTime()-cooldownStart)); if (cd > cooldownDuration or cd < 0) then cd = 0; end return (cd*100/cooldownDuration)",
-                            0) + charges);
-                }
+                            0) + this["charges"]);
 
-                public MagicValueType in_flight
-                {
-                    get { return this["in_flight"]; }
-                }
-
-                public MagicValueType channel_time
-                {
-                    get { return this["channel_time"]; }
-                }
+                    Logging.Write("Created Spell: " + safename + " ex:" + this["execute_time"] + " r:" + this["range"] + " c:" + this["charges"] + " clt:" + this["channel_time"] + " dur:" + this["duration"] + " ct:" + this["cast_time"]);
 
 
-                public MagicValueType duration
-                {
-                    get { return this["duration"]; }
-                }
-
-                public MagicValueType recharge_time
-                {
-                    get { return this["recharge_time"]; }
-                }
-
-
-                public MagicValueType charges_fractional
-                {
-                    get { return this["charges_fractional"]; }
                 }
 
             }
@@ -1222,8 +1193,8 @@ namespace Simcraft
             {
                 get
                 {
-                    if (tickingEffect == null) return new MagicValueType(0);
-                    if (!this["up"]) return new MagicValueType(0);
+                    if (tickingEffect == null) return MagicValueType.Zero;
+                    if (!this["up"]) return MagicValueType.Zero;
 
                     return new MagicValueType(Math.Floor((Decimal)(this["remains"] / (tickingEffect.amplitude / 1000))));
                 }
@@ -1235,7 +1206,7 @@ namespace Simcraft
                 {
                     if (tickingEffect != null)
                         return new MagicValueType(tickingEffect.amplitude);
-                    return new MagicValueType(0);
+                    return MagicValueType.Zero;
                 }
             }
 
@@ -1298,7 +1269,7 @@ namespace Simcraft
 
                 public MagicValueType distance
                 {
-                    get { return new MagicValueType(0); }
+                    get { return MagicValueType.Zero; }
                 }
                 public MagicValueType exists
                 {
@@ -1314,12 +1285,12 @@ namespace Simcraft
 
                 public MagicValueType remains
                 {
-                    get { return new MagicValueType(0); }
+                    get { return MagicValueType.Zero; }
                 }
 
                 public MagicValueType count
                 {
-                    get { return new MagicValueType(0); }
+                    get { return MagicValueType.Zero; }
                 }
             }
 
@@ -1421,6 +1392,7 @@ namespace Simcraft
                 : base(owner.GetUnit, bossname)
             {
                 Spell = spell;
+                //Logging.Write(""+Spell);
                 Owner = owner;
             }
         }
@@ -1768,7 +1740,7 @@ namespace Simcraft
 
             public override MagicValueType GetPercent
             {
-                get { return new MagicValueType(0); }
+                get { return MagicValueType.Zero; }
             }
 
             public override MagicValueType GetCurrent
@@ -1908,7 +1880,7 @@ namespace Simcraft
 
             public override MagicValueType GetPercent
             {
-                get { return new MagicValueType(0); }
+                get { return MagicValueType.Zero; }
             }
         }
 

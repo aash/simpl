@@ -26,9 +26,15 @@ namespace Simcraft
 
     public class MagicValueType
     {
+        public static MagicValueType Zero = new MagicValueType(0);
+        public static MagicValueType False = new MagicValueType(0);
+        public static MagicValueType True = !False;
+        public static MagicValueType NaN = new MagicValueType(Decimal.MinValue);
+
+
         public override string ToString()
         {
-            return boxee + " as bool: " + (boxee > 0);
+            return (this == NaN) ? "NaN" :boxee +"";
         }
 
         public bool Equals(MagicValueType other)

@@ -162,7 +162,7 @@ namespace Simcraft
 
             private bool IsInvalid
             {
-                get { return (_ite + CacheInterval < current_ite || _ite > current_ite); }
+                get { return _value == null || (_ite + CacheInterval < current_ite || _ite > current_ite); }
             }
         }
     }

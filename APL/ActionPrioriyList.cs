@@ -308,13 +308,39 @@ namespace Simcraft.APL
                     var _t =
                         SimcNames.spells[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find spell: " + t);
+                    if (_t == default(SimcNames.SpecPair))
+                    {
+                        Logging.Write("Couldnt find spell: " + t);
+                    }
                     else
-                        Logging.Write("Spell: " + t + " id: " + _t.V2);
+                    {
+                        //Logging.Write("t2: " + _t.V2);
+                        var sp = SimcraftImpl.dbc.Spells[_t.V2];
+                        //Logging.Write("sp: " + sp.name);
+                        var spdb = SimcraftImpl.inst.spell;
+
+                        //Logging.Write("Spell:"+sp.token+" @"+sp.id);
+
+                        //Logging.Write(spdb[sp].in_flight + "");
+
+                        var ct = spdb[sp];
+                        /*var ex = spdb[sp].execute_time;
+                        var clt = spdb[sp].channel_time;
+                        var dur = spdb[sp].duration;
+                        var rec = spdb[sp].recharge_time;
+                        var ran =  spdb[sp].range;
+
+                        Logging.Write("Spell: {0} id: {1} execute_time: " +
+                                      "{2} cast_time: {3} channel_time: " +
+                                      "{4} duration: {5} recharge_time: " +
+                                      "{6} range: {7}", t, sp.id, ex, ct, clt, dur, rec, ran);*/
+                    }
+                        
                 }
                 catch (Exception e)
                 {
-                    Logging.Write("Couldnt find Spell: " + t);
+                    Logging.Write(e.ToString());
+                    Logging.Write("Couldnt find SpellEx: " + t);
                 }
 
 

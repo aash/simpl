@@ -126,20 +126,9 @@ namespace Simcraft
        
 
 
-        public WoWUnit Target1
+        public GetUnitDelegate Target1
         {
-            get
-            {
-                try
-                {
-                    return Me.CurrentTarget;
-
-                }
-                catch
-                {
-                    return null;
-                }
-            }
+            get { return () => Me.CurrentTarget; }
         }
 
 
@@ -235,8 +224,12 @@ namespace Simcraft
                     return new Gcd((Decimal)_conditionSpell.gcd, Math.Max(g, 1), rem);
                 });
 
-               
 
+                var s = new spell_data_t();
+                s.name = "Storm, Earth, and Fire";
+                s.token = "storm_earth_and_fire";
+                s.id = 138130;
+                dbc.Spells.Add(138130, s);
 
 
 
@@ -685,6 +678,8 @@ namespace Simcraft
             //(Logging.Write("rav"+talent.ravager.enabled);
             //Logging.Write("ava:"+talent.avatar.enabled);
 
+
+            //Logging.Write(debuff.mortal_wounds.up+"");
             if (args.Args[0].ToString().Equals("player"))
             {
 

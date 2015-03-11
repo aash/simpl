@@ -70,7 +70,7 @@ namespace Simcraft.APL
             buffs["rising_sun_kick"] = new SpecList { }; //http://www.wowhead.com/search?q=rising_sun_kick#specialization
             buffs["vendetta"] = new SpecList { }; //http://www.wowhead.com/search?q=vendetta#specialization
             buffs["find_weakness"] = new SpecList { }; //http://www.wowhead.com/search?q=find_weakness#specialization
-            buffs["storm_earth_and_fire_target"] = new SpecList { };
+            buffs["storm_earth_and_fire_target"] = new SpecList { new SpecPair(WoWSpec.None, 138130) };
             buffs["rune_of_power"] = new SpecList { }; //http://www.wowhead.com/search?q=rune_of_power#specialization
             buffs["ravager"] = new SpecList { }; //http://www.wowhead.com/search?q=ravager#specialization
             buffs["chi_sphere"] = new SpecList { }; //http://www.wowhead.com/search?q=chi_sphere#specialization
@@ -418,6 +418,7 @@ namespace Simcraft.APL
             spells["fortifying_brew"] = new SpecList { new SpecPair(WoWSpec.None, 115203), }; //http://www.wowhead.com/search?q=fortifying_brew#specialization
             spells["elusive_brew"] = new SpecList { new SpecPair(WoWSpec.None, 115308), }; //http://www.wowhead.com/search?q=elusive_brew#specialization
             spells["invoke_xuen"] = new SpecList { new SpecPair(WoWSpec.None, 123904) };
+            spells["invoke_xuen_the_white_tiger"] = new SpecList { new SpecPair(WoWSpec.None, 123904) };
             spells["storm_earth_and_fire"] = new SpecList { new SpecPair(WoWSpec.None, 137639) }; //http://www.wowhead.com/search?q=storm_earth_and_fire#specialization
             spells["tiger_palm"] = new SpecList { new SpecPair(WoWSpec.None, 100787), }; //http://www.wowhead.com/search?q=tiger_palm#specialization
             spells["tigereye_brew"] = new SpecList { new SpecPair(WoWSpec.None, 116740) }; //http://www.wowhead.com/search?q=tigereye_brew#specialization
@@ -740,7 +741,7 @@ namespace Simcraft.APL
             debuffs["breath_of_sindragosa"] = new SpecList { new SpecPair(WoWSpec.None, 152279), }; //http://www.wowhead.com/search?q=breath_of_sindragosa#specialization
             debuffs["zen_sphere"] = new SpecList { new SpecPair(WoWSpec.None, 124081), }; //http://www.wowhead.com/search?q=zen_sphere#specialization
             debuffs["breath_of_fire"] = new SpecList { new SpecPair(WoWSpec.None, 115181) }; //http://www.wowhead.com/search?q=breath_of_fire#specialization
-            debuffs["storm_earth_and_fire_target"] = new SpecList { new SpecPair(WoWSpec.None, 137639) };
+            debuffs["storm_earth_and_fire_target"] = new SpecList { new SpecPair(WoWSpec.None, 138130) };
             debuffs["rising_sun_kick"] = new SpecList { new SpecPair(WoWSpec.None, 130320), }; //http://www.wowhead.com/search?q=rising_sun_kick#specialization
             debuffs["vendetta"] = new SpecList { new SpecPair(WoWSpec.None, 79140), }; //http://www.wowhead.com/search?q=vendetta#specialization
             debuffs["deadly_poison_dot"] = new SpecList { new SpecPair(WoWSpec.None, 2823), };

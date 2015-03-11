@@ -467,7 +467,7 @@ namespace Simcraft
 
         public MagicValueType primary_target
         {
-            get { return new MagicValueType(Target1 == conditionUnit); }
+            get { return new MagicValueType(Target1() == conditionUnit); }
         }
 
         public MagicValueType persistent_multiplier
@@ -697,12 +697,12 @@ namespace Simcraft
                     })));
         }
 
-        public Composite Cast(String spell, CanRunDecoratorDelegate del = null, WoWUnit _target = null,
-            String Reason = "")
+        public Composite Cast(String spell, CanRunDecoratorDelegate del, GetUnitDelegate getTarget, String Reason)
         {
             NameCount++;
-            if (spell.Contains(":")) spell = spell.Split(':')[1];
 
+            WoWUnit _target;
+            
             spell_data_t actualSpell = LearnedSpellFromToken(spell);
 
             if (actualSpell == null)
@@ -714,10 +714,14 @@ namespace Simcraft
             return new NamedComposite("" + NameCount, actualSpell.name,
                 new Action(delegate
                 {
+                    _target = getTarget();
+                    //if (_target != null && _target != Target1()) Logging.Write("Checking diff target");
+
                     conditionName = NameCount;
                     _conditionSpell = actualSpell;
-                    if (_target == null || _target == default(WoWUnit)) conditionUnit = Me.CurrentTarget;
-                    else conditionUnit = _target;
+                    conditionUnit = _target;
+                    if (conditionUnit == null || conditionUnit == default(WoWUnit)) conditionUnit = Me.CurrentTarget;
+                    
                     return RunStatus.Failure;
                 }),
                 new Decorator((_ret) =>
@@ -742,6 +746,7 @@ namespace Simcraft
                         clickUnit = conditionUnit;
                         if (CastSpell(actualSpell, conditionUnit, 3, Reason))
                         {
+                            //if (actualSpell.name.Contains("Fire")) Logging.Write("fire:"+conditionUnit.Guid.GetFriendlyString());
                             LogDebug(spell + " " + Reason + " => SUCCESS!");
                             start_line_cd();
                             return RunStatus.Success;
@@ -750,19 +755,19 @@ namespace Simcraft
                     })));
         }
 
-        public Composite Cast(String spell, String r)
-        {
-            return Cast(spell, null, null, r);
-        }
-
         public Composite Cast(String spell, CanRunDecoratorDelegate del, String r)
         {
-            return Cast(spell, del, null, r);
+            return Cast(spell, del, () => Target1(), r);
         }
 
-        public Composite Cast(String spell, WoWUnit _target, String Reason = "")
+        public Composite Cast(String spell, GetUnitDelegate getTarget, String Reason)
         {
-            return Cast(spell, null, _target, Reason);
+            return Cast(spell, null, getTarget, Reason);
+        }
+
+        public Composite Cast(String spell, String r)
+        {
+            return Cast(spell, null, () => Target1(), r);
         }
 
         public bool IsPlayerSpell(uint spell)
@@ -912,7 +917,8 @@ namespace Simcraft
         public Composite PoolResource(String spell, CanRunDecoratorDelegate pool = null,
             CanRunDecoratorDelegate del = null, WoWUnit target = null, String Reason = "")
         {
-            return new Decorator(del ?? (ret => true),
+            return null;
+            /*return new Decorator(del ?? (ret => true),
                 new PrioritySelector(
                     new Decorator(ret => pool(null),
                         new Action(delegate
@@ -923,7 +929,7 @@ namespace Simcraft
                         })),
                     Cast(spell, del, target, Reason)
                     )
-                );
+                );*/
         }
 
         public SpellState IsUseableSpell(String name)
@@ -1035,20 +1041,29 @@ namespace Simcraft
         private static int _unfriendlyCache;
         private static List<WoWUnit> unfriendlyCache = new List<WoWUnit>();
 
-        public WoWUnit Target2
+        public GetUnitDelegate Target2
         {
             get
             {
-                try
+                return () =>
                 {
-                    var t3 = actives.Where(ret => ret != Me.CurrentTarget).ToArray();
-                    //Logging.Write(t3.Count()+"");
+                    var t3 = actives.Where(ret => ret.Guid != Target1().Guid).ToArray();
+                    if (t3.Length == 0) return null;
                     return t3[0];
-                }
-                catch
+                };
+            }
+        }
+
+        public GetUnitDelegate Target3
+        {
+            get
+            {
+                return () =>
                 {
-                    return null;
-                }
+                    var t3 = actives.Where(ret => ret.Guid != Target1().Guid).ToArray();
+                    if (t3.Length < 2) return null;
+                    return t3[1];
+                };
             }
         }
 
@@ -1062,21 +1077,7 @@ namespace Simcraft
             get { return Me; }
         }
 
-        public WoWUnit Target3
-        {
-            get
-            {
-                try
-                {
-                    var t3 = actives.Where(ret => ret != Me.CurrentTarget).ToArray();
-                    return t3[1];
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-        }
+
 
         public static List<WoWUnit> UnfriendlyUnits
         {
