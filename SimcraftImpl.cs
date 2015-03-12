@@ -1067,14 +1067,14 @@ namespace Simcraft
             }
         }
 
-        public WoWUnit TargetSelf
+        public GetUnitDelegate TargetSelf
         {
-            get { return Me; }
+            get { return () => Me; }
         }
 
-        public WoWUnit Targetself
+        public GetUnitDelegate Targetself
         {
-            get { return Me; }
+            get { return () => Me; }
         }
 
 
