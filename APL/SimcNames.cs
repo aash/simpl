@@ -750,8 +750,6 @@ namespace Simcraft.APL
             debuffs["hemorrhage"] = new SpecList { new SpecPair(WoWSpec.None, 16511), }; //http://www.wowhead.com/search?q=hemorrhage#specialization
             debuffs["garrote"] = new SpecList { new SpecPair(WoWSpec.None, 703), }; //http://www.wowhead.com/search?q=garrote#specialization
             debuffs["rupture"] = new SpecList { new SpecPair(WoWSpec.None, 1943), }; //http://www.wowhead.com/search?q=rupture#specialization
-
-
         }
 
         static SimcNames()
