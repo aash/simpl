@@ -135,11 +135,12 @@ namespace Simcraft
         {
             get
             {
-                var _class = StyxWoW.Me.Class;
-                var ranged = (_class == WoWClass.Mage || _class == WoWClass.Hunter || _class == WoWClass.Priest ||
+                /*var _class = StyxWoW.Me.Class;
+                /var ranged = (_class == WoWClass.Mage || _class == WoWClass.Hunter || _class == WoWClass.Priest ||
                               _class == WoWClass.Warlock ||
                               (_class == WoWClass.Druid && StyxWoW.Me.Specialization == WoWSpec.DruidBalance));
-                //var ranged = _conditionSpell.max_range < 10;
+                 */
+                var ranged = _conditionSpell.max_range > 10;
                 if (ranged) return UnfriendlyUnitsNearTarget(8f);
                 return UnfriendlyUnitsNearMe(5f);
             }
