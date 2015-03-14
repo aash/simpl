@@ -1020,7 +1020,7 @@ namespace Simcraft
                         //    a.Stack, a.Duration, simc.GetTime(), a.TimeLeft());
                     }
 
-                    Logging.Write(args.FireTimeStamp.ToString() + ": auraite=" + iterationTimer.ElapsedTicks + " checked auras " + auras.Count);
+                    //Logging.Write(args.FireTimeStamp.ToString() + ": auraite=" + iterationTimer.ElapsedTicks + " checked auras " + auras.Count);
 
                 }
                 catch (Exception e)
