@@ -82,7 +82,7 @@ namespace Simcraft
                 if (!Cache.ContainsKey(guid)) Cache[guid] = NewProxyCacheEntry();
                 object val = Cache[guid][propertyName].Value;
 
-                if (SimcraftImpl.Superlog) SimcraftImpl.LogDebug(bossname + " Property: " + propertyName + " : " + val);
+                SimcraftImpl.LogDebug(bossname + " Property: " + propertyName + " : " + val);
 
                 if (val is Decimal) return new MagicValueType(Convert.ToDecimal(val));
                 if (val is bool) return new MagicValueType((bool) val);

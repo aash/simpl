@@ -67,12 +67,12 @@ namespace Simcraft
                     }
 
 
-                    result = Convert.ToInt32(splits[1][0]) <= wornPieces[splits[0]];
+                    result = new MagicValueType(Convert.ToInt32(splits[1][0]) <= wornPieces[splits[0]]);
                 }
                 catch (Exception e)
                 {
                     //SimcraftImpl.Write(e.ToString());
-                    result = false;
+                    result = new MagicValueType(false);
                     return true;
                 }
                 return true;
@@ -224,11 +224,11 @@ namespace Simcraft
                 cache["parry"].SetRetrievalDelegate(() => Me.GetCombatRating(WoWPlayerCombatRating.Parry));
                 cache["block"].SetRetrievalDelegate(() => Me.GetCombatRating(WoWPlayerCombatRating.Block));
                 cache["spell_haste"].SetRetrievalDelegate(
-                    () => LuaGet<double>("return UnitSpellHaste(\"player\")", 0));
+                    () => 1/((100+LuaGet<double>("return UnitSpellHaste(\"player\")", 0))/100));
                 cache["multistrike_pct"].SetRetrievalDelegate(
-                    () => LuaGet<double>("return GetMultistrike()", 0));
+                    () => LuaGet<double>("return GetMultistrike()/100", 0));
                 cache["mastery_value"].SetRetrievalDelegate(
-                    () => LuaGet<double>("mastery, coefficient = GetMasteryEffect(); return mastery", 0));
+                    () => LuaGet<double>("mastery, coefficient = GetMasteryEffect(); return mastery/100", 0));
             }
 
             public override bool TryGetMember(GetMemberBinder binder, out object result)
@@ -381,11 +381,11 @@ namespace Simcraft
                     
                     var sid = Lua.GetReturnVal<String>("spellName, spellSubName = GetSpellBookItemName("+i+",\"player\"); return spellName", 0);
 
-                    Logging.Write("Looking for "+sid);
+                    Write("Looking for "+sid);
 
                     var s = GetSpellByName(sid);
 
-                    Logging.Write("Found " + s);
+                    Write("Found " + s);
 
                     //L
 
@@ -394,7 +394,7 @@ namespace Simcraft
                  
                     spells.Add(s.Id);*/
                     //if (dbc.Spells.ContainsKey((uint)sid))
-                    //    Logging.Write("Found "+dbc.Spells[(uint)sid].token+" in Spellbook !");
+                    //    Write("Found "+dbc.Spells[(uint)sid].token+" in Spellbook !");
                 //}
             }
         }
@@ -411,9 +411,12 @@ namespace Simcraft
 
             public static int cShots;
 
-            public BuffProxy(GetUnitDelegate del)
+            public AuraProxy Source;
+
+            public BuffProxy(GetUnitDelegate del, AuraProxy ar)
                 : base(del)
             {
+                Source = ar;
                 pre_steady_focus = new PreSteadyFocus(this);
                 bloodlust = new Bloodlust(this);
                 potion = new Potion(this);
@@ -435,16 +438,13 @@ namespace Simcraft
             {
                 private int oldstack = 0;
                 public int dir = 1;
-                public IncantersFlow(SpellBasedProxy owner)
+                public IncantersFlow(BuffProxy owner)
                     : base(dbc.Spells[116267], owner, "incanters_flow_special")
                 {
                     Properties["stack"] = () =>
                     {
-                        //Logging.Write(""+oldstack);
-                        var bstack =
-                            Lua.GetReturnVal<int>(
-                                "a = GetSpellInfo(116267); name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitAura(\"player\",a) return count",
-                                0);
+                        //Write(""+oldstack);
+                        var bstack = (int)owner.Source.GetAuraStacks(116267);
                         if (oldstack < bstack) dir = 1;
                         else if (oldstack > bstack) dir = -1;
                         oldstack = bstack;
@@ -458,7 +458,7 @@ namespace Simcraft
 
             public class PreSteadyFocus : BuffInternal
             {
-                public PreSteadyFocus(SpellBasedProxy owner)
+                public PreSteadyFocus(BuffProxy owner)
                     : base(null, owner,"pre_steady_focus")
                 {
                     Properties["up"] = () =>
@@ -472,7 +472,7 @@ namespace Simcraft
 
                 private spell_data_t[] potions;
 
-                public Potion(SpellBasedProxy owner)
+                public Potion(BuffProxy owner)
                     : base(null, owner,"potion_buff")
                 {
                    
@@ -489,7 +489,7 @@ namespace Simcraft
             {
 
 
-                public AnyTrinket(SpellBasedProxy owner)
+                public AnyTrinket(BuffProxy owner)
                     : base(null, owner,"anytrinket_buff")
                 {
                     Properties["up"] = () =>
@@ -556,7 +556,7 @@ namespace Simcraft
 
                 private spell_data_t bloodlust;
 
-                public Bloodlust(SpellBasedProxy owner)
+                public Bloodlust(BuffProxy owner)
                     : base(null,owner,"bloodlust_proxy")
                 {
 
@@ -588,8 +588,29 @@ namespace Simcraft
 
             public class BuffInternal : AuraInternal
             {
-                public BuffInternal(spell_data_t spell, SpellBasedProxy owner, String sn) : base(spell, owner,sn)
+                public BuffInternal(spell_data_t spell, BuffProxy owner, String sn)
+                    : base(spell, owner, sn)
                 {
+
+                    Properties["Spell"] = () => 1;
+
+
+                    Properties["duration"] = () => this["up"]
+                        ? owner.Source.GetAuraDuration(Spell.id) / 1000
+                        : (Decimal)Spell.duration / 1000;
+                    Properties["up"] = () => owner.Source.GetAuraUp(Spell.id);
+                    Properties["remains"] = () => owner.Source.GetAuraTimeLeft(Spell.id).TotalSeconds;
+                    Properties["stack"] = () =>
+                    {
+                        //Write("AI: " + safeName);
+                        return owner.Source.GetAuraStacks(Spell.id);
+                    };
+                    Properties["down"] = () => !this["up"];
+                    Properties["react"] = () => this["stack"] > 0 ? this["stack"] : this["up"];
+                    Properties["ticking"] = () => this["up"];
+                    Properties["tick_time"] = () => 1;
+                    Properties["ticks_remain"] = () => 1;
+
                 }
 
                 protected override void GetTickingEffect()
@@ -614,7 +635,7 @@ namespace Simcraft
             {
 
                 var b = FindBuff(token);
-                //if (b == null) Logging.Write("Broken: "+token);
+                //if (b == null) Write("Broken: "+token);
                 return new BuffInternal(b,this,token);
             }
         }
@@ -891,7 +912,7 @@ namespace Simcraft
                 }
 
 
-                public PetBuffProxy() : base(() => Me.Pet)
+                public PetBuffProxy() : base(() => Me.Pet, SimcraftImpl.inst.PetAuras)
                 {
                 }
             }
@@ -935,21 +956,21 @@ namespace Simcraft
                     : base(spell, owner,"spell::"+safename)
                 {
                     
-                    //Logging.Write(spell == null ? "nullspell "+safename : "");
+                  
                     _hasMe = SpellManager.HasSpell((int) spell.id);
 
                     AddProperty("gcd", () =>
                     {
                         var sgcd = ((Decimal)Spell.gcd)/1000;
-                        //new MagicValueType(((Decimal) Spell.gcd) / 1000)
-                        return 0;
+                        sgcd = sgcd / ((100 + simc.spell_haste) / 100);
+                        return Math.Max(sgcd,1);
                     });
 
                     AddProperty("execute_time", () =>
                     {
                         if (this["cast_time"] > this["gcd"]) return this["cast_time"];
                         return this["gcd"];
-                        //new MagicValueType(/*Math.Max(this["gcd"]/1000, */this["cast_time"])
+                       
                     });
 
                     AddProperty("range", () =>
@@ -968,17 +989,17 @@ namespace Simcraft
                     {
                         if (Spell.IsChanneled()) return this["channel_time"];
                         if (!_hasMe)
-                            return Math.Max(((Decimal)Spell.cast_max / 1000), (Decimal)1.5);
+                            return Math.Max(((Decimal)Spell.cast_max / 1000), this["gcd"]);
                         return
-                            Math.Max(((Decimal)GetSpell(Spell).CastTime / 1000), (Decimal)1.5);
+                            Math.Max(((Decimal)GetSpell(Spell).CastTime / 1000), this["gcd"]);
                     });
            
                     AddProperty("channel_time", () =>
                     {
                         if (!Spell.IsChanneled()) return MagicValueType.Zero;
                         if (!_hasMe)
-                            return Math.Max((Decimal)Spell.duration / 1000, (Decimal)1.5);            
-                            return Math.Max((Decimal)GetSpell(Spell).MaxDuration / 1000, (Decimal)1.5);
+                            return Math.Max((Decimal)Spell.duration / 1000, this["gcd"]);
+                        return Math.Max((Decimal)GetSpell(Spell).MaxDuration / 1000, this["gcd"]);
                     });
 
                     AddProperty("duration", () => !_hasMe ? Spell.duration/1000 : GetSpell(Spell).BaseDuration/1000);
@@ -1000,7 +1021,7 @@ namespace Simcraft
                             "\"); cd = (cooldownDuration-(GetTime()-cooldownStart)); if (cd > cooldownDuration or cd < 0) then cd = 0; end return (cd*100/cooldownDuration)",
                             0) + this["charges"]);
 
-                    Logging.Write("Created Spell: " + safename + " ex:" + this["execute_time"] + " r:" + this["range"] + " c:" + this["charges"] + " clt:" + this["channel_time"] + " dur:" + this["duration"] + " ct:" + this["cast_time"]);
+                    Write("Created Spell: " + safename + " ex:" + this["execute_time"] + " r:" + this["range"] + " c:" + this["charges"] + " clt:" + this["channel_time"] + " dur:" + this["duration"] + " ct:" + this["cast_time"]+" id: "+Spell.id);
 
 
                 }
@@ -1163,7 +1184,7 @@ namespace Simcraft
                 : base(spell, owner, owner.GetType().ToString().Replace("Simcraft.SimcraftImpl+","")+"::"+safeName)
             {
                 safename = safeName;
-                if (spell == null) Logging.Write("Aura "+safename+" initialized with null");
+                if (spell == null) Write("Aura "+safename+" initialized with null");
 
                 GetTickingEffect();
 
@@ -1177,7 +1198,7 @@ namespace Simcraft
                 Properties["remains"] = () => GetAuraTimeLeft(Owner.GetUnit(), Spell).TotalSeconds;
                 Properties["stack"] = () =>
                 {
-                    //Logging.Write("AI: " + safeName);
+                    //Write("AI: " + safeName);
                     return GetAuraStacks(Owner.GetUnit(), Spell, true);
                 };
                 Properties["down"] = () => !this["up"];
@@ -1392,7 +1413,7 @@ namespace Simcraft
                 : base(owner.GetUnit, bossname)
             {
                 Spell = spell;
-                //Logging.Write(""+Spell);
+                //Write(""+Spell);
                 Owner = owner;
             }
         }
@@ -1507,18 +1528,14 @@ namespace Simcraft
         public abstract class ResourceProxy : UnitBasedProxy
         {
 
-
-            private double _crt;
-            private double _max;
-            private double _pct;
-            private int lastIteCrt = -1;
-            private int lastIteMax = -1;
-            private int lastItePct = -1;
-
             public ResourceProxy(GetUnitDelegate del) : base(del)
             {
-                cache["regen"].SetRetrievalDelegate(() => LuaGet<double>(
-                    "inactiveRegen, activeRegen = GetPowerRegen(); return activeRegen;", 0));
+                cache["regen"].SetRetrievalDelegate(() =>
+                {
+                    if (simc.main_resource == simc.mana) return (Decimal)Me.ManaInfo.RegenFlatModifier;
+                    return LuaGet<double>(
+                        "inactiveRegen, activeRegen = GetPowerRegen(); return activeRegen;", 0);
+                });
                 cache["percent"].SetRetrievalDelegate(() => GetPercent);
                 cache["current"].SetRetrievalDelegate(() => GetCurrent);
                 cache["max"].SetRetrievalDelegate(() => GetMax);

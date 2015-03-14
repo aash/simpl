@@ -126,6 +126,7 @@
     <Compile Include="ProfileSelector.Designer.cs">
       <DependentUpon>ProfileSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="SimcraftApis.cs" />
     <Compile Include="SimCSettings.cs" />
     <Compile Include="SimcraftProxies.cs" />
     <Compile Include="SimcraftImpl.cs" />

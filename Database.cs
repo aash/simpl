@@ -80,11 +80,11 @@ namespace Simcraft
         public override Type BindToType(string assemblyName, string typeName)
         {
             //if (assemblyName.Contains("Simcraft")){
-            //Logging.Write("Exchanging: " + assemblyName + " for " + Assembly.GetExecutingAssembly().FullName);
+            //Write("Exchanging: " + assemblyName + " for " + Assembly.GetExecutingAssembly().FullName);
             assemblyName = assemblyName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
             typeName = typeName.Replace("Simcraft, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", Assembly.GetExecutingAssembly().FullName);
             //}
-            //Logging.Write(String.Format("{0}, {1}", typeName, assemblyName));
+            //Write(String.Format("{0}, {1}", typeName, assemblyName));
             return Type.GetType(String.Format("{0}, {1}", typeName, assemblyName));
         }
     }

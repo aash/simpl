@@ -81,7 +81,7 @@ namespace Simcraft
             catch 
             {
                 SimcraftImpl.Write("Failed to load configuration, creating default configuration.");
-                //Logging.Write("Exception: " + e);
+                //Write("Exception: " + e);
                 _currentSettings = DefaultConfig();
             }
         }

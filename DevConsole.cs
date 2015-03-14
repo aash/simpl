@@ -61,7 +61,7 @@ namespace Simcraft
 
         private void DevConsole_Load(object sender, EventArgs e)
         {
-            //Logging.Write("Load");
+            //Write("Load");
             timer1.Start();
         }
 
@@ -72,7 +72,7 @@ namespace Simcraft
 
         private void timer1_Tick(object sender, System.EventArgs e)
         {
-            //Logging.Write("TICKSS");
+            //Write("TICKSS");
             DebuffGrid.DataSource = SimcraftImpl.inst.debuff.AsList;
         }
 

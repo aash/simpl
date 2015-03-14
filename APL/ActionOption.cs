@@ -46,7 +46,7 @@ namespace Simcraft.APL
             if (text.StartsWith("max_energy=")) return option(ActionOptionType.MaxEnergy, text.Substring(text.IndexOf("=") + 1));
             if (text.StartsWith("extra_amount=")) return option(ActionOptionType.ExtraAmmount, text.Substring(text.IndexOf("=") + 1));
             if (text.Length > 1)
-            Logging.Write("I dont recognize the option " + text);
+            SimcraftImpl.Write("I dont recognize the option " + text);
 
 
 

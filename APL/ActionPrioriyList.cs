@@ -97,7 +97,7 @@ namespace Simcraft.APL
                 ahk.Key = k;
                 ahk.Mod = mk;
                 ahk.Name = m.Groups["name"].ToString();
-                //Logging.Write(ahk.Name+" "+ahk.Mod+" "+ahk.Key);
+                //SimcraftImpl.Write(ahk.Name+" "+ahk.Mod+" "+ahk.Key);
                 return ahk;
             }
             if (l.StartsWith("talent_")) return new Comment { Content = l };
@@ -151,7 +151,7 @@ namespace Simcraft.APL
             if (Assembly == null) throw new Exception(Name + " has not been compiled");
             var mem = Assembly.GetTypes()[0].GetMembers()[0];
             var typ = Assembly.GetTypes()[0];
-            //Logging.Write("func: " + mem);
+            //SimcraftImpl.Write("func: " + mem);
 
             typ.InvokeMember(mem.Name,
                 BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
@@ -160,7 +160,7 @@ namespace Simcraft.APL
             //PrintResolutionTable();
 
 
-            //Logging.Write(SimcraftImpl.inst.actions.ToString());
+            //SimcraftImpl.Write(SimcraftImpl.inst.actions.ToString());
         }
 
         private WoWClass ParseClass(String s)
@@ -215,32 +215,42 @@ namespace Simcraft.APL
             //string format2 = "{1,-37} - {0,-37} - {0,-37}";
             //string format2 = "{2,-40} - {1,-40} - {0,-40}";
 
+            
+
             int lasti = 0;
             for (int i = 0; i < list.Count; i++)
             {
                 if (i % columns == 0 && i > 0)
                 {
                     lasti = i;
-                    Logging.Write(format, list[i - 2], list[i - 1], list[i]);
+                    SimcraftImpl.Write(format, list[i - 2], list[i - 1], list[i]);
                 }
                 if (i == list.Count - 1 && i != lasti)
                 {
-                    Logging.Write(format+" nvm duplicates", list.Count > 2 ? list[i - 2] : "", list.Count > 2 ? list[i - 1] : "", list[i]);
-                    //Logging.Write(format, lasti < i - 2 ? list[i - 2] : "",
+                    SimcraftImpl.Write(format+" nvm duplicates", list.Count > 2 ? list[i - 2] : "", list.Count > 2 ? list[i - 1] : "", list[i]);
+                    //SimcraftImpl.Write(format, lasti < i - 2 ? list[i - 2] : "",
                     //    lasti < i - 1 ? list[i - 1] : "", lasti < i ? list[i] : "");
                 }
             }      
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
+        }
+
+        public void PrintCode()
+        {
+            Logging.Write(myCode);
         }
 
         public void PrintResolutionTable()
         {
+
+            PrintCode();
+
             List<String> c = new List<string>();
             int lasti = 0;
 
             string format = "{2,-37} - {1,-37} - {0,-37}";
             string format2 = "{2,-40} - {1,-40} - {0,-40}";
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
             foreach (var t in buffs)
             {
                 try
@@ -248,17 +258,17 @@ namespace Simcraft.APL
                     var _t =
                         SimcNames.buffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find buff: " + t);
+                    if (_t == default(SimcNames.SpecPair)) SimcraftImpl.Write("Couldnt find buff: " + t);
                     else
-                        Logging.Write("Buff: " + t + " id: " + _t.V2);
+                        SimcraftImpl.Write("Buff: " + t + " id: " + _t.V2);
                 }
                 catch (Exception e)
                 {
-                    Logging.Write("Couldnt find Buff: " + t);
+                    SimcraftImpl.Write("Couldnt find Buff: " + t);
                 }
 
             }
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in debuffs)
             {
@@ -267,17 +277,17 @@ namespace Simcraft.APL
                     var _t =
                         SimcNames.debuffs[t].FirstOrDefault(
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
-                    if (_t == default(SimcNames.SpecPair)) Logging.Write("Couldnt find debuff: " + t);
+                    if (_t == default(SimcNames.SpecPair)) SimcraftImpl.Write("Couldnt find debuff: " + t);
                     else
-                        Logging.Write("Debuff: " + t + " id: " + _t.V2);
+                        SimcraftImpl.Write("Debuff: " + t + " id: " + _t.V2);
                 }
                 catch (Exception e)
                 {
-                    Logging.Write("Couldnt find Debuff: " + t);
+                    SimcraftImpl.Write("Couldnt find Debuff: " + t);
                 }
 
             }
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
             c.Clear();
             foreach (var t in talents)
             {
@@ -285,19 +295,19 @@ namespace Simcraft.APL
                 {
 
                     var _t = SimcraftImpl.DBGetClassSpell(t);
-                    Logging.Write("Talent: " + t +
+                    SimcraftImpl.Write("Talent: " + t +
                                   (StyxWoW.Me.GetLearnedTalents().Count(a => a.Name == _t.name) > 0
                                       ? " - Enabled"
                                       : " - Disabled") + " id: " + _t.id);
                 }
                 catch (Exception e)
                 {
-                    Logging.Write("Couldnt find Talent: " + t);
+                    SimcraftImpl.Write("Couldnt find Talent: " + t);
                 }
 
 
             }
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
             //table_print(format2, c, 3);
             c.Clear();
             foreach (var t in spells)
@@ -310,19 +320,15 @@ namespace Simcraft.APL
                             ret => ret.V1 == WoWSpec.None || ret.V1 == StyxWoW.Me.Specialization);
                     if (_t == default(SimcNames.SpecPair))
                     {
-                        Logging.Write("Couldnt find spell: " + t);
+                        SimcraftImpl.Write("Couldnt find spell: " + t);
                     }
                     else
                     {
-                        //Logging.Write("t2: " + _t.V2);
+                        //SimcraftImpl.Write("t2: " + _t.V2);
                         var sp = SimcraftImpl.dbc.Spells[_t.V2];
-                        //Logging.Write("sp: " + sp.name);
-                        var spdb = SimcraftImpl.inst.spell;
-
-                        //Logging.Write("Spell:"+sp.token+" @"+sp.id);
-
-                        //Logging.Write(spdb[sp].in_flight + "");
-
+                        
+                        var spdb = SimcraftImpl.inst.spell;    
+                        sp.token = t;
                         var ct = spdb[sp];
                         /*var ex = spdb[sp].execute_time;
                         var clt = spdb[sp].channel_time;
@@ -330,7 +336,7 @@ namespace Simcraft.APL
                         var rec = spdb[sp].recharge_time;
                         var ran =  spdb[sp].range;
 
-                        Logging.Write("Spell: {0} id: {1} execute_time: " +
+                        SimcraftImpl.Write("Spell: {0} id: {1} execute_time: " +
                                       "{2} cast_time: {3} channel_time: " +
                                       "{4} duration: {5} recharge_time: " +
                                       "{6} range: {7}", t, sp.id, ex, ct, clt, dur, rec, ran);*/
@@ -339,13 +345,14 @@ namespace Simcraft.APL
                 }
                 catch (Exception e)
                 {
-                    Logging.Write(e.ToString());
-                    Logging.Write("Couldnt find SpellEx: " + t);
+                    SimcraftImpl.Write(e.ToString());
+                    SimcraftImpl.Write("Couldnt find SpellEx: " + t);
                 }
 
 
             }
-            Logging.Write("-------------------------------------------------------------------------");
+            SimcraftImpl.Write("-------------------------------------------------------------------------");
+
             c.Clear();
 
         }
@@ -391,13 +398,13 @@ namespace Simcraft.APL
                     code += action.ToCode("\t\t\t") + Environment.NewLine;
 
             }
-            code += "\t\t\tLogging.Write(\"Behaviors created !\");" + Environment.NewLine; ;
+            code += "\t\t\tSimcraftImpl.Write(\"Behaviors created !\");" + Environment.NewLine; ;
             code += "\t\t}" + Environment.NewLine; ;
             code += "\t\t#endregion"+Environment.NewLine;
             code += "\t}" + Environment.NewLine; ;
             code += "}" + Environment.NewLine; ;
 
-            //SimcraftImpl.Write(fullExpression);
+            //SimcraftImpl.SimcraftImpl.Write(fullExpression);
 
             myCode = code;
 
@@ -412,7 +419,7 @@ namespace Simcraft.APL
                 var list = m.Groups[1].ToString();
                 var val = m.Groups[2].ToString();
 
-                //SLogging.Write(list+" "+val);
+                //SSimcraftImpl.Write(list+" "+val);
 
                 if (list.Equals("talent")) talents.Add(val);
                 if (list.Equals("cooldown")) spells.Add(val);

@@ -506,7 +506,8 @@ namespace Simcraft.APL
             List<APLHotkey> hotkeys = myList.hotkeys;
             var condition = "";
 
-            condition = has(ActionOptionType.If) ? get(ActionOptionType.If).Replace("|", "||").Replace("&", "&&") : "";
+            condition = has(ActionOptionType.If) ? get(ActionOptionType.If).Replace("|", "||").Replace("&", "&&").Replace("%","/") : "";
+
             condition = condition.ToLower();
 
             condition = filter_in.Replace(condition, "._in$1");

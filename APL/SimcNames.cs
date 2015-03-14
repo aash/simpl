@@ -372,7 +372,7 @@ namespace Simcraft.APL
             spells["elemental_mastery"] = new SpecList { new SpecPair(WoWSpec.None, 16166), }; //http://www.wowhead.com/search?q=elemental_mastery#specialization
             spells["ancestral_swiftness"] = new SpecList { new SpecPair(WoWSpec.None, 16188), }; //http://www.wowhead.com/search?q=ancestral_swiftness#specialization
             spells["liquid_magma"] = new SpecList { new SpecPair(WoWSpec.None, 152255), }; //http://www.wowhead.com/search?q=liquid_magma#specialization
-            spells["service_pet"] = new SpecList { new SpecPair(WoWSpec.None, 108501), };
+            spells["service_pet"] = new SpecList { new SpecPair(WoWSpec.None, 111898), };
             spells["summon_doomguard"] = new SpecList { new SpecPair(WoWSpec.None, 18540), }; //http://www.wowhead.com/search?q=summon_doomguard#specialization
             spells["summon_infernal"] = new SpecList { new SpecPair(WoWSpec.None, 1122), }; //http://www.wowhead.com/search?q=summon_infernal#specialization
             spells["kiljaedens_cunning"] = new SpecList { new SpecPair(WoWSpec.None, 137587), }; //http://www.wowhead.com/search?q=kiljaedens_cunning#specialization
@@ -439,7 +439,7 @@ namespace Simcraft.APL
             spells["garrote"] = new SpecList { new SpecPair(WoWSpec.None, 703), }; //http://www.wowhead.com/search?q=garrote#specialization
             spells["explosive_shot"] = new SpecList { new SpecPair(WoWSpec.None, 53301), }; //http://www.wowhead.com/search?q=explosive_shot#specialization
             spells["glaive_toss"] = new SpecList { new SpecPair(WoWSpec.None, 117050), };
-
+            spells["disable"] = new SpecList{new SpecPair(WoWSpec.None, 116095)};
 
 
 

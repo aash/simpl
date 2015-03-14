@@ -28,6 +28,7 @@ using Simcraft.APL;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Honorbuddy;
+using JetBrains.Annotations;
 using Styx.CommonBot.Profiles.Quest.Order;
 
 
@@ -68,8 +69,8 @@ namespace Simcraft
         public ChiProxy chi; // = new ChiProxy(() => StyxWoW.Me.ToUnit(),this);
         public dynamic seal;
         public static ActionPrioriyList current_action_list = null;
-        public Dictionary<string, bool> hotkeyVariables = new Dictionary<string, bool>(); 
-
+        public Dictionary<string, bool> hotkeyVariables = new Dictionary<string, bool>();
+        public static bool Superlog = false;
         public dynamic totem
         {
             get { return pet; }
@@ -125,6 +126,9 @@ namespace Simcraft
         public ProxyCacheEntry MainCache;
        
 
+        public AuraProxy PlayerAuras = new AuraProxy("player");
+        public AuraProxy PetAuras = new AuraProxy("playerpet");
+
 
         public GetUnitDelegate Target1
         {
@@ -134,7 +138,7 @@ namespace Simcraft
 
         public String FindDatabase()
         {
-            Logging.Write("Looking for db.dbc in " + Directory.GetCurrentDirectory()+ " and all its Subdirectories");
+            Write("Looking for db.dbc in " + Directory.GetCurrentDirectory()+ " and all its Subdirectories");
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(),
                 "db.dbc",
                 SearchOption.AllDirectories);
@@ -143,23 +147,22 @@ namespace Simcraft
         }
 
         public static String SimcraftProfilePath = @"Simcraft Profiles/";
-        public static String SimcraftLogPath = @"Logs/Simcraft/";
-        public static String SimcraftLogfile;//
+
 
         public static Database dbc;
 
         public SimcraftImpl()
         {
-            SimcraftLogfile = SimcraftLogPath + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + " - " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + " " + Tokenize(Me.Name) + ".log";
+  
 
-            //Logging.Write("go!");
+            //Write("go!");
             try
             {
                 dbc = Serializer.DeSerializeObject(FindDatabase());
             }
             catch (Exception e)
             {
-                Logging.Write(e.ToString());
+                Write(e.ToString());
             }
 
             spell_data_t[] a = new spell_data_t[dbc.Spells.Values.Count];
@@ -170,13 +173,14 @@ namespace Simcraft
                 dbc.Spells[v.id, v.token] = v;
             }
 
-            Logging.Write("Count "+dbc.Spells.Count);
+            Write("Count "+dbc.Spells.Count);
 
             Directory.CreateDirectory(SimcraftProfilePath);
-            Directory.CreateDirectory(SimcraftLogPath);
 
             try
             {
+
+                RoutineManager.Current = null;
 
                 SimcNames.Populate();
                 MainCache = new ProxyCacheEntry();
@@ -189,7 +193,7 @@ namespace Simcraft
                 focus = new FocusProxy(() => StyxWoW.Me.ToUnit());
                 chi = new ChiProxy(() => StyxWoW.Me.ToUnit());
                 rage = new RageProxy(() => StyxWoW.Me.ToUnit());
-                buff = new BuffProxy(() => StyxWoW.Me.ToUnit());
+                buff = new BuffProxy(() => StyxWoW.Me.ToUnit(), PlayerAuras);
                 debuff = new DebuffProxy(() => conditionUnit);
                 talent = new TalentProxy(() => StyxWoW.Me.ToUnit());
                 cooldown = new CooldownProxy(() => StyxWoW.Me.ToUnit());
@@ -220,8 +224,18 @@ namespace Simcraft
                 {
                     var rem = (Decimal)SpellManager.GlobalCooldownLeft.TotalSeconds;
                     var g = BaseGcd();
-                    g = g * ((100+spell_haste)/ 100);
+                    g = g / ((100+spell_haste)/ 100);
                     return new Gcd((Decimal)_conditionSpell.gcd, Math.Max(g, 1), rem);
+                });
+
+                MainCache["GlobalCooldown"].SetRetrievalDelegate(() =>
+                {
+                    return SpellManager.GlobalCooldownLeft.TotalMilliseconds > 1000/15;
+                });
+
+                MainCache["WoWTime"].SetRetrievalDelegate(() =>
+                {
+                    return Lua.GetReturnVal<double>("return GetTime()",0);
                 });
 
 
@@ -236,7 +250,7 @@ namespace Simcraft
             }
             catch (Exception e)
             {
-                Logging.Write(e.ToString());
+                Write(e.ToString());
             }
         }
 
@@ -335,7 +349,7 @@ namespace Simcraft
         public static void GenerateApls(String folder)
         {
             apls.Clear();
-            SimcraftImpl.inst.actions.Reset();
+            inst.actions.Reset();
 
             if (current_action_list != null ) current_action_list.Unload();
 
@@ -354,11 +368,10 @@ namespace Simcraft
                 var classname = RandomString(10);
                 code = code.Replace("public class SimcraftRota", "public class "+classname);
 
-                var old = Superlog;
-                Superlog = true;
-                SimcraftImpl.Write(code, Colors.White, LogLevel.Diagnostic);
+
+                //Write(code);
                 //Console.WriteLine(fullExpression);
-                Superlog = old;
+
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
                 Behavior attributes =
@@ -626,20 +639,22 @@ namespace Simcraft
                 
                 //console.BeginInvoke(new Delegate(console,"reset"));
                 //console.reset();
-                //Logging.Write(Me.Pet.);
+                //Write(Me.Pet.);
+
+                combatIterationCount++;
 
                 IterationTimer.Restart();
 
                 if (SpellIsTargeting)
                 {
                     SimcraftImpl.Write("Wanting to click: " + clickUnit);
-                    //Logging.Write("Clicking: " + clickUnit.Location + " " + iterationCounter);
+                    //Write("Clicking: " + clickUnit.Location + " " + iterationCounter);
                     SpellManager.ClickRemoteLocation(clickUnit.Location);
                     clickUnit = null;
                 }
 
-                //Logging.Write("u:{0} b:{1} f:{2}", unholy.current, death.current, frost.current);
-                iterationCounter++;
+                //Write("u:{0} b:{1} f:{2}", unholy.current, death.current, frost.current);
+                
                 //OverrideSpell.Pulse();
                 return RunStatus.Failure;
             });
@@ -653,9 +668,9 @@ namespace Simcraft
             {
                 IterationTimer.Stop();
                 iterationTotal += IterationTimer.ElapsedMilliseconds;
-                //if (IterationTimer.ElapsedMilliseconds > 1) Logging.Write(DateTime.Now.Millisecond+": "+IterationTimer.ElapsedMilliseconds+"");
-                if (iterationCounter % 150 == 0) SimcraftImpl.Write("avgIte: " + (iterationTotal / iterationCounter));
-                //Logging.Write(""+IterationTimer.ElapsedMilliseconds);
+                //if (IterationTimer.ElapsedMilliseconds > 1) Write(DateTime.Now.Millisecond+": "+IterationTimer.ElapsedMilliseconds+"");
+                if (combatIterationCount % 150 == 0) SimcraftImpl.Write("avgIte: " + (iterationTotal / combatIterationCount));
+                //Write(""+IterationTimer.ElapsedMilliseconds);
             });
         }
 
@@ -670,22 +685,36 @@ namespace Simcraft
             return s;
         }
 
+
+
+        private void COMBATLOG_EVENT_UNFILTERED(object sender, LuaEventArgs args)
+        {
+            /*var s = "";
+            foreach (var arg in args.Args)
+            {
+                s += arg.ToString() + " ";
+            }*/
+            Logging.Write(args.EventName);
+        }
+
+
         private void UNIT_SPELLCAST_SUCCEEDED(object sender, LuaEventArgs args)
         {
-            //Logging.Write("bc: "+pet.buff.beast_cleave.up);
-            //Logging.Write("ff: " + buff.frenzy.stack);
+            //Logging.Write(args.EventName);
+            //Write("bc: "+pet.buff.beast_cleave.up);
+            //Write("ff: " + buff.frenzy.stack);
 
-            //(Logging.Write("rav"+talent.ravager.enabled);
-            //Logging.Write("ava:"+talent.avatar.enabled);
+            //(Write("rav"+talent.ravager.enabled);
+            //Write("ava:"+talent.avatar.enabled);
 
 
-            //Logging.Write(debuff.mortal_wounds.up+"");
+            //Write(debuff.mortal_wounds.up+"");
             if (args.Args[0].ToString().Equals("player"))
             {
 
                 uint spellid = uint.Parse(args.Args[4].ToString());
 
-                //Logging.Write(""+buff.incanters_flow.stack);
+                //Write(""+buff.incanters_flow.stack);
 
                 if (!dbc.Spells.ContainsKey(spellid)) return;
 
@@ -693,7 +722,9 @@ namespace Simcraft
 
                 prev.spell = LastSpellCast;
 
-                if (LastSpellCast.gcd > 0) Logging.Write("GCD used for: " +LastSpellCast.name);
+                LogDebug("Cast: "+LastSpellCast.name);
+
+                //if (LastSpellCast.gcd > 0) Write("GCD used for: " +LastSpellCast.name);
 
                 if (LastSpellCast.id == 78203)
                 {
@@ -747,7 +778,7 @@ namespace Simcraft
                 if (LastSpellCast.Contains("Seal of"))
                 {
                     seal.active = Tokenize(LastSpellCast).Split('_')[2];
-                    //Logging.Write(seal.active);
+                    //Write(seal.active);
                 }
 
                 if (LastSpellCast.Contains("Judgment"))
@@ -757,13 +788,13 @@ namespace Simcraft
 
                 if (spell.gcd > 0)
                 {
-                    Logging.Write(spell.name);
+                    Write(spell.name);
                     prev_gcd.Id = spell.id;
-                    //Logging.Write(spell.Name + " using Gcd Cast");
+                    //Write(spell.Name + " using Gcd Cast");
                 }       
                 else
                 {
-                    //Logging.Write(spell.Name + " without Gcd Cast");
+                    //Write(spell.Name + " without Gcd Cast");
                 }
                 prev.id = spell.id;
 
@@ -786,10 +817,7 @@ namespace Simcraft
         }
         }
 
-        public static void LogDebug(String stuff)
-        {
-            Write(stuff,Colors.Violet,LogLevel.Diagnostic);
-        }
+
 
         public override void Initialize()
         {
@@ -828,17 +856,12 @@ namespace Simcraft
         public WoWSpec _spec = WoWSpec.None;
 
 
-        private void UNIT_SPELLCAST_SENT(object sender, LuaEventArgs args)
-        {
-            Logging.Write(args.EventName);
-        }
-
         public override void Start()
         {
 
             /*foreach (var s in SpellManager.Spells.Values)
             {
-                Logging.Write(s.Name + " " + s.Id);
+                Write(s.Name + " " + s.Id);
             }*/
             try
             {
@@ -849,12 +872,17 @@ namespace Simcraft
                 _oldRoutine = RoutineManager.Current; //Save it so we can restore it later
                 RoutineManager.Current = new ProxyRoutine();
 
-                //Lua.Events.AttachEvent("UNIT_SPELLCAST_SENT", UNIT_SPELLCAST_SENT);
-                Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);
+                Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);               
+                Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
+                Lua.Events.AttachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
+                Lua.Events.AttachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
                 Lua.Events.AttachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_LOGOUT", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_TALENT_UPDATE", ContextChange);
 
+                //Lua.Events.RemoveFilter("COMBATLOG_EVENT_UNFILTERED");
+
+                //Lua.Events.AttachEvent("UNIT_AURA", ContextChange);
                 ContextChange(null, null);
 
                 /*new Thread(() =>
@@ -869,6 +897,144 @@ namespace Simcraft
                 SimcraftImpl.Write(e.ToString());
             }
         }
+
+        public class AuraProxy : Proxy
+        {
+            private String Unit;
+
+            private Stopwatch iterationTimer = new Stopwatch();
+
+            public struct Aura
+            {
+                public uint Spell;
+                public Decimal Duration;
+                public int Stack;
+                public Decimal ExpirationTime;
+                public String Caster;
+                public String DebuffType;
+
+                private SimcraftImpl simc
+                {
+                    get { return SimcraftImpl.inst; }
+                }
+
+                public TimeSpan TimeLeft()
+                {
+                    var time = simc.GetTime();
+                    var sLeft = ExpirationTime - time;
+                    sLeft *= 1000;
+                    if (sLeft < 0) return TimeSpan.Zero;
+                    return new TimeSpan(0, 0, 0, 0, (int)sLeft);
+                }
+
+            }
+
+
+            public bool GetAuraUp(uint id)
+            {
+                return auras.ContainsKey(id);
+            }
+
+            public TimeSpan GetAuraTimeLeft(uint id)
+            {
+                if (!auras.ContainsKey(id)) return TimeSpan.Zero;
+                return auras[id].TimeLeft();
+            }
+
+            public Decimal GetAuraDuration(uint id)
+            {
+                if (!auras.ContainsKey(id)) return 0;
+                return auras[id].Duration;
+            }
+
+            public Decimal GetAuraStacks(uint id)
+            {
+                if (!auras.ContainsKey(id)) return 0;
+                return auras[id].Stack;
+            }
+
+
+            public AuraProxy(String unit)
+            {
+                Unit = unit;
+            }
+
+            private SimcraftImpl simc
+            {
+                get { return SimcraftImpl.inst; }
+            }
+
+            Dictionary<uint, Aura> auras = new Dictionary<uint, Aura>(); 
+
+            public void UNIT_AURA(object sender, LuaEventArgs args)
+            {             
+                iterationTimer.Restart();
+
+                String u = args.Args[0].ToString();
+
+                if (!u.Equals(Unit)) return;
+
+                auras.Clear();
+
+                int i = 1;
+
+                try
+                {
+                    var lt =
+                        Lua.GetReturnValues(
+                            "auras={} for i=1,40 do local u = \"\" local p = \",\" local a,b,c,d,e,f,g,h,j,k,l = UnitAura(\"player\",i);" +
+                            "a=a and a or u;b=b and b or u;c=c and c or u;d=d and d or u;e=e and e or u;f=f and f or u;g=g and g or u;h=h and h or u;j=j and j or u;k=k and k or u;l=l and l or u; " +
+                            "z = d..p..e..p..f..p..g..p..h..p..l; auras[i] = z;" +
+                            "end return unpack(auras)");
+
+                    foreach (var ar in lt)
+                    {
+                       
+
+                        var ars = ar.Split(',');
+
+                        if (ars[5].Length < 2) continue;
+
+                        var a = new Aura
+                        {
+                            Caster = ars[4].ToString(),
+                            Duration = Convert.ToDecimal(ars[2].ToString()),
+                            ExpirationTime = Convert.ToDecimal(ars[3].ToString()),
+                            Stack = Convert.ToInt32(ars[0].ToString()),
+                            
+                        };
+
+                        var sid = Convert.ToUInt32(ars[5]);
+
+                        /*if (!dbc.Spells.ContainsKey(sid))
+                        {
+                            //Logging.Write("No Spell with ID "+sid);
+                            continue;
+                        }*/
+
+                        a.Spell = sid;
+
+                        auras[sid] = a;
+
+                        //Logging.Write("id({0}) stack({1}) duration({2}) expiration({3}) caster({4})", sid,
+                        //    a.Stack, a.Duration, simc.GetTime(), a.TimeLeft());
+                    }
+
+                    Logging.Write(args.FireTimeStamp.ToString() + ": auraite=" + iterationTimer.ElapsedTicks + " checked auras " + auras.Count);
+
+                }
+                catch (Exception e)
+                {
+                    Logging.Write(e.ToString());
+                }
+
+
+
+
+            }
+        }
+
+
 
         public static void RegisterHotkeys()
         {
@@ -929,6 +1095,8 @@ namespace Simcraft
             Lua.Events.DetachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
             Lua.Events.DetachEvent("PLAYER_LOGOUT", ContextChange);          
             Lua.Events.DetachEvent("PLAYER_TALENT_UPDATE", ContextChange);
+            Lua.Events.DetachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
+            Lua.Events.DetachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
 
 
         }
@@ -939,6 +1107,11 @@ namespace Simcraft
             NameCount = 'A';
 
             simcRoot = new PrioritySelector(
+                new Action(context =>
+                {
+                    iterationCounter++;
+                    return RunStatus.Failure;
+                }),
                 new Decorator(ret => IsPaused,
                     new Action(ret => RunStatus.Success)),
                 CallActionList(ActionProxy.ActionImpl.oocapl, ret => !StyxWoW.Me.Combat),
@@ -1029,7 +1202,6 @@ namespace Simcraft
         }*/
 
 
-        public static bool Superlog = false;
 
         #region Nested types
 
