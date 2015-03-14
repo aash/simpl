@@ -127,7 +127,7 @@ namespace Simcraft
        
 
         public AuraProxy PlayerAuras = new AuraProxy("player");
-        public AuraProxy PetAuras = new AuraProxy("playerpet");
+        public AuraProxy PetAuras = new AuraProxy("pet");
 
 
         public GetUnitDelegate Target1
