@@ -708,7 +708,26 @@ namespace Simcraft
             //Write("ava:"+talent.avatar.enabled);
 
 
-            //Write(debuff.mortal_wounds.up+"");
+
+            var sw = new Stopwatch();
+            sw.Restart();
+            
+
+            string cc = "local can_cast = {};";
+
+            int i = 0;
+
+            foreach (var sp in current_action_list.spells)
+            {
+                cc += "u, m = IsUsableSpell(\""+"Kill Command"+"\"); can_cast["+i+"] = u;";
+                i++;
+            }
+            cc += "return unpack(can_cast);";
+
+            Lua.GetReturnValues(cc);
+
+            Logging.Write(""+sw.ElapsedTicks+" checked spells "+i);
+
             if (args.Args[0].ToString().Equals("player"))
             {
 
@@ -982,7 +1001,7 @@ namespace Simcraft
                 {
                     var lt =
                         Lua.GetReturnValues(
-                            "auras={} for i=1,40 do local u = \"\" local p = \",\" local a,b,c,d,e,f,g,h,j,k,l = UnitAura(\"player\",i);" +
+                            "auras={} for i=1,40 do local u = \"\" local p = \",\" local a,b,c,d,e,f,g,h,j,k,l = UnitAura(\""+Unit+"\",i);" +
                             "a=a and a or u;b=b and b or u;c=c and c or u;d=d and d or u;e=e and e or u;f=f and f or u;g=g and g or u;h=h and h or u;j=j and j or u;k=k and k or u;l=l and l or u; " +
                             "z = d..p..e..p..f..p..g..p..h..p..l; auras[i] = z;" +
                             "end return unpack(auras)");
@@ -1145,7 +1164,8 @@ namespace Simcraft
                 new Decorator(ret => OverrideSpell.Enabled,
                     new Action(delegate
                     {
-                        if (CastSpell(OverrideSpell.Spell, OverrideSpell.Target, 3, "SpellOverride"))
+                        if (
+         * (OverrideSpell.Spell, OverrideSpell.Target, 3, "SpellOverride"))
                             return RunStatus.Success;
                         return RunStatus.Failure;
                     })));

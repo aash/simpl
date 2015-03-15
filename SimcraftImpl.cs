@@ -223,6 +223,14 @@ namespace Simcraft
             }, new ActionAlwaysSucceed());
         }
 
+
+        public static bool CanCast(String name, WoWUnit target)
+        {
+            var a = SpellManager.CanCast(name, target);
+            LogDebug("CanCast: "+name+" => "+a);
+            return a;
+        }
+
         public Composite CycleTargets(String _spell, UnitCriteriaDelegate criteria, String Reason = "")
         {
             NameCount++;
@@ -244,7 +252,7 @@ namespace Simcraft
                     foreach (var w in actives)
                     {
                         conditionUnit = w;
-                        if (criteria(w))
+                        if (criteria(w) && (CanCast(actualSpell.name, w)))
                         {
                             CycleTarget = w;
                             return RunStatus.Failure;
@@ -310,7 +318,8 @@ namespace Simcraft
                         LogDebug(actualSpell.name + " if=" + Reason);
                         var r = d(_ret);
                         LogDebug(actualSpell.name + " => " + r);
-                        return r;
+                        if (!r) return false;
+                        return (CanCast(actualSpell.name, conditionUnit));
                     }
                     catch (Exception e)
                     {
@@ -321,10 +330,11 @@ namespace Simcraft
                     new Action(delegate
                     {
                         clickUnit = conditionUnit;
+                        //if (SpellManager.CanCast(spell.name, conditionUnit))
                         if (CastSpell(actualSpell, conditionUnit, 3, Reason))
                         {
                             //if (actualSpell.name.Contains("Fire")) Write("fire:"+conditionUnit.Guid.GetFriendlyString());
-                            LogDebug(_spell +  " => SUCCESS!");
+                            //LogDebug(_spell +  " => SUCCESS!");
                             start_line_cd();
                             return RunStatus.Success;
                         }
@@ -481,7 +491,7 @@ namespace Simcraft
 
         public static void LogDebug(String stuff)
         {
-            //Write( LogLevel.Diagnostic, stuff);
+            if (Superlog) Write( LogLevel.Diagnostic, stuff);
         }
 
         public static void Write(LogLevel l, String format, params object[] pars)
@@ -543,16 +553,20 @@ namespace Simcraft
 
             if (!SpecialRequirementsCheck(spell)) return false;
 
-            if (SpellManager.CanCast(spell.name, u))
+            //if (SpellManager.CanCast(spell.name, u))
 
                 if (SpellManager.Cast(spell.name, u))
                 {
+                    LogDebug(spell.name + " Success!");
                     return true;
                 }
                 else
                 {
+                    LogDebug(spell.name + " failed due to Cast");
                     return false;
                 }
+
+            LogDebug(spell.name+" failed due to CanCast?");
             return false;
         }
 

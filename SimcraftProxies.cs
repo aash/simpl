@@ -884,8 +884,6 @@ namespace Simcraft
             }
 
 
-
-
             public class PetBuffProxy : BuffProxy
             {
 
@@ -912,7 +910,7 @@ namespace Simcraft
                 }
 
 
-                public PetBuffProxy() : base(() => Me.Pet, SimcraftImpl.inst.PetAuras)
+                public PetBuffProxy() : base(() => Me.Pet, inst.PetAuras)
                 {
                 }
             }
