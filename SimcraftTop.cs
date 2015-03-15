@@ -709,7 +709,7 @@ namespace Simcraft
 
 
 
-            var sw = new Stopwatch();
+           /* var sw = new Stopwatch();
             sw.Restart();
             
 
@@ -726,7 +726,7 @@ namespace Simcraft
 
             Lua.GetReturnValues(cc);
 
-            Logging.Write(""+sw.ElapsedTicks+" checked spells "+i);
+            Logging.Write(""+sw.ElapsedTicks+" checked spells "+i);*/
 
             if (args.Args[0].ToString().Equals("player"))
             {
