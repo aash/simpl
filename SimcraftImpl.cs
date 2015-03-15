@@ -224,9 +224,11 @@ namespace Simcraft
         }
 
 
-        public static bool CanCast(String name, WoWUnit target)
+        public static bool CanCast(String name, WoWUnit target, bool RangeCheck = false)
         {
-            var a = SpellManager.CanCast(name, target);
+            bool a;
+            a = !RangeCheck ? SpellManager.CanCast(name, target) : SpellManager.CanCast(name, target, true);
+
             LogDebug("CanCast: "+name+" => "+a);
             return a;
         }
@@ -247,18 +249,19 @@ namespace Simcraft
             return new NamedComposite("" + NameCount, _spell,
                 new Action(delegate
                 {
+                    CycleTarget = null;
                     conditionName = NameCount;
                     _conditionSpell = actualSpell;
                     foreach (var w in actives)
                     {
                         conditionUnit = w;
-                        if (criteria(w) && (CanCast(actualSpell.name, w)))
+                        if (criteria(w) && (CanCast(actualSpell.name, w, true)))
                         {
                             CycleTarget = w;
                             return RunStatus.Failure;
                         }                       
                     }
-                    CycleTarget = null;
+                    
                     return RunStatus.Failure;
                 }),
                 new Decorator(ret => CycleTarget != null,
@@ -628,7 +631,7 @@ namespace Simcraft
                                                                                        && u.CanSelect
                                                                                        && u.Attackable
                                                                                        && !u.IsFriendly
-                    //&& u.Distance <= 10
+                    && u.Distance <= 40
                     ).ToList();
                 return unfriendlyCache;
             }
