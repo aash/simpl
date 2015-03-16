@@ -144,7 +144,7 @@ namespace Simcraft.APL
             spells["windstrike"] = new SpecList { new SpecPair(WoWSpec.None, 115356) }; //http://www.wowhead.com/search?q=windstrike#specialization
             spells["stormstrike"] = new SpecList { new SpecPair(WoWSpec.None, 17364) }; //http://www.wowhead.com/search?q=stormstrike#specialization
             spells["dark_intent"] = new SpecList { new SpecPair(WoWSpec.None, 109773) }; //http://www.wowhead.com/search?q=dark_intent#specialization
-
+            spells["mend_pet"] = new SpecList { new SpecPair(WoWSpec.None, 136) }; //http://www.wowhead.com/search?q=dark_intent#specialization
             spells["grimoire_of_sacrifice"] = new SpecList { new SpecPair(WoWSpec.None, 108503) }; //http://www.wowhead.com/search?q=grimoire_of_sacrifice#specialization
             spells["shadowburn"] = new SpecList { new SpecPair(WoWSpec.None, 17877) }; //http://www.wowhead.com/search?q=shadowburn#specialization
             spells["fire_and_brimstone"] = new SpecList { new SpecPair(WoWSpec.None, 108683) }; //http://www.wowhead.com/search?q=fire_and_brimstone#specialization
@@ -289,7 +289,7 @@ namespace Simcraft.APL
             spells["fervor"] = new SpecList { new SpecPair(WoWSpec.None, 806), }; //http://www.wowhead.com/search?q=fervor#specialization
             spells["reckoning"] = new SpecList { new SpecPair(WoWSpec.None, 62124), }; //http://www.wowhead.com/search?q=reckoning#specialization
             spells["taunt"] = new SpecList { new SpecPair(WoWSpec.None, 355), }; //http://www.wowhead.com/search?q=taunt#specialization
-
+            spells["aspect_of_the_cheetah"] = new SpecList { new SpecPair(WoWSpec.None, 5118) }; //http://www.wowhead.com/search?q=dark_intent#specialization
             spells["blood_fury"] = new SpecList { new SpecPair(WoWSpec.None, 20572), new SpecPair(WoWSpec.None, 24571), new SpecPair(WoWSpec.None, 33697), new SpecPair(WoWSpec.None, 33702), }; //http://www.wowhead.com/search?q=blood_fury#specialization
             spells["berserking"] = new SpecList { new SpecPair(WoWSpec.None, 26297), new SpecPair(WoWSpec.None, 59621), }; //http://www.wowhead.com/search?q=berserking#specialization
             spells["arcane_torrent"] = new SpecList { new SpecPair(WoWSpec.None, 25046), new SpecPair(WoWSpec.None, 28730), new SpecPair(WoWSpec.None, 50613), new SpecPair(WoWSpec.None, 69179), new SpecPair(WoWSpec.None, 80483), new SpecPair(WoWSpec.None, 129597), new SpecPair(WoWSpec.None, 155145), }; //http://www.wowhead.com/search?q=arcane_torrent#specialization
@@ -634,7 +634,8 @@ namespace Simcraft.APL
             buffs["unyielding_strikes"] = new SpecList { new SpecPair(WoWSpec.None, 169686), }; //http://www.wowhead.com/search?q=unyielding_strikes#specialization
             buffs["ultimatum"] = new SpecList { new SpecPair(WoWSpec.None, 122510), }; //http://www.wowhead.com/search?q=ultimatum#specialization
             buffs["demoralizing_shout"] = new SpecList { new SpecPair(WoWSpec.None, 1160), }; //http://www.wowhead.com/search?q=demoralizing_shout#specialization
-
+            buffs["mend_pet"] = new SpecList { new SpecPair(WoWSpec.None, 136) }; //http://www.wowhead.com/search?q=dark_intent#specialization
+            buffs["aspect_of_the_cheetah"] = new SpecList { new SpecPair(WoWSpec.None, 5118) }; //http://www.wowhead.com/search?q=dark_intent#specialization
             buffs["shield_wall"] = new SpecList { new SpecPair(WoWSpec.None, 871), }; //http://www.wowhead.com/search?q=shield_wall#specialization
             buffs["last_stand"] = new SpecList { new SpecPair(WoWSpec.None, 12975), }; //http://www.wowhead.com/search?q=last_stand#specialization
             buffs["enraged_regeneration"] = new SpecList { new SpecPair(WoWSpec.None, 55694), }; //http://www.wowhead.com/search?q=enraged_regeneration#specialization

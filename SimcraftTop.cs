@@ -707,9 +707,7 @@ namespace Simcraft
             //(Write("rav"+talent.ravager.enabled);
             //Write("ava:"+talent.avatar.enabled);
 
-
-
-           /* var sw = new Stopwatch();
+            /* var sw = new Stopwatch();
             sw.Restart();
             
 
@@ -733,23 +731,19 @@ namespace Simcraft
 
                 uint spellid = uint.Parse(args.Args[4].ToString());
 
-                //Write(""+buff.incanters_flow.stack);
-
                 if (!dbc.Spells.ContainsKey(spellid)) return;
 
-                    LastSpellCast = dbc.Spells[spellid];
+                LastSpellCast = dbc.Spells[spellid];
 
                 prev.spell = LastSpellCast;
 
-                LogDebug("Cast: "+LastSpellCast.name);
-
-                //if (LastSpellCast.gcd > 0) Write("GCD used for: " +LastSpellCast.name);
+                LogDebug("Cast: " + LastSpellCast.name);
 
                 if (LastSpellCast.id == 78203)
                 {
                     var s = new Stopwatch();
                     s.Start();
-                    apparitions.Add(s);            
+                    apparitions.Add(s);
                 }
 
                 if (LastSpellCast.id == 8092)
@@ -765,6 +759,12 @@ namespace Simcraft
 
                 if (LastSpellCast.gcd > 0)
                     prev_gcd.spell = LastSpellCast;
+
+                if (LastSpellCast.name.Contains("Seal of"))
+                {
+                    seal.active = LastSpellCast.token.Split('_')[2];
+                }
+
 
                 if (talent.steady_focus.enabled)
                 {
@@ -782,58 +782,7 @@ namespace Simcraft
                         BuffProxy.cShots = 0;
                     }
                 }
-
-                /*if (LastSpellCast == DBGetClassSpell("Shadowy Apparition"))
-                {
-
-                }
-
-                if (LastSpellCast == DBGetClassSpell("Mind Blast"))
-                {
-                    if (conditionUnit != null)
-                        conditionUnit.ApplyMindHarvest();
-                }
-
-                if (LastSpellCast.Contains("Seal of"))
-                {
-                    seal.active = Tokenize(LastSpellCast).Split('_')[2];
-                    //Write(seal.active);
-                }
-
-                if (LastSpellCast.Contains("Judgment"))
-                {
-                    last_judgment_target = conditionUnit;
-                }
-
-                if (spell.gcd > 0)
-                {
-                    Write(spell.name);
-                    prev_gcd.Id = spell.id;
-                    //Write(spell.Name + " using Gcd Cast");
-                }       
-                else
-                {
-                    //Write(spell.Name + " without Gcd Cast");
-                }
-                prev.id = spell.id;
-
-                if (Me.Specialization == WoWSpec.HunterSurvival && !talent.focusing_shot.enabled)
-                {
-                    if (LastSpellCast.Equals(DBGetSpell("Cobra Shot")) || LastSpellCast.Equals(DBGetTalentSpell("Focusing Shot")))
-                    {
-                        BuffProxy.cShots++;
-                        if (BuffProxy.cShots == 2)
-                        {
-                            BuffProxy.cShots = 0;
-                            SimcraftImpl.Write(DateTime.Now + ": Steady Shots!");
-                        }
-                    }
-                    if (CobraReset.Contains(LastSpellCast.name) && BuffProxy.cShots > 0)
-                    {
-                        BuffProxy.cShots = 0;
-                    }                   
-                }*/
-        }
+            }
         }
 
 
