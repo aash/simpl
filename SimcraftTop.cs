@@ -932,12 +932,15 @@ namespace Simcraft
                 get { return SimcraftImpl.inst; }
             }
 
+            private int lastIteCount = -1;
+
             Dictionary<uint, Aura> auras = new Dictionary<uint, Aura>(); 
 
             public void UNIT_AURA(object sender, LuaEventArgs args)
             {             
                 iterationTimer.Restart();
-
+                if (lastIteCount == iterationCounter) return;
+                lastIteCount = iterationCounter;
                 String u = args.Args[0].ToString();
 
                 if (!u.Equals(Unit)) return;
