@@ -939,8 +939,8 @@ namespace Simcraft
             public void UNIT_AURA(object sender, LuaEventArgs args)
             {             
                 iterationTimer.Restart();
-                if (lastIteCount == iterationCounter) return;
-                lastIteCount = iterationCounter;
+                //if (lastIteCount == iterationCounter) return;
+                //lastIteCount = iterationCounter;
                 String u = args.Args[0].ToString();
 
                 if (!u.Equals(Unit)) return;
