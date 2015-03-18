@@ -97,8 +97,8 @@ namespace Simcraft
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            if (toggle != 0) return;
-            toggle = 1;
+            //if (toggle != 0) return;
+            //toggle = 1;
             var a = (ActionPrioriyList)listBox1.SelectedItem;
             a.PrintResolutionTable();
             a.CreateBehavior();

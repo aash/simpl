@@ -122,7 +122,7 @@ namespace Simcraft
         public WoWUnit last_judgment_target = null;
         public dynamic active_dot;
         public dynamic stat;
-        public SpellbookProxy spellbook;
+       
         public ProxyCacheEntry MainCache;
        
 
@@ -184,7 +184,6 @@ namespace Simcraft
 
                 SimcNames.Populate();
                 MainCache = new ProxyCacheEntry();
-                spellbook = new SpellbookProxy();
                 inst = this;
                 active_dot = new ActiveDot();
                 //trinket = new TrinketProxy(() => StyxWoW.Me.ToUnit(), this);
@@ -368,10 +367,6 @@ namespace Simcraft
                 var classname = RandomString(10);
                 code = code.Replace("public class SimcraftRota", "public class "+classname);
 
-
-                //Write(code);
-                //Console.WriteLine(fullExpression);
-
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
                 Behavior attributes =
@@ -384,8 +379,6 @@ namespace Simcraft
                 apls[currentApl.ToString()] = currentApl;
             }
         }
-
-
 
 
         public static void Main()
@@ -798,15 +791,15 @@ namespace Simcraft
         public void ContextChange(object sender, LuaEventArgs args)
         {
 
-            //SimcraftImpl.Write(args != null ? args.EventName : "CTX");
             talent.Reset();
             glyph.Reset();
             spell.Reset();
-            spell.Reset();
             line_cds.Clear();
-            //actions.Reset();
+            PlayerAuras.Reset();
+            PetAuras.Reset();
+
             _class = StyxWoW.Me.Class;
-            _spec = Me.Specialization;
+            //_spec = Me.Specialization;
 
             var oldctx = Context;
             Context = (StyxWoW.Me.CurrentMap.IsArena || StyxWoW.Me.CurrentMap.IsBattleground)
@@ -827,36 +820,24 @@ namespace Simcraft
         public override void Start()
         {
 
-            /*foreach (var s in SpellManager.Spells.Values)
-            {
-                Write(s.Name + " " + s.Id);
-            }*/
             try
             {
                 Specialisation = WoWSpec.None;
                 NamedComposite.Sequence = "";
                 TreeRoot.TicksPerSecond = 8;
                 ProfileManager.LoadEmpty();
-                _oldRoutine = RoutineManager.Current; //Save it so we can restore it later
+                //_oldRoutine = RoutineManager.Current; //Save it so we can restore it later
                 RoutineManager.Current = new ProxyRoutine();
 
                 Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);               
-                Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
-                Lua.Events.AttachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
-                Lua.Events.AttachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
+                //Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
+
                 Lua.Events.AttachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_LOGOUT", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_TALENT_UPDATE", ContextChange);
-
-                //Lua.Events.RemoveFilter("COMBATLOG_EVENT_UNFILTERED");
-
-                //Lua.Events.AttachEvent("UNIT_AURA", ContextChange);
+                Lua.Events.AttachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
+                Lua.Events.AttachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
                 ContextChange(null, null);
-
-                /*new Thread(() =>
-                {
-                    Application.Run(console);
-                }).Start();*/
 
                 RegisterHotkeys();
             }
@@ -864,6 +845,24 @@ namespace Simcraft
             {
                 SimcraftImpl.Write(e.ToString());
             }
+        }
+
+        public override void Stop()
+        {
+            //SimcraftImpl.Write(NamedComposite.Sequence);
+            NameCount = 'A';
+            TreeRoot.ResetTicksPerSecond();
+            //RoutineManager.Current = _oldRoutine;
+            UnregisterHotkeys();
+            Lua.Events.DetachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);
+            Lua.Events.DetachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
+            Lua.Events.DetachEvent("PLAYER_LOGOUT", ContextChange);
+            Lua.Events.DetachEvent("PLAYER_TALENT_UPDATE", ContextChange);
+
+            Lua.Events.DetachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
+            Lua.Events.DetachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
+
+
         }
 
         public class AuraProxy : Proxy
@@ -934,7 +933,12 @@ namespace Simcraft
 
             private int lastIteCount = -1;
 
-            Dictionary<uint, Aura> auras = new Dictionary<uint, Aura>(); 
+            Dictionary<uint, Aura> auras = new Dictionary<uint, Aura>();
+
+            public void Reset()
+            {
+                auras.Clear();
+            }
 
             public void UNIT_AURA(object sender, LuaEventArgs args)
             {             
@@ -1055,22 +1059,7 @@ namespace Simcraft
             HotkeysManager.Unregister("Simcraft AOE");
         }
 
-        public override void Stop()
-        {
-            //SimcraftImpl.Write(NamedComposite.Sequence);
-            NameCount = 'A';
-            TreeRoot.ResetTicksPerSecond();
-            RoutineManager.Current = _oldRoutine;
-            UnregisterHotkeys();
-            Lua.Events.DetachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);
-            Lua.Events.DetachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
-            Lua.Events.DetachEvent("PLAYER_LOGOUT", ContextChange);          
-            Lua.Events.DetachEvent("PLAYER_TALENT_UPDATE", ContextChange);
-            Lua.Events.DetachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
-            Lua.Events.DetachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
 
-
-        }
 
         public void RebuildBehaviors()
         {
@@ -1093,8 +1082,6 @@ namespace Simcraft
                             new PrioritySelector(CombatIteration(), actions.Selector, IterationEnd())))));
 
             TreeHooks.Instance.ReplaceHook(SimcraftHookName, simcRoot);
-
-            //SimcraftImpl.Write(Specialisation+" "+Me.Specialization);
 
             if (Me.Specialization != Specialisation)
             {
