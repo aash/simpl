@@ -16,6 +16,14 @@ namespace Simcraft
             get { return new MagicValueType(buff.anticipation.stack); }
         }
 
+        public MagicValueType cooldown_react
+        {
+            get
+            {
+                return cooldown[_conditionSpell].up;
+            }
+        }
+
         public MagicValueType primary_target
         {
             get { return new MagicValueType(Target1() == conditionUnit); }
@@ -342,21 +350,17 @@ namespace Simcraft
             get { return new MagicValueType(true); }
         }
 
-        public MagicValueType cooldown_react
-        {
-            get
-            {
-                if (_conditionSpell.name == "Mind Blast")
-                {
-                    return buff.shadowy_insight.up;
-                }
-                return new MagicValueType(false);
-            }
-        }
-
         public MagicValueType incanters_flow_dir
         {
             get { return new MagicValueType(buff.incanters_flow.dir); }
+        }
+
+        public MagicValueType damage
+        {
+            get
+            {
+                return health.deficit;
+            }
         }
 
         public WoWUnit prismatic_crystal

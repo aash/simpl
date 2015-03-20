@@ -77,16 +77,7 @@ namespace Simcraft.APL
         {
             return  "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
                              "\"] += simc.StartPyroChain(" +
-                             (has(ActionOptionType.If)
-                                 ? "_if => (" + _condition_string +
-                                   (has(ActionOptionType.LineCd)
-                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
-                                       : "") +
-                                   (has(ActionOptionType.Sync)
-                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
-                                       : "")
-                                   + ")"
-                                 : "") +
+                             If+
                              ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
         }
@@ -95,16 +86,7 @@ namespace Simcraft.APL
         {
             return "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
                              "\"] += simc.StopPyroChain(" +
-                             (has(ActionOptionType.If)
-                                 ? "_if => (" + _condition_string +
-                                   (has(ActionOptionType.LineCd)
-                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
-                                       : "") +
-                                   (has(ActionOptionType.Sync)
-                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
-                                       : "")
-                                   + ")"
-                                 : "") +
+                             If+
                              ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
         }
@@ -113,17 +95,7 @@ namespace Simcraft.APL
         {
             return "simc.actions[\"" + (apl == "default" ? "" : "" + apl) +
                                          "\"] += simc.Wait(" +
-                                         (has(ActionOptionType.If)
-                                             ? "_if => (" + _condition_string +
-                                               (has(ActionOptionType.LineCd)
-                                                   ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
-                                                   : "") +
-                                               (has(ActionOptionType.Sync)
-                                                   ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
-                                                   : "") +
-                                               (has(ActionOptionType.Moving) ? " && simc.moving" : "")
-                                               + ")"
-                                             : "") +
+                                         If +
                                          ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                                          ");";            
         }
@@ -230,34 +202,7 @@ namespace Simcraft.APL
                              (has(ActionOptionType.CycleTargets)
                                  ? " += simc.CycleTargets(\""
                                  : (false ? " += simc.MovingCast(\"" : " += simc.Cast(\"")) +
-                             action + "\"" + ", _if => (" +
-                             (has(ActionOptionType.If)
-                                 ? _condition_string +
-                                   (has(ActionOptionType.LineCd)
-                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
-                                       : "") +
-                                   (has(ActionOptionType.Sync)
-                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
-                                       : "") +
-                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
-                                   (has(ActionOptionType.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
-                                   (has(ActionOptionType.Target)
-                                       ? " && simc.Target" + get(ActionOptionType.Target) + " != null"
-                                       : "")
-                                   + ")"
-                                 : "true" +
-                                   (has(ActionOptionType.LineCd)
-                                       ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")"
-                                       : "") +
-                                   (has(ActionOptionType.Sync)
-                                       ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")"
-                                       : "") +
-                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
-                                   (has(ActionOptionType.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
-                                   (has(ActionOptionType.Target)
-                                       ? " && simc.Target" + get(ActionOptionType.Target) + " != null"
-                                       : "")
-                                   + ")") +
+                             action + "\"," + If +
                              (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
                              ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
@@ -274,12 +219,8 @@ namespace Simcraft.APL
                                  ? "simc.UseItem(" +
                                    myList.Items.First(ret => ret.Value.name.Equals(get(ActionOptionType.Name))).Value.id +
                                    ""
-                                 : "")
-                             + (has(ActionOptionType.If)
-                                 ? ", _if => (" + _condition_string +
-                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
-                                   ")"
-                                 : "") +
+                                 : "")+
+                             ","+ If +
                              (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
                              ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                              ");";
@@ -289,15 +230,36 @@ namespace Simcraft.APL
         {
             return  "simc.actions" +
                                          (apl == "default" ? "" : "[\"" + apl + "\"]") +
-                                         " += simc.UsePotion(\"" + get(ActionOptionType.Name) + "\"" +
-                                         (has(ActionOptionType.If)
-                                             ? ", _if => (" + _condition_string +
-                                               (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
-                                               ")"
-                                             : "") +
+                                         " += simc.UsePotion(\"" + get(ActionOptionType.Name) + "\"," +
+                                         If +
                                          (has(ActionOptionType.Target) ? ",simc.Target" + get(ActionOptionType.Target) : "") +
                                          ",\"" + _condition_string.Replace("\"", "\\\"") + "\"" +
                                          ");";
+        }
+
+
+        public String If
+        {
+            get
+            {
+
+                    String cond; 
+                    if (has(ActionOptionType.If)){
+                        cond = _condition_string;
+                    } else {
+                        cond = "true";
+                    }
+
+                    return "_if => (" +
+                                 cond +
+                                   (has(ActionOptionType.LineCd) ? " && simc.line_cd(" + get(ActionOptionType.LineCd) + ")": "") +
+                                   (has(ActionOptionType.Sync) ? " && simc.sync(\"" + get(ActionOptionType.Sync) + "\")": "") +
+                                   (has(ActionOptionType.Moving) ? " && simc.moving" : "") +
+                                   (has(ActionOptionType.Damage) ? " && simc.damage > " + get(ActionOptionType.Damage) : "") +
+                                   (has(ActionOptionType.FiveStacks) ? " && simc.buff.frenzy.stack == 5" : "") +
+                                   (has(ActionOptionType.Target) ? " && simc.Target" + get(ActionOptionType.Target) + " != null": "")
+                                   + ")";
+            }
         }
 
         public AplAction(String fullExpression, List<String> comments, ActionPrioriyList aList)
@@ -480,25 +442,18 @@ namespace Simcraft.APL
             return _params.First(ret => ret.type == type).content;
         }
 
-        public static String run_action_list_t(AplAction action)
+        public String run_action_list_t(AplAction action)
         {
 
             var s = "simc.actions" + (action.apl == "default" ? "" : "[\"" + action.apl + "\"]") +
                                       " += simc.CallActionList(\"" + action.get(ActionOptionType.Name) +
-                                      "\"" +
-                                      (action.has(ActionOptionType.If)
-                                          ? ", _if => (" + action._condition_string +
-                                          (action.has(ActionOptionType.Moving) ? " && simc.moving" : "") +
-                                            ")"
-                                          : "") +
+                                      "\"," +
+                                      If+
                                       (action.has(ActionOptionType.Target) ? ",simc.Target" + action.get(ActionOptionType.Target) : "") +
                                       ",\"" + action._condition_string.Replace("\"", "\\\"") + "\"" +
                                       ");";
             return s;
         }
-
-
-
 
 
         public void FixTokens()

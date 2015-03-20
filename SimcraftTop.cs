@@ -367,6 +367,8 @@ namespace Simcraft
                 var classname = RandomString(10);
                 code = code.Replace("public class SimcraftRota", "public class "+classname);
 
+                //SimcraftImpl.Write(code);
+
                 Assembly asm = RuntimeCodeCompiler.CompileCode(code);
 
                 Behavior attributes =
@@ -829,8 +831,10 @@ namespace Simcraft
                 //_oldRoutine = RoutineManager.Current; //Save it so we can restore it later
                 RoutineManager.Current = new ProxyRoutine();
 
+                Lua.Events.RemoveFilter("COMBATLOG_EVENT_UNFILTERED");
+
                 Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);               
-                //Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
+                Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
 
                 Lua.Events.AttachEvent("CHARACTER_POINTS_CHANGED", ContextChange);
                 Lua.Events.AttachEvent("PLAYER_LOGOUT", ContextChange);
@@ -861,7 +865,7 @@ namespace Simcraft
 
             Lua.Events.DetachEvent("UNIT_AURA", PlayerAuras.UNIT_AURA);
             Lua.Events.DetachEvent("UNIT_AURA", PetAuras.UNIT_AURA);
-
+            Lua.Events.DetachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
 
         }
 

@@ -153,6 +153,8 @@ namespace Simcraft.APL
             var typ = Assembly.GetTypes()[0];
             //SimcraftImpl.Write("func: " + mem);
 
+            //SimcraftImpl.Write(
+
             typ.InvokeMember(mem.Name,
                 BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
                 null, null, new object[0]);
@@ -443,6 +445,8 @@ namespace Simcraft.APL
                 debuffs.Add(val);
             }
 
+
+            Logging.Write("code: "+code);
 
             return code;
         }
