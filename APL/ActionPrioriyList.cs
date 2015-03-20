@@ -44,11 +44,12 @@ namespace Simcraft.APL
         private static Regex spec_regex = new Regex("spec=([a-z_]+)");
         private static Regex items = new Regex("(.+)=([a-z_]+),id=(\\d+)");
 
-        public void SetAplHeader(String text)
+        public bool SetAplHeader(String text)
         {
             Class = ParseClass(class_regex.Match(text).Groups[1].ToString());
             Name = class_regex.Match(text).Groups[2].ToString();
             Spec = spec_regex.Match(text).Groups[1].ToString();
+            return Class == StyxWoW.Me.Class;
         }
 
         public static ActionPrioriyList FromString(String s)
@@ -60,7 +61,7 @@ namespace Simcraft.APL
             //    lines = s.Split(new string[] { "\r" }, StringSplitOptions.None);
 
             var apl = new ActionPrioriyList();
-            apl.SetAplHeader(s);
+            if (!apl.SetAplHeader(s)) return apl;
             foreach (var l in lines)
             {
                 var expr = ParseLine(l,apl);
@@ -446,7 +447,7 @@ namespace Simcraft.APL
             }
 
 
-            Logging.Write("code: "+code);
+            //Logging.Write("code: "+code);
 
             return code;
         }
