@@ -1,4 +1,6 @@
-﻿//This BotBase was created by Apoc, I take no credit for anything within this fullExpression
+//!CompilerOption:AddRef:Microsoft.CSharp.dll
+
+//This BotBase was created by Apoc, I take no credit for anything within this fullExpression
 //I just changed "!StyxWoW.Me.CurrentTarget.IsFriendly" to "!StyxWoW.Me.CurrentTarget.IsHostile"
 //For the purpose of allowing RaidBot to work within Arenas
 
