@@ -25,7 +25,6 @@ using Action = Styx.TreeSharp.Action;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Windows.Threading;
 using Simcraft.APL;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
