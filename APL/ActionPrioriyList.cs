@@ -249,10 +249,7 @@ namespace Simcraft.APL
             PrintCode();
 
             List<String> c = new List<string>();
-            int lasti = 0;
 
-            string format = "{2,-37} - {1,-37} - {0,-37}";
-            string format2 = "{2,-40} - {1,-40} - {0,-40}";
             SimcraftImpl.Write("-------------------------------------------------------------------------");
             foreach (var t in buffs)
             {
@@ -265,7 +262,7 @@ namespace Simcraft.APL
                     else
                         SimcraftImpl.Write("Buff: " + t + " id: " + _t.V2);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     SimcraftImpl.Write("Couldnt find Buff: " + t);
                 }
@@ -284,7 +281,7 @@ namespace Simcraft.APL
                     else
                         SimcraftImpl.Write("Debuff: " + t + " id: " + _t.V2);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     SimcraftImpl.Write("Couldnt find Debuff: " + t);
                 }
@@ -303,7 +300,7 @@ namespace Simcraft.APL
                                       ? " - Enabled"
                                       : " - Disabled") + " id: " + _t.id);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     SimcraftImpl.Write("Couldnt find Talent: " + t);
                 }

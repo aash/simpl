@@ -69,9 +69,8 @@ namespace Simcraft
 
                     result = new MagicValueType(Convert.ToInt32(splits[1][0]) <= wornPieces[splits[0]]);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    //SimcraftImpl.Write(e.ToString());
                     result = new MagicValueType(false);
                     return true;
                 }
@@ -660,8 +659,6 @@ namespace Simcraft
 
         public class ItemProxy
         {
-
-            private MagicValueType _remains;
 
             public ItemProxy cooldown
             {
@@ -1496,7 +1493,24 @@ namespace Simcraft
 
         public abstract class UnitBasedProxy : Proxy
         {
-            
+            protected bool Equals(UnitBasedProxy other)
+            {
+                return Equals(GetUnit, other.GetUnit);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((UnitBasedProxy) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return (GetUnit != null ? GetUnit.GetHashCode() : 0);
+            }
+
             public GetUnitDelegate GetUnit;
 
             public static bool operator ==(WoWUnit h1, UnitBasedProxy val)

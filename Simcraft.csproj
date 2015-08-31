@@ -5,11 +5,11 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C744C8E1-6FE0-4C29-A756-57F030C8454D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Simcraft</RootNamespace>
     <AssemblyName>Simcraft</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -47,6 +47,29 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="db.dbc" />
@@ -55,39 +78,17 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GreyMagic">
-      <HintPath>Dep\GreyMagic.dll</HintPath>
+      <HintPath>GreyMagic.dll</HintPath>
     </Reference>
     <Reference Include="Honorbuddy">
-      <HintPath>Dep\Honorbuddy.exe</HintPath>
+      <HintPath>Honorbuddy.exe</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>Dep\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="RemoteASM">
-      <HintPath>Dep\RemoteASM.dll</HintPath>
-    </Reference>
-    <Reference Include="RemoteASMNative">
-      <HintPath>Dep\RemoteASMNative.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite">
-      <HintPath>Dep\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tripper.RecastManaged">
-      <HintPath>Dep\Tripper.RecastManaged.dll</HintPath>
-    </Reference>
-    <Reference Include="Tripper.Tools">
-      <HintPath>Dep\Tripper.Tools.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APL\ActionOption.cs" />
@@ -106,26 +107,8 @@
     <Compile Include="APL\trinket_proc_type_e.cs" />
     <Compile Include="Behavior.cs" />
     <Compile Include="Caching.cs" />
-    <Compile Include="ConfigWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ConfigWindow.Designer.cs">
-      <DependentUpon>ConfigWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="Database.cs" />
-    <Compile Include="DevConsole.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DevConsole.Designer.cs">
-      <DependentUpon>DevConsole.cs</DependentUpon>
-    </Compile>
     <Compile Include="MagicValueType.cs" />
-    <Compile Include="ProfileSelector.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProfileSelector.Designer.cs">
-      <DependentUpon>ProfileSelector.cs</DependentUpon>
-    </Compile>
     <Compile Include="SimcraftApis.cs" />
     <Compile Include="SimCSettings.cs" />
     <Compile Include="SimcraftProxies.cs" />
@@ -133,17 +116,6 @@
     <Compile Include="SimcraftTop.cs" />
     <Compile Include="SpellState.cs" />
     <Compile Include="WoWContext.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ConfigWindow.resx">
-      <DependentUpon>ConfigWindow.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="DevConsole.resx">
-      <DependentUpon>DevConsole.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProfileSelector.resx">
-      <DependentUpon>ProfileSelector.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Profiles\" />

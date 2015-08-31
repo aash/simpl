@@ -207,7 +207,7 @@ namespace Simcraft
             BinaryFormatter bFormatter = new BinaryFormatter();
             bFormatter.Binder = new CurrentAssemblyDeserializationBinder();
             objectToSerialize = (Database)bFormatter.Deserialize(__stream);
-            //stream.Close();
+            stream.Close();
             return objectToSerialize;
         }
     }

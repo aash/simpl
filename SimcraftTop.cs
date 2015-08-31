@@ -57,7 +57,7 @@ namespace Simcraft
 
         private const string SimcraftHookName = "Simcraft.Root";
         private static Boolean _aoeEnabled;
-        private static Boolean _damageEnabled;
+        private static Boolean _damageEnabled = false;
         private static Boolean _cdsEnabled;
         public static int iterationCounter;
         public static int iterationCache = 1;
@@ -246,13 +246,65 @@ namespace Simcraft
                 s.id = 138130;
                 dbc.Spells.Add(138130, s);
 
+                GenerateApls(SimcraftProfilePath);
 
-
+                var settings = SimCSettings.currentSettings;
+                if (settings.Specs.ContainsKey(Me.Specialization))
+                {
+                    var aplFileName = settings.Specs[Me.Specialization];
+                    try
+                    {
+                        var apl = apls[aplFileName];
+                        apl.CreateBehavior();
+                        apl.PrintResolutionTable();
+                        current_action_list = apl;
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        throw new ApplicationException(
+                            string.Format("settings are incorrect for current spec {0}, it reference unexistent file {1}",
+                            Me.Specialization, aplFileName));
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var apl = apls.Values.First(o => o.Class == Me.Class);
+                        var filename = apls.Keys.First(k => apls[k] == apl);
+                        settings.Specs[Me.Specialization] = filename;
+                        SimCSettings.Save();
+                        Write(string.Format("Settings does not tell which *.simc " +
+                            "use for current spec({0}) so picking most appropriate: {1}",
+                            Me.Specialization, filename));
+                        apl.CreateBehavior();
+                        apl.PrintResolutionTable();
+                        current_action_list = apl;
+                    }
+                    catch (Exception)
+                    {
+                        throw new ApplicationException(
+                            string.Format("There's not *.simc for current spec({0})",
+                            Me.Specialization));
+                    }
+                }
             }
             catch (Exception e)
             {
                 Write(e.ToString());
             }
+        }
+
+        public override void OnDeselected()
+        {
+            SimCSettings.Save();
+            base.OnDeselected();
+        }
+
+        public override void OnSelected()
+        {
+            SimCSettings.Load();
+            base.OnSelected();
         }
 
         public Decimal BaseGcd()
@@ -274,7 +326,7 @@ namespace Simcraft
 
         public override Form ConfigurationForm
         {
-            get { return new ConfigWindow(); }
+            get { return null; }
         }
 
         public override string Name
@@ -380,7 +432,7 @@ namespace Simcraft
 
                 SimcraftImpl.Write("New Apl: " + currentApl.Name);
 
-                apls[currentApl.ToString()] = currentApl;
+                apls[filename] = currentApl;
             }
         }
 
@@ -399,9 +451,6 @@ namespace Simcraft
                 dbc.Spells[v.id, v.token] = v;
             }
 
-
-            int c = 0;
-            String akk = "";
 
             SimcNames.Populate();
 
@@ -782,8 +831,6 @@ namespace Simcraft
             }
         }
 
-
-
         public override void Initialize()
         {
            
@@ -815,15 +862,11 @@ namespace Simcraft
             RebuildBehaviors();
         }
 
-        public static ProfileSelector SelectorWindow = new ProfileSelector();
-        public static DevConsole console = new DevConsole();
-
         public WoWSpec _spec = WoWSpec.None;
 
 
         public override void Start()
         {
-
             try
             {
                 Specialisation = WoWSpec.None;
@@ -833,7 +876,7 @@ namespace Simcraft
                 //_oldRoutine = RoutineManager.Current; //Save it so we can restore it later
                 RoutineManager.Current = new ProxyRoutine();
 
-                Lua.Events.RemoveFilter("COMBATLOG_EVENT_UNFILTERED");
+                Lua.Events.DetachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
 
                 Lua.Events.AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UNIT_SPELLCAST_SUCCEEDED);               
                 Lua.Events.AttachEvent("COMBATLOG_EVENT_UNFILTERED", COMBATLOG_EVENT_UNFILTERED);
@@ -932,12 +975,12 @@ namespace Simcraft
                 Unit = unit;
             }
 
-            private SimcraftImpl simc
+            new private SimcraftImpl simc
             {
                 get { return SimcraftImpl.inst; }
             }
 
-            private int lastIteCount = -1;
+            //private int lastIteCount = -1;
 
             Dictionary<uint, Aura> auras = new Dictionary<uint, Aura>();
 
@@ -956,8 +999,6 @@ namespace Simcraft
                 if (!u.Equals(Unit)) return;
 
                 auras.Clear();
-
-                int i = 1;
 
                 try
                 {
@@ -1089,10 +1130,10 @@ namespace Simcraft
 
             TreeHooks.Instance.ReplaceHook(SimcraftHookName, simcRoot);
 
-            if (Me.Specialization != Specialisation)
-            {
-                SelectorWindow.ShowDialog();
-            }
+            //if (Me.Specialization != Specialisation)
+            //{
+            //    SelectorWindow.ShowDialog();
+            //}
 
             Specialisation = Me.Specialization;
 

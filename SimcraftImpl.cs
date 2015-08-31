@@ -324,7 +324,7 @@ namespace Simcraft
                         if (!r) return false;
                         return (CanCast(actualSpell.name, conditionUnit));
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         //Write(conditionName + " " + _spell + " " + e.ToString());
                         return false;
@@ -459,7 +459,6 @@ namespace Simcraft
 
         public Composite UsePotion(String name, String Reason = "")
         {
-            CanRunDecoratorDelegate del = null;
             return UsePotion(name, null, Reason);
         }
 
@@ -568,9 +567,6 @@ namespace Simcraft
                     LogDebug(spell.name + " failed due to Cast");
                     return false;
                 }
-
-            LogDebug(spell.name+" failed due to CanCast?");
-            return false;
         }
 
         #endregion [Spell / Logging]
@@ -778,7 +774,6 @@ namespace Simcraft
             {
                 
                 LogDebug("Looking for "+aura.name);
-                WoWAura wantedAura = null;
                 var mismatch = 0;
                 foreach (var a in unit.GetAllAuras())
                 {

@@ -242,14 +242,15 @@ namespace Simcraft
 
         private static void SetDynamicMember(object obj, string memberName, object value)
         {
+
             var binder = Binder.SetMember(
                 CSharpBinderFlags.None,
                 memberName,
                 obj.GetType(),
                 new[]
-            {
-                CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null)
-            });
+                {
+                    CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null)
+                });
             var callsite = CallSite<Action<CallSite, object, object>>.Create(binder);
             callsite.Target(callsite, obj, value);
         }
